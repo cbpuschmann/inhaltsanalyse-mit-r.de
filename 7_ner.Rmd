@@ -1,0 +1,126 @@
+---
+title: ''
+author: ''
+subtitle: Tagging, Parsing, Entitätenerkennung
+output: html_notebook
+---
+
+\
+\
+\
+
+[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+
+Tagging, Parsing, Entitätenerkennung
+
+
+Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während ihnen in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, Tagging (die Bestimmung von Wortklassen), Parsing (die Bestimmung von Satz–Konstituenten) und Entitätenerkennung (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden aus können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant für die Frage sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen.
+
+Technisch arbeiten wir hier mit dem Paket [https://github.com/quanteda/spacyr](spacyr), welches wie auch andere hier vorgestellte Pakete eine direkte Schnittstelle zu quanteda hat. Spacyr ist allerdings ein Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gibt, führt der Weg hierfür zwangsläufig über Java oder Python. 
+
+Zunächst laden wir wieder das Korpus mit Beiträgen Schweizer Tageszeitungen zum Thema Finanzkrise.
+
+
+
+
+
+
+– verben oder ajektive finanzkrise (alle)
+– Banken als Subjekt??
+– entitäten twitter 
+– themenmodell die zeit o. new york times nur mit nomen
+
+
+```{r}
+# Installation und Laden der Bibliotheken
+if(!require("quanteda")) install.packages("quanteda")
+if(!require("tidyverse")) install.packages("tidyverse")
+if(!require("scales")) install.packages("scales")
+theme_set(theme_bw())
+```
+
+Dann laden wir das Paket Spacyr, bzw. laden dieses sofern bereits vorhanden. Die Installation von spacyr ist vergleichsweise aufwändig, weil zusätzlich eine aktuelle Version von Python benötigt wird, und kann mitunter eine Zeit in Anspruch nehmen. Zusästzliche benötigen wir zudem auch noch ein Sprachmodul für Deutsch, welches Tagging, Parsing und Entitätenerkennung in dieser Sprache ermöglicht. Nach dem Laden erfolgt schließlich die Initiatlisierung von spacyr.    
+
+```{r}
+if (!require("spacyr")) {
+  install.packages("spacyr")
+  library("spacyr")
+  spacy_install()
+  spacy_download_langmodel("de")
+}
+```
+
+Nun können wir das Paket einsetzen, um etwa die Wortklassen im Korpus zu bestimmen. 
+
+```{r}
+load("daten/cosmas/finanzkrise/finanzkrise.korpus.RData")
+korpus.finanzkrise.sample <- corpus_sample(korpus.finanzkrise, size = 1000)
+spacy_initialize(mode = "de")
+finanzkrise.pos <- spacy_parse(korpus.finanzkrise.sample, lemma = F, entity = T, dependency = T)
+spacy_finalize()
+head(finanzkrise.pos, 100)
+```
+
+
+```{r}
+subjekte <- finanzkrise.pos %>% 
+  filter(pos == "NOUN", dep_rel == "sb") %>% 
+  mutate(Wort = str_to_lower(token)) %>% 
+  group_by(Wort) %>% 
+  summarise(Frequenz = n()) %>% 
+  arrange(desc(Frequenz)) %>% 
+  mutate(Rang = row_number()) %>% 
+  filter(Rang <= 25)
+ggplot(subjekte, aes(reorder(Wort, Rang), Frequenz)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ggtitle("Frequenteste Satzsubjekte im Finanzkrise-Korpus")
+```
+
+
+```{r}
+load("daten/twitter/trumpclinton.korpus.RData")
+spacy_initialize(mode = "en")
+twitter.pos <- spacy_parse(korpus, lemma = F, entity = F)
+spacy_finalize()
+head(twitter.pos, 100)
+```
+
+```{r}
+adjektive.trumpclinton <- scan("daten/twitter/adjektive.trumpclinton.txt", what = "char", sep = "\n", quiet = T)
+adjektive <- twitter.pos %>% 
+  mutate(Wort = str_to_lower(token)) %>% 
+  filter(pos == "ADJ", Wort %in% adjektive.trumpclinton) %>% 
+  left_join(korpus.stats, by = c("doc_id" = "Text")) %>% 
+  group_by(Wort, Kandidat) %>% 
+  summarise(Frequenz = n()) %>% 
+  complete(Wort, Kandidat) %>%
+  replace(., is.na(.), 0) %>% 
+  arrange(Wort, Kandidat)
+
+adjektive.diff <- data.frame(Wort = unique(adjektive$Wort), Differenz = adjektive$Frequenz[adjektive$Kandidat == "Clinton"] - adjektive$Frequenz[adjektive$Kandidat == "Trump"]) %>% 
+  mutate(Differenz.S = as.vector(scale(Differenz, center = 0))) %>% 
+  arrange(Differenz.S)
+
+p <- ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5)) + xlab("") + ggtitle("Adjektive Trump vs. Clinton (mit 'great', 'big' enfernt)") + ylab("Trump                                                               Clinton") + coord_flip()
+ggplotly(p)
+```
+
+
+
+
+```{r}
+load("daten/un/un.korpus.RData")
+korpus.un.sample <- corpus_sample(korpus.un, size = 100)
+spacy_initialize(mode = "en")
+un.parsed <- spacy_parse(korpus.un.sample, pos = F, lemma = F)
+un.entities <- entity_extract(un.parsed)
+spacy_finalize()
+head(str_remove(un.entities$entity[un.entities$entity_type=="ORG"], "\n"), 50)
+```
+
+
+```{r}
+library(plotly)
+p <- ggplot(data = diamonds, aes(x = cut, fill = clarity)) +
+            geom_bar(position = "dodge")
+ggplotly(p)
+```
+

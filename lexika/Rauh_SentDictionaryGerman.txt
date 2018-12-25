@@ -1,0 +1,14 @@
+Rauh, Christian, 2018, "Replication Data for: Validating a sentiment dictionary for German political language", https://doi.org/10.7910/DVN/BKBXWD, Harvard Dataverse, V1
+ Learn about Data Citation Standards.
+Description
+The dataset provides a sentiment dictionary for German political language as well as the replication material for exemplary applications in speech, manifesto and media text corpora. A detailed guide to the resource and the different validation exercises is provided in:
+Rauh, Christian (2018) 'Validating a sentiment dictionary for German political language - a workbench note', Journal of Information Technology & Politics, forthcoming.
+
+Please make reference to this article when using the resources provided here. All analyses have been conducted in R 3.4.4 with additional packages specified at the beginning of the respective scripts.
+
+(2018-05-03)
+Subject Arts and Humanities; Computer and Information Science; Social Sciences
+Keyword Sentiment dictionary, Sentiment analysis, German, political language, text analysis, text-as-data
+Related Publication Rauh, Christian (2018) 'Validating a sentiment dictionary for German political language - a workbench note', Journal of Information Technology & Politics, forthcoming.
+
+https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/BKBXWD

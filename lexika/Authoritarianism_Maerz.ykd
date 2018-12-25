@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dictionary style="050805" patternengine="substring">
+<cnode name="autocratic vs. democratic" desc="">
+<cnode name="autocratic" desc="">
+<cnode name="1 autocratic procedures" desc="">
+<cnode name="authoritarian law and order" desc="">
+<pnode name="anarch*"/>
+<pnode name="assault*"/>
+<pnode name="betrayal"/>
+<pnode name="chaos"/>
+<pnode name="criminal*"/>
+<pnode name="danger*"/>
+<pnode name="delinquen*"/>
+<pnode name="destabili*"/>
+<pnode name="destructive"/>
+<pnode name="disorder"/>
+<pnode name="disrupt*"/>
+<pnode name="drug*"/>
+<pnode name="evil"/>
+<pnode name="fraud*"/>
+<pnode name="illegal*"/>
+<pnode name="instability"/>
+<pnode name="insult*"/>
+<pnode name="lawless*"/>
+<pnode name="manipulat*"/>
+<pnode name="negative"/>
+<pnode name="offence*"/>
+<pnode name="penal*"/>
+<pnode name="police"/>
+<pnode name="prison*"/>
+<pnode name="prosecution"/>
+<pnode name="punish*"/>
+<pnode name="rebell*"/>
+<pnode name="riot*"/>
+<pnode name="rules"/>
+<pnode name="sedition"/>
+<pnode name="sentence*"/>
+<pnode name="separatist*"/>
+<pnode name="slander"/>
+<pnode name="subversive"/>
+<pnode name="theft*"/>
+<pnode name="threat*"/>
+<pnode name="thug*"/>
+<pnode name="traffick*"/>
+<pnode name="turbulence"/>
+<pnode name="uncertain*"/>
+<pnode name="unlawful"/>
+<pnode name="unrest"/>
+<pnode name="vandal*"/>
+</cnode>
+<cnode name="maintenance of power" desc="">
+<pnode name="authority"/>
+<pnode name="continu*"/>
+<pnode name="crown"/>
+<pnode name="custod*"/>
+<pnode name="defen*"/>
+<pnode name="guard*"/>
+<pnode name="immunize"/>
+<pnode name="interfer*"/>
+<pnode name="invincible"/>
+<pnode name="king*"/>
+<pnode name="leader*"/>
+<pnode name="loyalty"/>
+<pnode name="maintain*"/>
+<pnode name="militar*"/>
+<pnode name="monarch*"/>
+<pnode name="preser*"/>
+<pnode name="prince"/>
+<pnode name="protect*"/>
+<pnode name="reign"/>
+<pnode name="restor*"/>
+<pnode name="royal*"/>
+<pnode name="securit*"/>
+<pnode name="seiz*"/>
+<pnode name="soldier*"/>
+<pnode name="sovereig*"/>
+<pnode name="stabil*"/>
+<pnode name="stable"/>
+<pnode name="strength"/>
+<pnode name="trust"/>
+<pnode name="vigilan*"/>
+</cnode>
+</cnode>
+<cnode name="2 illiberalism" desc="">
+<cnode name="nationalism, paternalism" desc="">
+<pnode name="allah"/>
+<pnode name="almighty"/>
+<pnode name="christ"/>
+<pnode name="christianity"/>
+<pnode name="christians"/>
+<pnode name="church"/>
+<pnode name="father*"/>
+<pnode name="god"/>
+<pnode name="hero*"/>
+<pnode name="homeland"/>
+<pnode name="ideology"/>
+<pnode name="islam"/>
+<pnode name="jesus"/>
+<pnode name="minaret"/>
+<pnode name="motherland"/>
+<pnode name="muslim*"/>
+<pnode name="patriot*"/>
+<pnode name="pride"/>
+<pnode name="proud"/>
+<pnode name="religi*"/>
+<pnode name="spiritual"/>
+<pnode name="uniqueness"/>
+<pnode name="unity"/>
+</cnode>
+<cnode name="traditionalism" desc="">
+<pnode name="ancestors"/>
+<pnode name="brothers"/>
+<pnode name="discipline"/>
+<pnode name="family"/>
+<pnode name="forefather"/>
+<pnode name="glories"/>
+<pnode name="glorious"/>
+<pnode name="heritage"/>
+<pnode name="honor"/>
+<pnode name="honour"/>
+<pnode name="inherit*"/>
+<pnode name="integrity"/>
+<pnode name="jubilee*"/>
+<pnode name="majesty"/>
+<pnode name="moral*"/>
+<pnode name="obscen*"/>
+<pnode name="pervert*"/>
+<pnode name="pornograph*"/>
+<pnode name="principle*"/>
+<pnode name="probity"/>
+<pnode name="pure"/>
+<pnode name="recapture*"/>
+<pnode name="reliab*"/>
+<pnode name="shameful"/>
+<pnode name="tradition*"/>
+</cnode>
+</cnode>
+</cnode>
+<cnode name="democratic" desc="">
+<cnode name="3 liberalism" desc="">
+<cnode name="liberal values" desc="">
+<pnode name="authoritarian*"/>
+<pnode name="autocra*"/>
+<pnode name="cruel*"/>
+<pnode name="dictator*"/>
+<pnode name="discriminat*"/>
+<pnode name="diverse"/>
+<pnode name="diversity"/>
+<pnode name="equal*"/>
+<pnode name="fascism"/>
+<pnode name="free*"/>
+<pnode name="harassment"/>
+<pnode name="inclusion"/>
+<pnode name="inclusiv*"/>
+<pnode name="innocent"/>
+<pnode name="interfaith"/>
+<pnode name="interreligious"/>
+<pnode name="liberal*"/>
+<pnode name="multicult*"/>
+<pnode name="oppression"/>
+<pnode name="pluralis*"/>
+<pnode name="repressi*"/>
+<pnode name="sex*"/>
+<pnode name="suppression"/>
+<pnode name="tolerance"/>
+<pnode name="tolerat*"/>
+<pnode name="violat*"/>
+</cnode>
+<cnode name="woman, minorities" desc="">
+<pnode name="dialect*"/>
+<pnode name="ethni*"/>
+<pnode name="gay*"/>
+<pnode name="gender"/>
+<pnode name="genocide"/>
+<pnode name="girls"/>
+<pnode name="handicapped"/>
+<pnode name="indigenous"/>
+<pnode name="injustice*"/>
+<pnode name="intolerance"/>
+<pnode name="lesbian*"/>
+<pnode name="lgbt"/>
+<pnode name="marginalize*"/>
+<pnode name="minorities"/>
+<pnode name="multiethnic"/>
+<pnode name="racist*"/>
+<pnode name="sisters"/>
+<pnode name="transgender"/>
+<pnode name="unfair*"/>
+<pnode name="woman"/>
+<pnode name="women"/>
+</cnode>
+</cnode>
+<cnode name="4 democratic procedures" desc="">
+<cnode name="democracy" desc="">
+<pnode name="bargaining"/>
+<pnode name="campaign"/>
+<pnode name="choice"/>
+<pnode name="commission"/>
+<pnode name="competitive"/>
+<pnode name="consensus"/>
+<pnode name="constitution"/>
+<pnode name="constructive"/>
+<pnode name="consultation"/>
+<pnode name="credibility"/>
+<pnode name="delegation"/>
+<pnode name="deliberate*"/>
+<pnode name="democra*"/>
+<pnode name="dialogue"/>
+<pnode name="election*"/>
+<pnode name="electoral"/>
+<pnode name="equal*"/>
+<pnode name="fair*"/>
+<pnode name="free"/>
+<pnode name="freedom"/>
+<pnode name="friendship"/>
+<pnode name="harmon*"/>
+<pnode name="holistic"/>
+<pnode name="justice"/>
+<pnode name="legislat*"/>
+<pnode name="mediat*"/>
+<pnode name="multilateral"/>
+<pnode name="negotiation*"/>
+<pnode name="opinion"/>
+<pnode name="parliament*"/>
+<pnode name="partnership"/>
+<pnode name="peace*"/>
+<pnode name="polls"/>
+<pnode name="recogn*"/>
+<pnode name="redistribution"/>
+<pnode name="referendum"/>
+<pnode name="rights"/>
+<pnode name="solidarity"/>
+<pnode name="transparen*"/>
+<pnode name="voice*"/>
+<pnode name="voluntary"/>
+<pnode name="vote*"/>
+<pnode name="voting"/>
+</cnode>
+<cnode name="institutional reforms" desc="">
+<pnode name="abolition"/>
+<pnode name="change"/>
+<pnode name="conciliation"/>
+<pnode name="corrupt*"/>
+<pnode name="creat*"/>
+<pnode name="demilitarization"/>
+<pnode name="disarmament"/>
+<pnode name="hindrance*"/>
+<pnode name="impetus"/>
+<pnode name="implement*"/>
+<pnode name="inertia"/>
+<pnode name="moderniz*"/>
+<pnode name="monitor*"/>
+<pnode name="new"/>
+<pnode name="obstacle*"/>
+<pnode name="optimis*"/>
+<pnode name="paralyz*"/>
+<pnode name="rebuild*"/>
+<pnode name="reconciliation"/>
+<pnode name="reexamine*"/>
+<pnode name="reform*"/>
+<pnode name="repeal*"/>
+<pnode name="replace*"/>
+<pnode name="representat*"/>
+<pnode name="scandal*"/>
+<pnode name="scrutin*"/>
+<pnode name="slow"/>
+<pnode name="stalemate"/>
+<pnode name="transform*"/>
+<pnode name="transition*"/>
+</cnode>
+</cnode>
+</cnode>
+</cnode>
+</dictionary>

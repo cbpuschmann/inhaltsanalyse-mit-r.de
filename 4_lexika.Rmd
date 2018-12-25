@@ -1,0 +1,294 @@
+---
+title: ''
+author: ''
+subtitle: Lexika
+output: html_notebook
+---
+
+\
+\
+\
+
+[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+
+Wie bereits angekündigt, schließt sich dieses Kapitel deshalb nahtlos and das vorausgehende Kapitel 3 zur Sentimentanalyse an, weil wir im Prinzip nichts neues dazulernen müssen, jedenfalls nicht, was die Funktionalität von quanteda angeht. Mit der Funktion [dictionary](https://docs.quanteda.io/reference/dictionary.html) und dem Wissen darüber, wie wir ein Lexikon auf eine DFM anwenden, schlagen wir gewissenmaßen zwei Fliegen mit einer Klappe, denn die Logik hinter den Themen– oder Politikfeld–Lexika, die in diesem Kapitel zur Anwendung kommen, gleicht der Logik von Sentiment-Lexika. Der wichtigste Unterschied besteht darin, dass die in diesem Kapitel behandelten Lexika i.d.R. eine ganze Reihe von Kategorien kennen, nicht nur die Typen *positiv* und *negativ*.
+
+Auch hier arbeiten wir wieder mit ganz unterschiedlichen Lexika und Korpora. Hier ein Überblick über die Lexika (die Korpora werden im [Überblick](inhaltsanalyse_0_ueberblick.html) genauer beschrieben), von denen alle bis auf das LIWC-Lexikon englischsprachig sind:
+
+* [Policy Agendas](http://www.lexicoder.com/download.html)
+* [Laver-Garry](https://provalisresearch.com/products/content-analysis-software/wordstat-dictionary/laver-garry-dictionary-of-policy-position/)
+* [Moral Foundations Theory](https://doi.org/10.7910/DVN/WJXCT8)
+* [Simulating Pluralism](https://doi.org/10.7910/DVN/AFTHMK)
+* [NewsMap](https://github.com/quanteda/quanteda_tutorials/blob/master/content/dictionary/newsmap.yml)
+* [LIWC Deutsch](https://www.klinikum.uni-heidelberg.de/LIWC.137799.0.html)
+
+Wir starten mit dem EU–Speech–Korpus, an dem wir gleich mehrere politische Lexika ausprobieren, und machen dann weiter mit dem UN–Generaldebattenkorpus, welches wir anhand unterschiedlicher Policy–Lexika untersuchen. Schließlich analysieren wir deutschsprachige Facebook–Kommentare, auf die wir die deutsche Fassung des LIWC–Lexikons anwenden, vermutlich eines der umfangreichsten Inhaltsanalyse–Lexikon überhaupt.
+
+### Installation und Laden der benötigten R-Bibliotheken
+
+Wieder werden zunächst die notwendigen Bibliotheken geladen. 
+
+```{r}
+if(!require("quanteda")) install.packages("quanteda")
+if(!require("readtext")) install.packages("readtext")
+if(!require("tidyverse")) install.packages("tidyverse")
+if(!require("lubridate")) install.packages("lubridate")
+theme_set(theme_bw())
+```
+
+Anschließend wird das umfangreiche EU Speech-Korpus eingelesen, auf das sich die vorwiegend politischen Lexika auf unserer Liste gut anwenden lassen. 
+
+```{r}
+load("daten/euspeech/euspeech.korpus.RData")
+```
+
+Ein Blick in die Metadaten gibt uns einen Eindruck der Korpus-Zusammensetzung. Im EU Speech-Korpus sind Reden von hochrangigen Vetretern der EU-Mitgliedstaaten gespeichert, dazu Reden von Mitgliedern des Europaparlaments und von Vetretern der EU-Kommission und der EZB. Alle Reden sind in englischer Sprache gespeichert, zum Teil als Übersetzung. Zudem gibt es noch Metadaten zu Sprechern, Länge und Anlass der Reden. Die Variable *Sentences* ist hier nicht aussagekräftig, weil das Korpus bereits vor dem Einlesen in R in tokenisierter Form vorlag. 
+
+```{r}
+head(korpus.euspeech.stats)
+```
+
+
+### Erstellung und Anwendung eines einfachen themenspezifischen Lexikons
+
+Im vorausgehenden Kapitel haben wir eingangs ein sehr simples Lexikon definiert, um die Struktur dieses Objekts in quanteda zu erläutern. Wir haben dieses Lexikon allerdings nicht angewandt, sondern sind gleich dazu übergangen, ein bereits fertiges Sentimentlexikon zu laden. Jetzt ist es an der Zeit, ein wenig mehr Arbeit in ein Ad hoc-Lexikon zu investieren, und dabei die Tatsache auszunutzen, dass ein quanteda-dictionary aus einer Reihe von Begriffen zu ganz unterschiedlichen Kategorien bestehen kann. Die im folgenden Beispiel für die Kategorie Populismus verwendete Wortliste stammt aus [Rooduijn und Pauwels (2011)](https://doi.org/10.1080/01402382.2011.616665) und wird in [dieser Übung](http://kenbenoit.net/assets/courses/essex2014qta/exercise5.pdf) von Ken Benoit (dem Erfinder von quanteda) herangezogen, während wir die zweite Wortliste zur Kategorie Liberalismus ad hoc selbst zusammengestellt haben. 
+
+```{r}
+populismus.liberalismus.lexikon <- dictionary(list(populism = c("elit*", "consensus*", "undemocratic*", "referend*", "corrupt*", "propagand", "politici*", "*deceit*", "*deceiv*", "*betray*", "shame*", "scandal*", "truth*", "dishonest*", "establishm*", "ruling*"), liberalism = c("liber*", "free*", "indiv*", "open*", "law*", "rules", "order", "rights", "trade", "global", "inter*", "trans*", "minori*", "exchange", "market*")))
+populismus.liberalismus.lexikon
+```
+
+Wie zuvor wenden wir das Lexikon auf unsere Daten an, dabei gruppieren wir hier zunächst nach der Variable *country* (die EU-Kommission, das EU-Parlament, sowie die EZB werden hier der Einfachheit halber auch als "countries" behandelt).
+
+```{r}
+meine.dfm.eu <- dfm(korpus.euspeech, groups = "country", dictionary = populismus.liberalismus.lexikon)
+meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
+convert(meine.dfm.eu.prop, "data.frame")
+```
+
+Ein Plot sparen wir uns an dieser Stelle. Es ist auch so sofort offensichtlich, dass Treffer auf die Kategorie Liberalismus im Vergleich klar gegenüber der Kategorie Populismus überwiegen, was angesichts der Zusammensetzung der Daten kaum überrascht. Allerdings scheinen die Unterschiede zwischen den beidr EU-Behörden Kommission und EZB, gefolgt von Deutschland, den Niederlanden und Tschechien einerseits, und Griechenland, Spanien und dem EU-Parlament andererseits den (sehr hemdsärmeligen) Kontrast, den unser Lexikons unterstellt, grundsätzlich zu bestätigen. Ist die erste Gruppe sehr wenig populistisch (jedenfalls nach Definition dieses simplen Lexikons), sieht das für die zweite Gruppe bereits etwas anders aus.
+
+Als nächstes berechnen wir den relativen Populismus-Anteil nach Jahren im Zeitrum von 2007-2015, und unterscheiden dabei zwischen zwei Typen von Akteuren: nationalen Regierungen (hier inkl. EU-Parlament) einerseits und EU-Behörden (EU–Kommission und EZB) andererseits.
+
+```{r}
+meine.dfm.eu <- dfm(korpus.euspeech, groups = c("Typ", "Jahr"), dictionary = populismus.liberalismus.lexikon)
+meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
+eu.themen <- convert(meine.dfm.eu.prop, "data.frame") %>% 
+  mutate(Typ = str_split(document, "\\.", simplify = T)[,1]) %>% 
+  mutate(Jahr = str_split(document, "\\.", simplify = T)[,2]) %>% 
+  select(Typ, Jahr, populism, liberalism)
+eu.themen
+```
+
+Auch hier überspringen wir das Plot. Während der Populismus-Anteil bei den EU–Behörden relativ konstant bei circa 2% liegt, ist er bei den Vertretern der EU-Mitgliedstaaten mit 7-9% deutlich höher.
+
+Bevor wir uns im nächsten Schritt "richtigen" Lexika zuwenden, die deutlich umfangreicher sind als unser Populismus–Lexikon, betrachten wir noch kurz die Variation *innerhalb* der Reden, da diese relativ lang sind, und sich so auch eine Themenverteilung berechnen lässt, *ohne* dass man mithilfe von *group* die DFM nach einer bestimmten Variable zusammenfasst. Das folgende Plot (welches Boxplot und Scatterplot kombiniert) zeigt die Variation beim Populismus-Anteil nach Land innerhalb einzelner Reden. 
+
+```{r}
+meine.dfm.eu <- dfm(korpus.euspeech, dictionary = populismus.liberalismus.lexikon)
+meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
+eu.poplib <- convert(meine.dfm.eu.prop, "data.frame") %>% 
+  bind_cols(korpus.euspeech.stats) %>% 
+  filter(length >= 1200, populism > 0 | liberalism > 0)
+ggplot(eu.poplib, aes(country, populism)) + geom_boxplot(outlier.size = 0) + geom_jitter(aes(country,populism), position = position_jitter(width = 0.4, height = 0), alpha = 0.1, size = 0.2, show.legend = F) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + xlab("") + ylab("Populismus-Anteil (%)") + ggtitle("Populismus-Anteil in Reden des EU-Speech-Korpus")
+```
+
+Wie die Dichte der Punkte im Plot zeigt, ist der Anteil der Kommission am Korpus insgesamt groß, auch wenn das Populismus-Niveau (gemessen mit unserem primitiven Lexikon) insgesamt niedrig ist. Desweiteren erkennen wir eine größere Bandbreite bei den nationalen Regierungen (Griechenland vs. Deutschland) als bei den Behörden. 
+
+Hier sollte man Ausreißer (etwa bei der EU-Kommision) mit einem Populismus-Anteil von 100% nicht überschätzen. Zwar haben wir zuvor sehr kurze Reden ausgeschlossen (mit *length >= 1200*), aber es dürfte trotzdem solche Texte geben, die nur durch eine handvoll Treffer auf eine der beiden Kateogorien ein solches Ergebnis erreichen (dies gielt auch für einen Liberalismus–Anteil von 100%). Wie auch beim Sentiment gilt: Es handelt sich um heuristische Verfahren, und mit einem besseren Lexikon lässt sich die Genauigkeit leicht steigern.
+
+
+### Anwendung der Lexika Policy Agendas und Laver-Garry auf das EU Speech–Korpus
+
+Es muss betont werden, dass unser Ad-hoc-Lexikon sicherlich nicht ausreicht, um den Stil oder das Themenspektrum politischer Debatten adäquat anzubilden. Wir erstellen deshalb jetzt zwei quanteda-Lexika auf Grundlage des Policy Agenda–Lexikons und auf Basis des Laver Garry-Lexikons. Bei beiden Lexika handelt es sich um in der Poltikwissenschaft vielfach eingesetzte Resourcen für die Bestimmung von Politikfeldern. Die Lexikon–Daten dazu kommen für Policy Agendas aus einer schon vorbereiteten RData-Datei und für Laver Garry aus einer Textdatei im Format "WordStat", welches der dictionary-Befehl bereits kennt. 
+
+Wir schauen in beide Lexika mit dem Befehl head hinein -- man erkennt gleich den großen Umfang.
+
+```{r}
+load("lexika/policy_agendas_english.RData")
+policyagendas.lexikon <- dictionary(dictLexic2Topics)
+lavergarry.lexikon <- dictionary(file = "lexika/LaverGarry.cat", format = "wordstat")
+head(policyagendas.lexikon, 2)
+head(lavergarry.lexikon, 2)
+```
+
+Die beiden Lexika zeichnen sich dafurch aus, dass sie geschachtelte Kategorien aufweisen, unter denen sich eine Reihe von Unterkategorien verbergen. 
+
+Nun berechnen wir je eine DFM für jedes Lexikon und gruppieren diese einmal nach Land und einmal nach Jahr.
+
+```{r}
+meine.dfm.eu.pa <- dfm(korpus.euspeech, groups = "country", dictionary = policyagendas.lexikon)
+meine.dfm.eu.lg <- dfm(korpus.euspeech, groups = "Jahr", dictionary = lavergarry.lexikon)
+```
+
+Das folgende Plot zeigt die Themenverteilung innerhalb des Korpus nach Land, auf Basis des Policy Agenda-Lexikons. Wir haben zuvor einige Themen ausgewählt und auf der Grundlage dieser Auswahl die Anteile berechnet. Andere Bereiche haben wir unter *other* zusammengefasst.
+
+```{r}
+eu.themen.pa <- convert(meine.dfm.eu.pa, "data.frame") %>%
+  rename(Land = document) %>%
+  select(Land, macroeconomics, finance, foreign_trade, labour, healthcare, immigration, education, intl_affairs, defence) %>%
+  gather(macroeconomics:defence, key = "Thema", value = "Anteil") %>% 
+  group_by(Land) %>% 
+  mutate(Anteil = Anteil/sum(Anteil)) %>% 
+  mutate(Thema = as_factor(Thema))
+ggplot(eu.themen.pa, aes(Land, Anteil, colour = Thema, fill = Thema)) + geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Themen im EU-Speech-Korpus auf Basis des Policy Agendas-Lexikons") + xlab("") + ylab("Themen-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Die Anteilsverteilung dürfte in Teilen kaum überraschen. Die EZB und in einem etwas geringerem Umfang auch die Kommission beschäftigen sich viel mit Makroökonomie und Finanzen, Frankreich und Spanien mit dem Arbeitsmarkt, und Deutschland und die Niederlande viel mit Handel. Interessant sind die Themenfelder Verteididung (Niederlande, Frankreich, Großbritannien), Zuwanderung (Tschechien) und Bildung (Frankreich, Großbritannien). Die geringe Relevanz des Zuwanderungsthemas in Italien und Griechenland belegt vielleicht eine Diskrepanz zwischen öffentlicher Meinung und der Regierungsagenda –– jedenfalls im Zeitraum 2007–2015.
+
+Wir wenden uns nun dem Laver-Garry-Lexikon zu, welches wir gezielt auf den Zeitverlauf 2007-2015 anwenden, um Veränderungen in den Blick zunehmen. Die vielen Umformungsschritte werden notwendig, weil das Lexikon stark geschachtelte Kategorien besitzt, die wir zur besseren Übersichtlichkeit zum Teil zusammenfassen und umbennnen. 
+
+```{r}
+eu.themen.lg <- dfm_weight(meine.dfm.eu.lg, scheme = "prop") %>% 
+  convert("data.frame") %>% 
+  rename(Jahr = document) %>% 
+  mutate(culture = `CULTURE` + `CULTURE.CULTURE-HIGH` + `CULTURE.CULTURE-POPULAR` + `CULTURE.SPORT`) %>% 
+  mutate(economy = `ECONOMY.+STATE+` + `ECONOMY.=STATE=` + `ECONOMY.-STATE-`) %>% 
+  mutate(environment = `ENVIRONMENT.CON ENVIRONMENT` + `ENVIRONMENT.PRO ENVIRONMENT`) %>% 
+  mutate(institutions = `INSTITUTIONS.CONSERVATIVE` + `INSTITUTIONS.NEUTRAL` + `INSTITUTIONS.RADICAL`) %>%
+  mutate(values = `VALUES.CONSERVATIVE` + `VALUES.LIBERAL`) %>%
+  mutate(law_and_order = `LAW_AND_ORDER.LAW-CONSERVATIVE`) %>%
+  mutate(rural = `RURAL`) %>%
+  mutate(other = `GROUPS.ETHNIC` + `GROUPS.WOMEN` + `LAW_AND_ORDER.LAW-LIBERAL` + `URBAN`) %>% 
+  select(Jahr, culture:other) %>% 
+  gather(Thema, Prozent, culture:other) %>% 
+  filter(!Thema %in% c("economy", "institutions", "values", "culture", "other"))
+ggplot(eu.themen.lg, aes(Jahr, Prozent, group = Thema, col = Thema)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + ggtitle("Themen im EU-Speech-Korpus auf Grundlage des Laver-Garry-Lexikons") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ylab("Themen-Anteil (%)")
+```
+
+Wieso haben wir so viele Kategorien ausgelassen? Die Themenfelder *economy* und *institutions* sind sehr stark ausgeprägt und verändern sich im Untersuchungszeitraum nicht allzu merklich, daher ist es hier interessanter, sich eher kleinere Themenfelder anzusehen. Auffällig ist u.a. ein Abfallen des Themenfeldes *ländlicher Raum*, ein sprunghafter Anstieg des Themas *innere Sicherheit* und ein Nachlassen der Relevanz des Themas *Umwelt*.
+
+Die behandelten Lexika bilden beide Politikfelder ab. Durch die spezialisierte Begriffswelt von Themen wie Finanz- oder Umweltpoltik wird es möglich, die Konjunktur dieser Ressorts zu quantifizieren. Eine anderen Zugang zu der automatisierten Ermittlung von Thenen beschreiben wir im nächsten Kapitel. Was aber, wenn man sich weniger für Themen, sonder eher für abstrakte Kategorien wie autokratische Argumentationsmuster oder moralisch-philosophische Grundlagen politischen Handelns interessiert?
+
+
+### Anwendung der Lexika Moral Foundations Theory, Simulating Pluralism und NewsMap auf das UN General Debate Corpus 
+
+Laden wir nun also zwei weitere Lexika, die sich im Gegensatz zu Policy Agendas und Laver-Garry nicht Poltikfelder beschreiben, sondern sich mehr mit politischer Argumentation befassen, das [Moral Foundations Theory](http://moralfoundations.org/)-Lexikon und das "Language of Democracy in Hegemonic Authoritarianism"-Lexikon von [Seraphine F. Maerz](https://sites.google.com/view/seraphinemaerz/about)]. Hier machen wir uns ähnlich wir beim Laver Garry-Lexikon die Möglichkeit in quanteda zunutzte, Lexika in bestimmten Standardformaten (hier in den Formaten LIWC und yoshikoder) einzulesen. Das erspart uns komplizierte Syntax für die Interpretation der Lexikon-Struktur.
+
+Wieso überhaupt so viele unterschiedliche Lexika? Wieso nicht einfach das beste Lexikon nutzen, und ausschließlich damit arbeiten? Leider ist die Frage, welches Lexikon man nutzen sollte, eng mit dem Forschungsinteresse verquickt. Will man also etwas über die Sprache autoritärer Regime oder moralische Appelle in politischen Reden erfahren, brauch man andere Lexika, als wenn man den Anteil von Politikfeldern beschreiben möchte. Daher stellen wir eine ganze Reihe von Lexika vor –– und tatsächlich wäre noch zahlreiche weitere durchaus interessant, die wir hier nicht vorstellen. Hinzu kommt noch der Aspekt der Verfügbarkeit: viele Lexika sind leider kostenpflichtig, nicht in offenen Formaten gespeichert, nur unzureichend dokumentiert, oder einfach schwer auffindbar.
+
+```{r}
+mft.lexikon <- dictionary(file = "lexika/moral_foundations_dictionary.dic", format = "LIWC")
+maerz.lexikon <- dictionary(file = "lexika/Authoritarianism_Maerz.ykd", format = "yoshikoder")
+newsmap.lexikon <- dictionary(file = "lexika/newsmap.yml", format = "YAML")
+newsmap.lexikon <- dictionary(list(africa = unname(unlist(newsmap.lexikon$AFRICA)), america = unname(unlist(newsmap.lexikon$AMERICA)), asia = unname(unlist(newsmap.lexikon$ASIA)), europe = unname(unlist(newsmap.lexikon$EUROPE)), oceania = unname(unlist(newsmap.lexikon$OCEANIA))))
+str(mft.lexikon)
+str(maerz.lexikon)
+str(newsmap.lexikon)
+```
+
+Im Vergleich fällt auf, dass die drei Lexika sehr elaboriert sind, mit umfassenden Begriffslisten für verschiedene Konzepte. Jetzt laden wie den nächsten Datensatz, nämlich das [UN General Debate Korpus](http://www.smikhaylov.net/ungdc/) zusammengestellt von Slava Mikhaylov. Es umfasst die Transkripte der UN-Generaldebatte zwischen 1970 und 2017. Mit 24 Mio. Wörtern ist dies das umfangreichste Korpus, mit dem wir hier arbeiten, allerdings verteilt sich diese Wortzahl nur auf rund 7,900 Texte, d.h. die Texte sind im Mittel relativ lang. 
+
+```{r}
+load("daten/un/un.korpus.RData")
+head(korpus.un.stats)
+```
+
+Wie man sieht, enthält auch dieses Korpus umfassende Metadaten. Zu Teil sind diese schon vorhanden, zum Teil wurden sie auf Grundlage weiterer Quellen angefügt. Dazu gehört der Landesname sowie Angaben zum politischen System.
+
+Wieder bereiten wir mehrere DFMs vor, zweimal nach Ländern gruppiert und einmal nach Jahren. Wir filtern folgend etwas, so dass nicht die gesamten 47 Jahre ausgewertet werden, sondern nur die letzten 10 bis 35 Jahre.
+
+```{r}
+meine.dfm.un.mft <- dfm_weight(dfm(corpus_subset(korpus.un, year >= 1992), groups = "country", dictionary = mft.lexikon), scheme = "prop")
+meine.dfm.un.maerz <- dfm(corpus_subset(korpus.un, year >= 1982), groups = "year", dictionary = maerz.lexikon)
+meine.dfm.un.newsmap <- dfm(corpus_subset(korpus.un, year >= 2007) , groups = "country", dictionary = newsmap.lexikon)
+```
+
+Zunächst sehen wir uns die Verteilung unterschiedlicher Kategorien im Moral Foundations Theory-Lexikon im Verlauf der letzten 25 Jahr an. Die Moral Foundations Theory postuliert wie der Name bereits nahelegt die Existenz moralischer Grundlagen, welche das politische Handeln unterfüttern. Opterationalisiert werden diese Grundlagen durch Begriffe, die typisch für eine Kategorie wie *allgemeine Moralität* sind. Da bietet es sich an, die Distribution dieser Kategorien im internationalen Vergleich zu analysieren. Nachstehend ziehen wir ein Zufallssample aus den 188 im Korpus vertretenen Länder und plotten für diese die Verteilung der elf Kategorien.
+
+```{r}
+mft.laender <- sort(sample(unique(korpus.un.stats$country), size = 12))
+un.mft <- convert(meine.dfm.un.mft, "data.frame") %>% 
+  rename(Land = document) %>% 
+  filter(Land %in% mft.laender) %>% 
+  gather(HarmVirtue:MoralityGeneral, key = "MF_Typ", value = "Anteil") %>% 
+  mutate(Land = factor(Land, levels = rev(mft.laender)))
+ggplot(un.mft, aes(Land, Anteil, fill = MF_Typ)) + geom_bar(stat="identity") + coord_flip() + scale_fill_manual(values = c("#E5F5E0", "#A1D99B", "#DEEBF7", "#9ECAE1", "#FEE0D2", "#FC9272", "#FEE6CE", "#FDAE6B", "#FFFFFF", "#EFEDF5", "#BCBDDC")) + ggtitle("Themen für zwölf Länder im UN-Korpus mit dem MFT–Lexikon") + xlab("") + ylab("Themen-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Durch das Ziehen eines Zufallssamples erhalten wir einen Überblick über unterschiedliche Typen von (politischen) Argumentationskulturen, die zwar für Experten nicht überraschend sein dürften, aber doch interessante Ähnlichkeiten aufzeigen.
+
+Wir belassen es bei diesem kurzen Eindruck und wenden uns dem Simulating Pluralism-Lexikon zu, welches Autokratien und Demokratien bezüglich bestimmter Argumentationsmuster vergleicht.
+
+```{r}
+un.maerz <- convert(meine.dfm.un.maerz, "data.frame") %>% 
+  mutate(Jahr = parse_date(document, format = "%Y")) %>%
+  rename(illiberalism = `autocratic vs. democratic.democratic.3 liberalism.autocratic.2 illiberalism`) %>%
+  rename(democracy = `autocratic vs. democratic.democratic.4 democratic procedures.democracy`) %>%  
+  rename(maintenance_of_power = `autocratic vs. democratic.autocratic.1 autocratic procedures.maintenance of power`) %>%  
+  rename(reforms = `autocratic vs. democratic.democratic.4 democratic procedures.institutional reforms`) %>%  
+  select(Jahr, illiberalism, democracy, maintenance_of_power, reforms) %>% 
+  gather(illiberalism:reforms, key = "Maerz_Typ", value = "Begriffe") %>% 
+  mutate(Maerz_Typ = factor(Maerz_Typ, levels = c("illiberalism", "democracy", "maintenance_of_power", "reforms")))
+ggplot(un.maerz, aes(Jahr, Begriffe, group = Maerz_Typ, col = Maerz_Typ)) + geom_line(size = 1) + geom_point() + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "3 years", date_labels = "%Y") +  ggtitle("Politische Dimensionen im UN-Korpus nach dem Maerz-Lexikon") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ylab("Wörter")
+```
+
+Wir gehen zwar auch auf diese Ergebnisse nicht genauer ein, aber sie belegen gut, wieso die Anwendung des passenden Lexikons einen echten Erkenntnisgewinn bringen kann, besonders wenn es darum geht, Kontraste zwischen Akteuren, Trends, oder Inflektionspunkte zeitlicher Entwicklungen herauszuarbeiten.
+
+Wir wenden uns mit dem nächsten Lexikon einer weiteren Betrachtungsebene zu. Mit dem NewsMap-Lexikon lässt sich die Frage beantworten, über welche Weltregionen die untersuchten Länder im UN–Korpus vorwiegend sprechen. Das klingt zunächt trivial, wird aber interessanter, wenn man bedenkt, dass sich bestimmte Länder deutlich mehr ausserhalb ihrer direkten Nachbarschaft engagieren als andere. So lassen sich Länder etwa danach gruppieren, wie viel und über welche (anderen) Regionen sie sprechen.
+
+```{r}
+newsmap.laender <- sort(sample(unique(korpus.un.stats$country), size = 6))
+un.newsmap <- convert(meine.dfm.un.newsmap, "data.frame") %>% 
+  rename(Land = document) %>% 
+  filter(Land %in% newsmap.laender) %>% 
+  gather(africa:oceania, key = "NewsMap_Region", value = "Anteil") %>% 
+  mutate(Land = factor(Land, levels = newsmap.laender))
+ggplot(un.newsmap, aes(Land, Anteil, colour = NewsMap_Region, fill = NewsMap_Region)) + geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Angesprochener Weltregionen im UN-Korpus nach dem NewsMap-Lexikon") + xlab("") + ylab("Wörter") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+### Anwendung des deutschsprachigen LIWC-Lexikons auf Facebook-Kommentare
+
+Zuletzt wechseln wir noch einmal die Perspektive bzw. das Korpus, und laden einen ganz aktuellen Datensatz, bestehend aus Facebook-Kommentaren von zwei politischen Facebook-Seiten (AfD und Pegida), sowie vier deutschen Nachrichenseiten, um einen Vergleich der Diskussionen, die auf diesen Seiten stattfinden durchzuführen. Dazu rufen wir zunächst das deutschsprachige LIWC-Lexikon auf. 
+
+```{r}
+load("daten/facebook/facebook.korpus.RData")
+```
+
+Wieder werfen wir einen qualitativen Blick auf die Daten, indem wir ein Zufallssample ziehen. 
+
+```{r}
+texts(corpus_sample(corpus_subset(korpus.facebook, corpus == "populism"), size = 2))
+texts(corpus_sample(corpus_subset(korpus.facebook, corpus == "news"), size = 2))
+```
+
+Wieder verschaffen wir uns auch einen quantitativen Überblick der Textmenge über die Zeit.
+
+```{r}
+facebook.aktivitaet <- korpus.facebook.stats %>%
+  mutate(Quelle = factor(source, levels = c("pegidaevdresden", "alternativefuerde", "FAZ", "SZ", "Welt", "Zeit"))) %>% 
+  group_by(Datum = floor_date(created_time, "1 month"), Quelle) %>%
+  summarise(Kommentare = n())
+ggplot(facebook.aktivitaet, aes(as.Date(Datum), Kommentare, group = Quelle, col = Quelle)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + ggtitle("Kommentare auf sechs Facebook-Seiten") + xlab("Monat") + ylab("") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Wie man sieht, beinhaltet das Facebook-Korpus Kommentare, die zwischen 2015 und 2016 auf insgesamt sechs Facebook-Seiten veröffentlicht wurden, davon vier zu großen deutschen Tageszeitungen gehörend, und zwei zu rechtspopulistischen Bewegungen und Partein.
+
+Wir laden zunächst LIWC. Einige der Begriffe sind Kategorien zugeordnet, die gar nicht im Anfangsteil des Lexikons definiert sind, was für quanteda allerdings keinerlei Probleme verursacht. 
+
+```{r}
+liwc.deutsch <- dictionary(file = "lexika/LIWC_German.dic", format = "LIWC")
+```
+
+Dann generieren wir einen DFM unter Anwendung des Lexikons, nachdem wir nach der Variable *Korpus* (also nach *populism* oder *news*) gruppiert haben.
+
+```{r}
+meine.dfm.fb.liwc <- dfm(korpus.facebook, groups = "corpus", dictionary = liwc.deutsch)
+```
+
+Wieder plotten wir abschließend die Verteilung der Treffer auf das Lexikon, hier nach der Variable *Korpus*, die ja die Unterscheidung zwischen den populistischen Seiten und der Nachrichtenseiten ernhält. Wir verwenden deshalb absolute Token-Zahlen, weil unser Korpus exakt 50/50 aufgeteilt ist. Wir lassen eine Reihe von LIWC-Kategorien weg, da nicht alle für unsere Zwecke relevant sind. 
+
+```{r}
+liwc.anteile <- convert(meine.dfm.fb.liwc, "data.frame") %>%
+  rename(Korpus = document) %>% 
+  gather(key = Kategorie, value = Wörter, -Korpus) %>% 
+  filter(!Kategorie %in% c("Article", "Down", "Eat", "Fillers", "Grooming", "Humans", "Money", "Motion", "Music", "Nonfluency", "Numbers", "Physical", "Preps", "Relig", "Sex", "Sleep", "Sports", "Time", "Up")) %>% 
+  mutate(Korpus = factor(Korpus, levels = c("populism", "news")))
+ggplot(liwc.anteile, aes(Kategorie, Wörter, fill = Korpus)) + geom_bar(stat = "identity", position = position_dodge()) + scale_fill_brewer(palette = "Set1") + ggtitle("Anteile von LIWC-Kategorien in Facebook-Kommentaren") + xlab("LIWC-Kategorie") + theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
+```
+
+Die Ergbnisse sind möglicherweise überraschend. So ist der Diskurs auf den Nachrichtenseiten affektiver, als der auf den populistischen Seiten. Er enthält auch mehr soziale Begriffe und mehr Ansprache anderer. Es wird aber auch mehr über das "wir" gesprochen, über "andere" und "Aussenstehende", und es kommen häufiger tabuisierte Begriffe vor. Das Nachrichtenkorpus enthält zudem mehr kognitive Begriffe
+
+Zusammenfassend könnne wir festhalten, das Lexika sehr nützliche Werkzeuge für die Untersuchung von Inhalten sind. Dies gilt in besonderem Maße, wenn sie viele und geschachtelte Kategorien enthalten, und wenn ihre Abdeckung hinreichend ist (d.h. die Begriffe im Lexikon auch tatsächlich im Korpus vorkommen). Lexika stoßen schnell an ihre Grenzen, wenn sie zu klein oder zu grob strukturiert sind. Zudem muss man ein passendes Lexikon überhaupt erst einmal finden. Ohne Lexikon bleiben aber zum Glück nützliche induktive Methoden, auf die man zurückgreifen kann.
+

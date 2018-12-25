@@ -1,0 +1,414 @@
+---
+title: ''
+author: ''
+subtitle: Sentiment
+output: html_notebook
+---
+
+\
+\
+\
+
+[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+
+Wie auch einige andere hier behandelte Verfahren hat die [Sentimentanalyse](https://de.wikipedia.org/wiki/Sentimentanalyse) ihre Wurzeln in der Computerlinguistik und Informatik, wird aber seit einigen Jahren auch zunehmend in den Sozialwissenschaften angewandt, um ganz unterschiedliche Texte automatisch zu klassifizieren, etwa Parlamentsdebatten, Freitextantworten in Befragungen, oder Social Media-Diskurse. Ziel der Sentimentanalyse ist die Bestimmung der Polarität eines Textes, womit gemeint ist, ob die darin zum Ausdruck gebrachten Emotionen eher positiv oder negativ sind. Dies geschieht häufig durch Wortlisten und über das Auszählen von Begriffen, die zuvor den Kategorien *positiv* oder *negativ* zugeordnet wurden. In vielen Verfahren wird das Resultat anachließend skaliert, oder es werden andere Schritte angewandt, um fehlerhafte Klassifizierungen zu vermeiden. Diese treten vor allem dann auf, wenn Negation oder Ironie verwendet werden, aber auch, wenn der Gegenstand der positiven oder negativen Ausdrücke wechselt oder unklar ist. Unsprünglich wurde die Sentimentanalyse auf Produktbewertungen auf E-Commerence-Plattformen wie Amazon.com getestet, wo diese Probleme eine relativ geringe Rolle spielen. Bei Pressetexten oder Diskursen in den sozialen Medien hingegen, ist oft schwerer zu bewerten, auf was sich eine Sentimentbewertung bezieht, oder welches Sentimenniveau etwa als ‘normal’ betrachtet werden sollte. So kommen beispielsweise in Pressetexten generell wenig Emotionen zum Ausdruck, und die negativen Begriffe überwiegen häufig, ohne dass dies notwendigerweise auf einen schlechten Zustand der Welt zurückzuführen wäre. Schließlich sollte man sich vor Augen führen, dass die Sentimentanalyse ein heuristisches Verfahren ist, dass immer auch fehlerhafte Einzelklassifikationen produziert, was aber idealerweise nicht zu stark ins Gewicht fällt, wenn man etwas Veränderungen im Sentimentverlauf über die Zeit untersucht.
+
+Was die technische Umsetzung angeht, so gehören dieser Abschnitt und das nächste Kapitel 3b: Lexika insofern zusammen, als dass es sich bei beiden Ansätzen um ganz ähnliche Verfahren handelt. In beiden Fällen wird ein Lexikon ('sentiment/topic dictionary') verwendet, um eine Reihe von Einzelbegriffen in einer Kategorie zusammenzufassen. 
+
+Wir verwenden in diesem Kapitel fünf unterschiedliche Sentimentlexika, davon drei in englischer Sprache und zwei für Deutsch:
+
+* [Bing Liu Sentiment Lexicon](https://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html#lexicon)
+* [NRC Emotion Lexicon](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm)
+* [AFINN](http://www2.imm.dtu.dk/pubdb/views/publication_details.php?id=6010)
+* [SentiWS](http://wortschatz.uni-leipzig.de/de/download#sentiWSDownload)
+* [Christian Rauh's Sentiment Dictionary](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/BKBXWD)
+
+Diese Lexika sind lediglich Listen von Wörtern, welche wie oben beschrieben den Kategorien *postiv* oder *negativ* zugeordnet sind. Zum Teil existiert auch noch eine dritte Kategorie *neutral*, desweiteren können Begriffe auch mehreren Kategorien zugeordnet sein, oder neben einer Zuordnung der Polarität auch noch eine Sentimentstärke zugeschrieben bekommen. Die hier vorgestellte Technik ist vergleichsweise primitiv, weil sie lediglich Wörter auszählt, allerdings lassen sich die Verfahren leicht noch verfeinern (vgl. bspw. [diesen Beitrag von Christian Rauh](https://www.tandfonline.com/doi/full/10.1080/19331681.2018.1485608) zur Validierung politischer Sentiment-Lexika). Auch Verfahren die gewichten oder andere Kniffe für die Verringerung der Fehlerrate einsetzen, funktionieren so — die Sentimentanalye ist effektiv, aber auch alles andere als Hexenwerk.
+
+Diese Lexika wenden wir folgend auf vier Datensätze an: das bereits bekannte Sherlock Holmes—Korpus, einen Datensatz aus Tweets von Donald Trump un Hillary Clinten, ein Korpus Schweizer Tageszeitugen mit Artikeln zur Finanzkrise, die zwischen 2007 und 2012 verfasst wurden, und schließlich noch einen Debattenkorpus des 18. Deutschen Bundestags (2013 bis 2017). Auf die Zusammenstellung der Korpora gehen wir später noch ein.
+
+### Installation und Laden der benötigten R-Bibliotheken, Laden des Korpus
+
+Zunächst werden wieder die notwendigen Bibliotheken geladen. Neu ist die Bibliothek scales die bei der Normalisierung von Sentiment—Scores zum Einsatz kommt. Dann wird in einem zweiten Schritt das Sherlock-Korpus eingelesen und aufbereitet und dann Korpus-Statistiken berechnet. Schließlich erstellen wir wieder eine DFM (vgl. [Kapitel 1](AIR1)), da wir diese später noch benötigen. 
+
+```{r}
+# Installation und Laden der Bibliotheken
+if(!require("quanteda")) install.packages("quanteda")
+if(!require("readtext")) install.packages("readtext")
+if(!require("tidyverse")) install.packages("tidyverse")
+if(!require("scales")) install.packages("scales")
+theme_set(theme_bw())
+
+# Laden der Sherlock Holmes-Daten (bereits als RData-File gespeichert)
+load("daten/sherlock/sherlock.korpus.RData")
+```
+
+
+### Erstellung eines Lexikons in quanteda
+
+Wir beginnen zunächst mit einer Sentimentanalyse der Sherlock Holmes-Erzählungen, um bei einem bereits aus Kapitel 1 und 2 vertrauten Korpus zu bleiben. In einem ersten Schritt erstellen wir ein sehr einfaches Ad hoc-Lexikon aus nur sechs Begriffen, um die Struktur eines Lexikons in quanteda zu illustrieren. Dies geschieht mit dem quanteda-Befehl [dictionary](http://docs.quanteda.io/reference/dictionary.html). Dictionary() akzeptiert eine Reihe von Standardformaten (dazu später noch mehr), aber auch Vektoren, welche die Begriffe enthalten, die eine abstrakte Kategorie operationalisieren. Beliebig viele Kategorien können so definiert und dann mit tausenden von Begriffen 'befüllt' werden. Auch Kategorien mit mehreren hierarchischen Ebenen sind möglich — dazu im nächsten Kapitel noch etwas mehr.
+
+```{r}
+test.lexikon <- dictionary(list(posititive.begriffe = c("glück", "freude", "licht"), negative.begriffe = c("trauer", "wut", "dunkelheit")))
+test.lexikon
+```
+
+### Erste Sentiment-Analyse mit dem Sherlock Holmes-Korpus
+
+Mit diesem Lexikon können wir mit unserem englischsprachigen Korpus wenig konkretes anfangen, daher wechseln wir besser zu einem echten Sentimentlexikon. In einem zweiten Schritt lesen wir mit dem Befehl [scan](https://www.rdocumentation.org/packages/base/versions/3.5.1/topics/scan) das [Bing Liu Sentiment Lexikon](https://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html#lexicon) in R ein. Dieses Lexikon umfasst über 6.700 englischsprachige Begriffe die in zwei einfachenn Textdateien abgelegt sind, die jeweils ein Wort je Zeile enthalten. Wir überspringen mit dem Argument *skip* die ersten 35 Zeilen, da diese Metainformationen über das Lexikon enthalten. Das Argument *quiet* verhindet die Ausgabe einer Statusmeldung. 
+
+```{r}
+positive.woerter.bl <- scan("lexika/bingliu-positive-words.txt", what = "char", sep = "\n", skip = 35, quiet = T)
+negative.woerter.bl <- scan("lexika/bingliu-negative-words.txt", what = "char", sep = "\n", skip = 35, quiet = T)
+```
+
+Nun erstellen wir das Lexikon mithilfe der gerade eingelesenen Textvektoren. Dies erfolgt wieder mit der Funktion dictionary(), diesmal mit den gerade eingelesenen Vektoren als Argument.
+
+```{r}
+sentiment.lexikon <- dictionary(list(positive = positive.woerter.bl, negative = negative.woerter.bl))
+str(sentiment.lexikon)
+```
+
+Wie man sieht, sind nun mehrere tausend Begriffe den beiden Kategorien des Lexikons zugeordnet worden. Jetzt können wir eine DFM berechnen, welche das erstellte Lexikon auf das Korpus anwendet.
+
+```{r}
+meine.dfm.sentiment <- dfm(korpus, dictionary = sentiment.lexikon)
+meine.dfm.sentiment
+```
+
+Was ist geschehen? *Alle* Nennungen der rund 6.700 im Bing Liu Lexikon enthaltenen Begriffe in den zwölf Sherlock Holmes—Romanen sind jeweils durch die ihnen zugeordnete Kategorie ersetzt worden. Sämtliche Begriffe, die nicht im Lexikon vorkommen, fallen weg. Dadurch bleibt eine Tabelle zurück, die nur noch zwei Spalten enthält — die Summe aller *positiven* und *negativen* Begriffe.
+
+Das folgende Plot zeigt diese Verteilung in den zwölf Sherlock Holmes-Erzählungen. 
+
+```{r}
+sentiment <- convert(meine.dfm.sentiment, "data.frame") %>%
+  gather(positive, negative, key = "Polarität", value = "Wörter") %>% 
+  mutate(document = as_factor(document)) %>% 
+  rename(Roman = document)
+ggplot(sentiment, aes(Roman, Wörter, colour = Polarität, group = Polarität)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Sentiment-Scores in zwölf Sherlock Holmes-Romanen")
+```
+
+
+#### Gewichtung von Sentiment-Scores
+
+Erinnert man sich an die im vorherigen Kapitel adressierten Probleme absoluter Wortfrequenzen, so möchte man vielleicht lieber relative Frequenzen berechnen. Das bedeutet beim Einsatz von Lexika in der Regel nicht nur, dass man das Auftreten der Lexikon-Begriffe relativ zur Gesamtwortfrequenz misst, sondern deren Anteil relativ zu einander (also das Verhältnis positiver und negativer Begriffe). Dies hat den Vorteil, dass man die große Zahl aller Begriffe, die weder positiv noch negativ sind, unberücksichtigt lassen kann, was durchaus Sinn ergibt, wenn man sich eben nur für das Sentiment interessiert.
+
+Das folgenden Beispiel verdeutlicht dieses Vorgehen. 
+
+```{r}
+meine.dfm.sentiment <- dfm(korpus, dictionary = sentiment.lexikon)
+meine.dfm.sentiment.prop <- dfm_weight(meine.dfm.sentiment, scheme = "prop")
+meine.dfm.sentiment.prop
+```
+
+Auch diese DFM lässt sich natürlich leicht plotten. 
+
+```{r}
+sentiment <- convert(meine.dfm.sentiment.prop, "data.frame") %>%
+  gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
+  mutate(document = as_factor(document)) %>% 
+  rename(Roman = document)
+ggplot(sentiment, aes(Roman, Sentiment, colour = Polarität, group = Polarität)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Sentiment-Scores in zwölf Sherlock Holmes-Romanen (relativ)")
+```
+
+
+#### Verrechnung und Skalierung positiver und negativer Sentiment-Anteile
+
+Die Darstellung von Sentimentanteilen innerhalb der zwölf Erzählungen lässt sich noch verbessern, indem wir darauf verzichten, beide Polaritäten darszustellen. Da bei dieser Anwendungen die negative Polarität schlicht die Invertierung des positiven Sentiments ergibt, reicht dies aus. Zudem skalieren wir die Werte mittels [rescale](https://www.rdocumentation.org/packages/scales/versions/0.4.1/topics/rescale) neu, so dass sie zwischen –1 und +1 liegen.
+
+```{r}
+sentiment <- convert(meine.dfm.sentiment.prop, "data.frame") %>%
+  rename(Roman = document, Sentiment = positive) %>%
+  select(Roman, Sentiment) %>%
+  mutate(Sentiment = rescale(Sentiment, to = c(-1,1))) %>%
+  mutate(Roman = as_factor(Roman))
+ggplot(sentiment, aes(Roman, Sentiment, group = 1)) + geom_line(size = 1) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Verrechnete Sentiment-Scores in zwölf Sherlock Holmes-Romanen")
+```
+
+Wir halten fest: Die Romane zu Beginn des Sherlock Holmes-Zylus sind etwas positiver, während es in der Mitte düsterer zugeht. Zum Schluss hebt sich die Stimmung aber - jedenfalls im Vergleich - wieder. Wenn man diese Darstellung mit dem ersten Plot kontrastiert wird klar, warum verrechnete Frequenzen oftmals einen guten Ansatz darstellen. Andererseits darf man aber auch nicht der Annahme auf den Leim gehen, das Sentiment in 'The Adventure of the Speckled Band' sei ausschließlich negativ, also 'zu 0% positiv', denn dies ist ein Artefakt unserer proportionalen Skalierung. Es ist lediglich *anteilig negativer* als in den anderen elf Erzählungen. 
+
+### Sentimentanalyse mit Twitter-Daten von Donald Trump und Hillary Clinton
+
+Wenden wir uns jetzt einem etwas aktuelleren Beispiel zu, nämlich der Analyse des Sentiments in den Tweets von Donald Trump und Hillary Clinton vor, während, und nach dem US-Präsidentschaftswahlkampf von 2016.
+
+Zunächst laden wie die Trump- und Clinton-Twitter-Datensätze (bereits in einem Korpus-Objekt zusammengefasst und als RData-File gespeichert). Diese Daten wurden aus verschiedenen Online–Archiven und durch die Twitter API zusammengestellt. Ich gehe hier nicht genauer auf die Erstellung des Korpus ein, dies wird aber später noch erläutert.
+
+```{r}
+load("daten/twitter/trumpclinton.korpus.RData")
+korpus.stats.monat
+```
+
+Die Tabelle zeigt die bereits monatsweise aggregierten Tweet-Zahlen (oder genauer, die Anzahl der Types/Tokens/Sätze). Hier einige konkrete Beispiele für Tweets der beiden Kandidaten (wieder kann man mit dem Pfeil–Icon nach rechts/links scrollen):
+
+```{r}
+trumpclinton.sample <- corpus_sample(korpus, size = 20)
+bind_cols(text = texts(trumpclinton.sample), docvars(trumpclinton.sample))
+```
+
+Zunächst plotten wir die Wörter (oder genauer der Tokens) pro Monat für Hillary Clinton und Donald Trump im Zeitraum von April 2015 bis April 2017, um uns einen Eindruck ihrer Aktivität zu verschaffen. Dies entspricht relativ gut der Anzahl der Tweets, da die Variation bei der Länge nicht allzu stark ausfällt. 
+
+Achtung: Hier zeigt die Farbe den Kandidaten an, nicht das Sentiment.
+
+```{r}
+ggplot(korpus.stats.monat, aes(date.print, Tokens, group = Kandidat, col = Kandidat)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("Monat") + ggtitle("Trump vs. Clinton: Tokens pro Monat (2015-2017)")
+```
+
+Es lässt sich beobachten, dass Hillary Clinton in den sechs Monaten vor der Wahl im November 2016 deutlich aktiver wurde, während Donald Trump im direkten Vergleich zu seiner bereits seit 2009 anhaltenden Präsenz bei Twitter eher etwas weniger Beiträge verfasste. 
+
+Wir erstellen nun zunächst eine DFM für jeden der Kandidaten und wenden erneut das Bing Liu Sentiment-Lexikon an. Wir beginnen mit Donald Trump und filtern zunächst das Korpus nach seinen Tweets, die wir anschließend nach Monat und Jahr aggregieren (sonst erhält man das Sentiment-Ergebnis für *jeden einzelen Tweet*, was bei rund 20.000 Tweets nicht unbedingt interpretierbar ist). Anschließend erstellen wir mittels [convert](https://docs.quanteda.io/reference/convert.html) einen data frame, welchen wir noch etwas bearbeiten, um ihn besser plotten zu können. 
+
+```{r}
+korpus.trump <- corpus_subset(korpus, Kandidat == "Trump")
+meine.dfm.trump <- dfm(korpus.trump, groups = c("monat", "jahr"), dictionary = sentiment.lexikon)
+sentiment.trump <- convert(meine.dfm.trump, "data.frame") %>%
+  gather(positive, negative, key = "Polarität", value = "Wörter") %>% 
+  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  filter(Datum >= "2015-04-01" & Datum <= "2017-04-01")
+ggplot(sentiment.trump, aes(Datum, Wörter, colour = Polarität, group = Polarität)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + ggtitle("Sentiment-Scores für Donald Trump") + xlab("Monat") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Den exakt gleich Prozess wiederholen wir nun für Hillary Clinton. Wir filtern ihre Tweets aus dem Gesamtkorpus heraus, Gruppieren eine DFM nach Monat und Jahr unter Anwendung des Lexikons, und plotten dann das Ergebnis. 
+
+```{r}
+korpus.clinton <- corpus_subset(korpus, Kandidat == "Clinton")
+meine.dfm.clinton <- dfm(korpus.clinton, groups = c("monat", "jahr"), dictionary = sentiment.lexikon)
+sentiment.clinton <- convert(meine.dfm.clinton, "data.frame") %>%
+  gather(positive, negative, key = "Polarität", value = "Wörter") %>% 
+  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  filter(Datum >= "2015-04-01" & Datum <= "2017-04-01")
+ggplot(sentiment.clinton, aes(Datum, Wörter, colour = Polarität, group = Polarität)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + ggtitle("Sentiment-Scores für Hillary Clinton") + xlab("Monat") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Im direkten Vergleich twittern beide Kandidaten eher positiv als negativ, was vielleicht überrascht. Allerdings ist der Abstand zwischen positivem und negativem Sentiment bei Hillary Clinton insgesamt hoch, und in der heißen Phase des Wahlkampfes sogar besonders ausgeprägt. Bei Donald Trump hingegen überwiegt im Juli 2016 das negative Sentiment und im Februar 2017 liegen positive und negative Begriffe ungefähr gleich auf. Bei Trump fallen starke Schwankungen auf, die bei Clinton fehlen.
+
+Wie sieht die Twitter–Aktivität beider Kandidaten im direkten Vergleich aus? Wir überspringen den zweiten Schritt aus der obigen Analyse und gehen gleich dazu über, nur noch den verrechneten relativen Anteil des positiven Sentiments für beide Poltiker zu plotten. 
+
+```{r}
+meine.dfm.trump.prop <- dfm_weight(meine.dfm.trump, scheme = "prop")
+sentiment.trump.prop <- convert(meine.dfm.trump.prop, "data.frame") %>%
+  gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
+  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  filter(Datum >= "2015-04-01" & Datum <= "2016-11-01") %>% 
+  mutate(Kandidat = "Trump")
+meine.dfm.clinton.prop <- dfm_weight(meine.dfm.clinton, scheme = "prop")
+sentiment.clinton.prop <- convert(meine.dfm.clinton.prop, "data.frame") %>%
+  gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
+  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  filter(Datum >= "2015-04-01" & Datum <= "2016-11-01") %>% 
+  mutate(Kandidat = "Clinton")
+sentiment.trumpclinton <- bind_rows(sentiment.trump.prop, sentiment.clinton.prop) %>% 
+  filter(Polarität == "positive") %>% 
+  select(Datum, Kandidat, Sentiment)
+# OPTIMIEREN
+sentiment.trumpclinton$Sentiment <- rescale(sentiment.trumpclinton$Sentiment, to = c(-1,1))
+sentiment.trumpclinton$Kandidat <- as_factor(sentiment.trumpclinton$Kandidat)
+ggplot(sentiment.trumpclinton, aes(Datum, Sentiment, colour = Kandidat, group = Kandidat)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") + ggtitle("Verrechnete Sentiment-Scores für beide Kandidaten") + xlab("Monat") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Der Zeitraum ist hier etwas anders gewählt als zuvor (1. April 2015 bis 30. November 2016), weil die sehr geringe Anzahl von Tweets durch Hillary Clinton nach der Wahl den Vergleich erschwert und zu Verzerrungen führt. Die Normalisierung zeigt die Höhen und Tiefen relativ zum Sentimentverlauf im Gesamtzeitrum, und verrechnet dabei wie auch schon zuvor die positiven und negativen Begriffe. Im Juli 2016 twittert Trump stark negativ, was aber nicht heißt, dass der Anteil negativer Begriffe grundsätzlich viel höher lag, als der positiver Begriffe. Es lassen sich interessante Bezüge zum Kontext der US-Wahlen herstellen, d.h. unter anderem die Nominierung von Donald Trump und Hillary Clinton als Kandidaten der Republikaner bzw. Demokraten, sowie die Enthüllung [gehackter Emails des DNC](https://en.wikipedia.org/wiki/2016_Democratic_National_Committee_email_leak), die auch schon 2016 den Vorwurf eines gezielten Manipulationsversuchs durch Russland laut werden ließ. Zahlreiche Tweets von Trump kritisieren die Medien für diese in den Augen des Kandidaten falsche Unterstellung. Der Grund für Trumps dennoch zum Teil hohen Sentiment–Werte liegt indes in der Verwendung vieler positiver Adjektive und Superlative ('great', 'best'), die in Sentiment–Lexika natürlich vorkommen.
+
+Der Code für diese Analyse lässt sich sich insofern noch etwas vereinfachen, als dass eine Reihe von Handgriffen nur für die Erstellung des Plots, nicht aber für die Erstellung der gewichteten DFM und der Anwendung des Lexikons notwendig sind.
+
+#### Vergleich unterschiedlicher Sentiment-Lexika
+
+Welche Unterschiede gibt es zwischen verschiedenen Lexika? Da unterschiedliche Lexika auch unterschiedliche Begriffe enthalten, ist diese Frage durchaus bedeutsam. Um sie zu beantworten, berechnen wir anhand der Tweets von Donald Trump drei unterschiedliche DFMs, jeweils mit einem anderen Lexikon. Wir lesen zunächst einmal alle drei Lexika ein. 
+
+```{r}
+sentiment.lexikon.bingliu <- dictionary(list(positive = scan("lexika/bingliu-positive-words.txt", what = "char", sep = "\n", skip = 35, quiet = T), negative = scan("lexika/bingliu-negative-words.txt", what = "char", sep = "\n", skip = 35, quiet = T)))
+
+sentiment.lexikon.nrc <- dictionary(list(positive = scan("lexika/nrc.pos.txt", what = "char", sep = "\n", quiet = T), negative = scan("lexika/nrc.neg.txt", what = "char", sep = "\n", quiet = T)))
+
+afinn <- read.csv("lexika/AFINN-111.txt", header = F, sep = "\t", stringsAsFactors = F)
+sentiment.lexikon.afinn <- dictionary(list(positive = afinn$V1[afinn$V2>0], negative = afinn$V1[afinn$V2<0]))
+```
+
+Während der Import für das Bing Liu-Lexikon und das NRC Emotions Lexicon sehr einfach abläuft, hat das AFINN-Dictionary ein spezielles Format, bei dem eine Zahl zwischen -5 und +5 die Polarität von sehr negativ bis sehr positiv beschreibt. Wir nutzen hier diesen besonderen Vorteil nicht aus, sondern behandeln alle Begriffe als 'einfach' negativ oder positv (<0 oder >0).
+
+Wieder wird das Lexikon angewendet, nach Monat und Jahr gruppiert, und anschließend proportional gewichtet -- jeweils für jedes der drei Lexika. 
+
+```{r}
+meine.dfm.trump.bingliu <- dfm_weight(dfm(korpus.trump, groups = c("monat", "jahr"), dictionary = sentiment.lexikon.bingliu), scheme = "prop")
+meine.dfm.trump.nrc <- dfm_weight(dfm(korpus.trump, groups = c("monat", "jahr"), dictionary = sentiment.lexikon.nrc), scheme = "prop")
+meine.dfm.trump.afinn <- dfm_weight(dfm(korpus.trump, groups = c("monat", "jahr"), dictionary = sentiment.lexikon.afinn), scheme = "prop")
+```
+
+Schließlich werden die drei DFMs in data frames umgewandelt und eine Variable hinzugefügt, welche das Lexikon identifiziert.
+
+```{r}
+sentiment.trump.bingliu <- convert(meine.dfm.trump.bingliu, "data.frame") %>% mutate(Lexikon = "Bing Liu")
+sentiment.trump.nrc <- convert(meine.dfm.trump.nrc, "data.frame") %>% mutate(Lexikon = "NRC")
+sentiment.trump.afinn <- convert(meine.dfm.trump.afinn, "data.frame") %>% mutate(Lexikon = "AFINN")
+```
+
+Zuletzt wird ein gemeinsamer data frame zusammengesetzt und etwas umgeformt. Das resultierenden Plot zeigt die verrechneten Sentiment-Scores von Donald Trump für alle drei Lexika. 
+
+```{r}
+sentiment.trump.kombi <- bind_rows(sentiment.trump.bingliu, sentiment.trump.nrc, sentiment.trump.afinn) %>% 
+  gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
+  filter(Polarität == "positive") %>% 
+  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  filter(Datum >= "2015-04-01" & Datum <= "2017-03-01") %>% 
+  select(Datum, Lexikon, Sentiment)
+sentiment.trump.kombi$Sentiment <- rescale(sentiment.trump.kombi$Sentiment, to = c(-1,1))
+ggplot(sentiment.trump.kombi, aes(Datum, Sentiment, colour = Lexikon, group = Lexikon)) + geom_line(size = 1) + scale_colour_brewer(palette = "Dark2") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + ggtitle("Verrechnete Sentiment-Scores für Donald Trump mit drei Lexika") + xlab("Monat") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Wie wir sehen, stimmt die Tendenz der drei Lexika zwar klar überein, jedoch ergeben sich durchaus markanten Unterschiede. So sind AFINN und Bing Liu gegenüber NRC etwas positiver. Zum Teil unterscheidet sich auch die Intensität der Ausschläge in beide Polaritätsrichtungen. Ein Grund für die Variation ist die Länge der Wortlisten, da umfangreichere Listen eine besser Abdeckung der tatsächlich verwendeten Begriffe erreichen. Grundsätzlich unterscheiden sich die drei Lexika aber nicht signifikant und stimmen bspw. in ihrer Messung der Sentiment–Schwankung zwischen September und November 2016 klar überein.
+
+### Sentiment in Schweizer Tageszeitungen in der Berichterstattung zur Finanzkrise
+
+Wir wechseln nun die Perspektive und untersuchen deutschsprachige Texte. Dazu lesen wir das Schweizer Korpus zur Finanzkrise ein. Dieses emthält rund 21,000 Artikel, die zwischen 2007 und 2012 in einer von fünf Schweizer Tageszeigungen veröffentlich wurden und den Begriff 'Finanzkrise' in Text oder Titel enthalten. Neben Sprache und Textsorte gibt einen weiteren Unterschied zu den Twitter-Daten: Die Aggregationsebene ist hier nicht mehr ein Monat, wie zuvor, sondern schlicht ein Artikel. Das leuchtet ein, allerdings ist dieser Ansatz hier auch deshalb ergiebig, weil Zeitungsartikel nun einmal deutlich länger sind als Tweets.
+
+Zusätzlich zum Finanzkrise-Korpus laden wir auch gleich das deutschsprachige SentiWS-Lexikon. Im Gegensatz zu dem Bing Liu-Lexikon handelt es sich hier um eine RData-Datei, nicht um eine Textdatei, was aber praktisch keinerlei Unterschied macht.
+
+```{r}
+load("lexika/sentiWS.RData")
+load("daten/cosmas/finanzkrise/finanzkrise.korpus.RData")
+sentiment.lexikon.sentiws <- dictionary(list(positive = positive.woerter.senti, negative = negative.woerter.senti))
+head(korpus.finanzkrise.stats, 100)
+```
+
+
+#### Sentiment-Anteile nach Quelle (hier: Zeitung)
+
+Im nächste Schritt berechnen wir eine DFM, die nun nicht nach Monat und Jahr gruppiert ist, sondern nach dem Feld *quelle*, d.h. der jeweiligen Zeitung. Dieser Schritt dauert deshalb etwas länger als zuvor, weil wir es mit einem Korpus von 21,000 Dokumenten und rund 4 Mio. Tokens zu tun haben -- deutlich größer, als das Sherlock Holmes-Korpus (126T Wörter) und Twitter Korpus (459T Wörter). Heraus kommt eine Tabelle, die sich sogar vollständig ausgeben lässt, ohne den [head](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/head)–Befehl zu verwenden. 
+
+```{r}
+
+meine.dfm.finanzkrise <- dfm(korpus.finanzkrise, groups = "quelle", dictionary = sentiment.lexikon.sentiws)
+meine.dfm.finanzkrise.prop <- dfm_weight(meine.dfm.finanzkrise, scheme = "prop")
+meine.dfm.finanzkrise.prop
+```
+
+Auch diese sehr einfache Tabelle können wir plotten, auch wenn dies hier vielleicht nicht unbedingt notwendig ist. 
+
+```{r}
+sentiment.finanzkrise <- convert(meine.dfm.finanzkrise.prop, "data.frame") %>% 
+  gather(positive, negative, key = "Polarität", value = "Sentiment")
+ggplot(sentiment.finanzkrise, aes(document, Sentiment, colour = Polarität, fill = Polarität)) + geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Sentiment-Scores in Beiträgen zur Finanzkrise aus fünf Schweizer Tageszeitungen") + xlab("") + ylab("Sentiment-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Wie wir sehen ist die Berichterstattung zur Finanzkrise überwiegende negativ, was angesichts des athemas natürlich kaum überrascht. Es lassen sich aber auch keinerlei nennenswerte Unterschiede zwischen den Zeitungen erkennen, sondern die Übereinstimmung ist ausgesprochen klar.
+
+#### Verrechnete Sentiment-Anteile nach Quelle und Jahr
+
+Wie stellt sich das Sentiment in den fünf Zeitungen im Vergleich über die Zeit dar? Wir berechnen noch einmal eine DFM unter Verwendung des SentiWS–Lexikons, gruppieren aber dieses Mal sowohl nach Quelle als auch nach Jahr. 
+
+```{r}
+meine.dfm.finanzkrise <- dfm(korpus.finanzkrise, groups = c("quelle", "jahr"), dictionary = sentiment.lexikon.sentiws)
+meine.dfm.finanzkrise.prop <- dfm_weight(meine.dfm.finanzkrise, scheme = "prop")
+head(meine.dfm.finanzkrise.prop)
+```
+
+Die resultierende DFM formen wir etwas um und plotten dann wieder eine Grafik, welche einerseits die zeitliche Entwicklung darstellt, und andererseits, wie auch schon im vorherigen Beispiel, die Unterschiede stark hervorhebt -- einerseits zwischen den fünf Zeitungen und andererseits innerhalb des fünfjährigen Messzeitraums. So kann man erkennen, das 'Der Bund' durchweg etwas negativer ist, als es die anderen Zeitungen sind, dass die Berner Zeitung in 2010 positiver ist als die andere vier Blätter, und dass die NZZ tendenziell über die Zeit etwas positiver wird, aber im Vergleich doch negativ bleibt. Die Berner Zeitung schwankt im Vergleich relativ stark. 
+
+```{r}
+sentiment.finanzkrise.zeit <- convert(meine.dfm.finanzkrise.prop, "data.frame") 
+finanzkrise.quellen <- data.frame(str_split(sentiment.finanzkrise.zeit$document, "\\.", simplify = T))
+colnames(finanzkrise.quellen) <- c("Zeitung", "Jahr")
+sentiment.finanzkrise.zeit <- bind_cols(sentiment.finanzkrise.zeit, finanzkrise.quellen) %>%
+  rename(Sentiment = positive) %>%
+  mutate(Sentiment = rescale(Sentiment, to = c(-1,1))) %>%
+  select(Sentiment, Zeitung, Jahr)
+ggplot(sentiment.finanzkrise.zeit , aes(Jahr, Sentiment)) + geom_bar(stat = "identity", aes(fill = Zeitung), position = "dodge") + scale_fill_brewer(palette = "Accent") + ggtitle("Verrechnete Sentiment-Scores in Beiträgen zur Finanzkrise") 
+```
+
+
+### Sentiment in Debatten des Deutschen Bundestags nach Partei, Sitzung und Sprecher
+
+Wir schließen mit einem weitere deutschsprachigen Beispiel, dem Debattenkorpus des Deutschen Bundestags in der 18. Legislaturperiode. Wieder ist das Korpus dazu bereits als RData-Datei abgelegt und wir überspringen and dieser Stelle den Hintergrund dazu, wie genau das Korpus zusammengestellt wurde. Der Umfang ist mit 206.000 Wortmeldungen in 243 Sitzungen und rund 15 Mio. Tokens noch einmal erheblich größer, als der vorausgegangener Korpora. 
+
+```{r}
+load("daten/bundestag/bundestag.korpus.RData")
+load("lexika/Rauh_SentDictionaryGerman.RData")
+sentiment.lexikon.rauh <- dictionary(list(positive = str_trim(sent.dictionary$feature[sent.dictionary$sentiment>0]), negative = str_trim(sent.dictionary$feature[sent.dictionary$sentiment<0])))
+```
+
+Nachdem Korpus und Lexikon-Rohdaten geladen wurden, erstellen wir aus der umfangreichen Sentiment-Wortliste von Christian Rauh ein quanteda-Lexikon (dabei muss ähnlich wie beim AFINN-Diktionary noch etwas umgeformt werden). Anschließend berechnen wir dann eine DFM, welche Sentiment-Wörter nach Parteien auszählt.  
+
+```{r}
+meine.dfm.bundestag.partei <- dfm(korpus.bundestag, groups = "party", dictionary = sentiment.lexikon.rauh)
+meine.dfm.bundestag.partei
+```
+
+Auch hier plotten wir wieder das Resultat. Die Normalisierung, welche wir im vorausgegangenen Beispiel durchgeführt haben, lassen wir an dieser Stelle weg, um auch einen Eindruck von den Redenanteilen der Parteien zu erhalten. 
+
+```{r}
+sentiment.bundestag.partei <- convert(meine.dfm.bundestag.partei, "data.frame") %>% 
+  gather(positive, negative, key = "Polarität", value = "Sentiment")
+ggplot(sentiment.bundestag.partei, aes(document, Sentiment, colour = Polarität, fill = Polarität)) + geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Pastel1") + scale_y_continuous(labels = comma) + ggtitle("Sentiment-Scores im Deutschen Bundestag nach Partei") + xlab("") + ylab("Wörter") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+An diesem Ergebnis überrascht vielleicht etwas, dass das Sentiment der Regierungsparteien nicht merklich positiver ausfällt, als das der Opposition. Zwar hat Linke anteilig das negativste Sentiment und die CSU das positivste, aber die Unterschiede sind nicht sehr groß. 
+
+Nun wiederholen wir die Erstellung der DFM, gruppieren aber diesmal nicht nach Partei, sondern nach Sitzung. Das Ziel dieses Ansatzes besteht darin, Sitzungen zu identifizieren, in denen besonders negative Themen (was hier mehrere Bedeutungen haben kann) zu finden. 
+
+```{r}
+meine.dfm.bundestag.sitzung <- dfm(korpus.bundestag, groups = "sitzung", dictionary = sentiment.lexikon.rauh)
+meine.dfm.bundestag.sitzung.prop <- dfm_weight(meine.dfm.bundestag.sitzung, scheme = "prop")
+head(meine.dfm.bundestag.sitzung.prop)
+```
+
+Nachdem wir das anteilige Sentiment für alle 243 Sitzungen der Legislaturperiode 2013-2017 bestimmt haben, skalieren wir die Daten wieder und plotten das Resultat in einer (sehr dichten) Zeitreihe. Für das Plot filtern wir dabei die Daten so, dass nur das Jahr 2015 (Sitzungen 1-60) dargestellt wird.
+
+```{r}
+sentiment.bundestag.sitzung <- convert(meine.dfm.bundestag.sitzung.prop, "data.frame") %>% 
+  rename(Sitzung = document, Sentiment = positive) %>%
+  select(Sitzung, Sentiment) %>%
+  mutate(Sentiment = rescale(Sentiment, to = c(-1,1))) %>% 
+  mutate(Sitzung = as_factor(Sitzung)) %>% 
+  slice(1:60)
+ggplot(sentiment.bundestag.sitzung, aes(Sitzung, Sentiment, group = 1)) + geom_line() + geom_point() + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)) + ggtitle("Verrechnete Sentiment-Scores in Sitzungen der Deutschen Bundestags")
+```
+
+Ähnlich wie bei Trump und Clinton lässt sich ein klarer Bezug zwischen Sentiment–Scores und historischen Ereignissen herstellen, wenn man den Blick auf solche Sitzungen mit besonders hohen/niedrigen Sentiment-Scores lenkt. Folgend wählen wir solche Sitzungen aus und reichern die Informationen zur Sitzung mit den enthaltenen Tagesordnungspunkten (TOPs) an. Das Sentiment ist allerdings in der nachstehenden Tabelle für die gesamte Sitzung, nicht nur für den jeweiligen TOP kalkuliert. 
+
+```{r}
+load("daten/bundestag/tagesordnungspunkte.RData")
+tagesordnungspunkte <- select(tagesordnungspunkte, sitzung, held_on, name, category)
+bundestag.possitzung <- head(arrange(sentiment.bundestag.sitzung, desc(sentiment.bundestag.sitzung$Sentiment)), 3)
+bundestag.possitzung$Sitzung <- as.numeric(bundestag.possitzung$Sitzung)
+bundestag.negsitzung <- head(arrange(sentiment.bundestag.sitzung, sentiment.bundestag.sitzung$Sentiment), 3)
+bundestag.negsitzung$Sitzung <- as.numeric(bundestag.negsitzung$Sitzung)
+# Sitzungen mit positivem Sentiment
+left_join(bundestag.possitzung, tagesordnungspunkte, by = c("Sitzung" = "sitzung"))
+# Sitzungen mit negativem Sentiment
+left_join(bundestag.negsitzung, tagesordnungspunkte, by = c("Sitzung" = "sitzung"))
+```
+
+Beim positiven Sentiment sticht die Sitzung vom 17. Dezember 2013 heraus, in der Angela Merkel vereidigt wurde -- dem Anlass und den nahenden Weihnachtsferien entsprechend ist die Stimmung gut. Negativ fallen Sitzungen zum kontroversen aussenpolitischen Themen ebenso wie zum CETA-Abkommen oder zur Bekämpfung der Kinderarmut auf. Die beiden TOPs, welche die Liste anführen ('Regierungserklärung Humanitäre Hilfe im Irak' sowie 'Stabilitätshilfe zugunsten Griechenlands') liefern bei augenscheinlicher Bertrachtung ein gutes Maß der besonders kontroversen Themen zurück, bei denen die Regierung mit Kritik der Opposition oder aus den eignenen Reihen umgehen musste.
+
+Hierbei berücksichtigt unsere Herangehensweise indes nicht, ob ein Thema negative Äußerungen nach sich zieht, weil es sich um einen negativen Sachverhalt (etwa eine Naturkatastrophe) handelt, der aber nicht automatisch kontrovers sein muss, oder ob Kritik an der Regierung geübt wird.
+
+Etwas zu individuellen Unterschieden erfahren wir, wenn wir die Sprecher mit besonders positivem und negativem Sentiment nach Parteizugehörigkeit betrachten. Wieder berechnen wir hierzu eine gruppierte DFM. 
+
+```{r}
+meine.dfm.bundestag.sprecher <- dfm(korpus.bundestag, groups = "speaker_cleaned", dictionary = sentiment.lexikon.rauh)
+meine.dfm.bundestag.sprecher.prop <- dfm_weight(meine.dfm.bundestag.sprecher, scheme = "prop")
+head(meine.dfm.bundestag.sprecher.prop)
+```
+
+Nun ziehen wir noch die Parteizugehörigkeit aus den Metadaten hinzu, skalieren das Sentiment-Ergebnis, und sortieren schließelich die 637 Abgeordneten einmal absteigend und einmal aufsteigend (s.u.). 
+
+```{r}
+sentiment.bundestag.sprecher <- convert(meine.dfm.bundestag.sprecher, "data.frame") %>% 
+  left_join(unique(select(korpus.bundestag.stats, speaker_cleaned, party)), by = c("document" = "speaker_cleaned")) %>% 
+  rename(Sprecher = document, Partei = party) %>% 
+  filter(positive != 0, negative != 0) %>% 
+  gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
+  filter(Polarität == "positive") %>% 
+  mutate(Sentiment = rescale(Sentiment, to = c(-1,1))) %>% 
+  select(Sentiment, Sprecher, Partei)
+
+# Sprecher mit positivem Sentiment
+arrange(sentiment.bundestag.sprecher, desc(Sentiment))
+# Sprecher mit negativem Sentiment
+arrange(sentiment.bundestag.sprecher, Sentiment)
+```
+
+Der damalige Bundestagspräsident Norbert Lammert führt die Positiv–Liste an, gefolgt von den Vizepräsidentinnen Claudia Roth, Ulla Schmidt, Edelgard Bulmahn und Petra Pau, dazwischen die Bundeskanzlerin Angela Merkel und der damalige Vizekanzler Sigmar Gabriel. Die hohen Werte für die Vertreter der wichtigsten parlamentarischen Ämter sind wenig überraschend. Bei den Negativwerten fällt auf, dass die Regierungsparteien CDU/CSU/SPD überraschend stark vertretend sind, auch wenn die Liste von Oppositionspolitikerinnen der Grünen bzw. Linken angeführt wird. 
+
+Eine wirklich adäquate Analyse müsste unter anderem hier noch Sprecher mit sehr geringen Redeanteilen ausschließen, da deren Sentiment-Score durch einige wenige Begriffe in die eine oder andere Richtung ausschlagen kann, auch wenn dies intuitiv keierlei Sinn ergibt. Und wie eingangs beschrieben muss man den Kontext einer Äußerung und die Zugehörigkeit zur Regierung bzw. Opposition heranziehen, was etwa durch die Untersuchung der TOPs grundsätzlich möglich wird. 
+
+Abschließend sollte festgehalten werden, dass Sentimentanalyse mittels quanteda über aus Auszählen von Begriffen abläuft, allerdings auch leichte Variationen dieses Ansatzes existieren. so will man etwa für Tweets aber auch für einzelnen Sätzen in einem Debattenkorpus ein Sentiment festlegen, welches nicht allein aus der Addition von positiven/negativen Wörtern ergibt. Darauf wird später noch eingegangen, allerdings erreichen auch die bereits beschriebenen Verfahren insgesamt recht gute Ergebnisse, solange die Korpusgröße und die Genauigkeit des Lexikons ausreichend sind. 
+
