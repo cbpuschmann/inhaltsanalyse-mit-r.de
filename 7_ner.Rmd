@@ -11,19 +11,11 @@ output: html_notebook
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
-Tagging, Parsing, Entitätenerkennung
+Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während ihnen in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, Tagging (die Bestimmung von Wortklassen), Parsing (die Bestimmung von Satz–Konstituenten) und Entitätenerkennung (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden aus können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant für die Frage sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen. Auch sind etwa syntaktische Informationen ausgesprochen wertvoll, wenn man Muster erkennen will, die sich mithilfe des "Bag of words"-Ansatzes nicht adäquat abbilden lassen. 
 
-
-Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während ihnen in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, Tagging (die Bestimmung von Wortklassen), Parsing (die Bestimmung von Satz–Konstituenten) und Entitätenerkennung (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden aus können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant für die Frage sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen.
-
-Technisch arbeiten wir hier mit dem Paket [https://github.com/quanteda/spacyr](spacyr), welches wie auch andere hier vorgestellte Pakete eine direkte Schnittstelle zu quanteda hat. Spacyr ist allerdings ein Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gibt, führt der Weg hierfür zwangsläufig über Java oder Python. 
+Technisch arbeiten wir in diesem Abschnitt mit dem Paket [https://github.com/quanteda/spacyr](spacyr), welches wie auch andere hier vorgestellte Pakete eine direkte Schnittstelle zu quanteda hat. Spacyr ist allerdings ein Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gibt, führt der Weg hierfür zwangsläufig über Java oder Python. 
 
 Zunächst laden wir wieder das Korpus mit Beiträgen Schweizer Tageszeitungen zum Thema Finanzkrise.
-
-
-
-
-
 
 – verben oder ajektive finanzkrise (alle)
 – Banken als Subjekt??
@@ -31,7 +23,7 @@ Zunächst laden wir wieder das Korpus mit Beiträgen Schweizer Tageszeitungen zu
 – themenmodell die zeit o. new york times nur mit nomen
 
 
-```{r}
+```{r Packetinstallation, message = FALSE}
 # Installation und Laden der Bibliotheken
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
@@ -39,9 +31,9 @@ if(!require("scales")) install.packages("scales")
 theme_set(theme_bw())
 ```
 
-Dann laden wir das Paket Spacyr, bzw. laden dieses sofern bereits vorhanden. Die Installation von spacyr ist vergleichsweise aufwändig, weil zusätzlich eine aktuelle Version von Python benötigt wird, und kann mitunter eine Zeit in Anspruch nehmen. Zusästzliche benötigen wir zudem auch noch ein Sprachmodul für Deutsch, welches Tagging, Parsing und Entitätenerkennung in dieser Sprache ermöglicht. Nach dem Laden erfolgt schließlich die Initiatlisierung von spacyr.    
+Dann laden wir das Paket spacyr, bzw. laden dieses sofern bereits vorhanden. Die Installation von spacyr ist vergleichsweise aufwändig, weil zusätzlich eine aktuelle Version von Python benötigt wird, und kann mitunter eine Zeit in Anspruch nehmen. Zusästzliche benötigen wir zudem auch noch ein Sprachmodul für Deutsch, welches Tagging, Parsing und Entitätenerkennung in dieser Sprache ermöglicht. Nach dem Laden erfolgt schließlich die Initialisierung von spacyr, welche jeweils auf die zu benutzende Sprache abgestimmt sein muss.
 
-```{r}
+```{r Installation des Spezialpakets spacyr}
 if (!require("spacyr")) {
   install.packages("spacyr")
   library("spacyr")
@@ -50,9 +42,9 @@ if (!require("spacyr")) {
 }
 ```
 
-Nun können wir das Paket einsetzen, um etwa die Wortklassen im Korpus zu bestimmen. 
+Nun können wir das Paket einsetzen, um etwa die Wortklassen in einem Korpus zu bestimmen. Wir beginnen mit dem Finanzkrise-Korpus und einem einfachen Überblick des Outputs von spacyr. 
 
-```{r}
+```{r Laden und Parsen des Finanzkrise-Korpus}
 load("daten/cosmas/finanzkrise/finanzkrise.korpus.RData")
 korpus.finanzkrise.sample <- corpus_sample(korpus.finanzkrise, size = 1000)
 spacy_initialize(mode = "de")
@@ -61,8 +53,12 @@ spacy_finalize()
 head(finanzkrise.pos, 100)
 ```
 
+Die tabellarische Auflistung ist bereits hinlänglich bekannt, neu sind aber die Felder pos (Wortart), head_token_id, dep_rel und entity, welche durch die linguistische Analyse hinzugekommen sind. 
 
-```{r}
+Ein praktisches Beispiel zeigt konkrete Vorteile der Annotation von Wortart und Satzkonstituente: Wir ermitteln
+
+
+```{r Frequenteste Satzsubjekte im Finanzkrise-Korpus ermitteln}
 subjekte <- finanzkrise.pos %>% 
   filter(pos == "NOUN", dep_rel == "sb") %>% 
   mutate(Wort = str_to_lower(token)) %>% 
@@ -100,7 +96,8 @@ adjektive.diff <- data.frame(Wort = unique(adjektive$Wort), Differenz = adjektiv
   arrange(Differenz.S)
 
 p <- ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5)) + xlab("") + ggtitle("Adjektive Trump vs. Clinton (mit 'great', 'big' enfernt)") + ylab("Trump                                                               Clinton") + coord_flip()
-ggplotly(p)
+p
+#ggplotly(p)
 ```
 
 

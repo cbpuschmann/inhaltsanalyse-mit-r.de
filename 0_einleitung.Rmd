@@ -2,9 +2,7 @@
 title: ''
 author: ''
 subtitle: Einleitung
-output:
-  html_document:
-    df_print: paged
+output: html_notebook
 ---
 
 \

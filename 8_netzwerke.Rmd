@@ -1,0 +1,56 @@
+---
+title: ''
+author: ''
+subtitle: Texte, Wörter, Netzwerke
+output: html_notebook
+---
+
+\
+\
+\
+
+[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+
+Texte und Wörter lassen sich neben den bisher vorgestellen Ansätzen auch noch mit einer weiteren Methode untersuchen. Die Netzwerkanalyse stellt eine sehr 
+
+Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. 
+
+```{r Packetinstallation, message = FALSE}
+# Installation und Laden der Bibliotheken
+if(!require("quanteda")) install.packages("quanteda")
+if(!require("tidyverse")) install.packages("tidyverse")
+theme_set(theme_bw())
+```
+
+Nachdem wir die notwendigen Bibliotheken gelanden haben, greifen wir eneut auf die Variante des Sherlock Holmes-Korpus zurück, welche die zwölf Romane in 174 Abschnitte gleicher Länge unterteilt. Wir erstellen eine DFM auf Basis von Bigrammen (Zweiwort-Folgen) in der wir die Unterscheidung zwischen Groß- und Kleinschreibung aufrechterhalten. 
+
+```{r Laden der Daten und Berechnen einer DFM}
+# Laden der Sherlock Holmes-Daten (bereits als RData-File gespeichert)
+load("daten/sherlock/sherlock.absaetze.RData")
+
+# Berechnen einer DFM
+meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, tolower = F, ngrams = 2)
+```
+
+Dann Laden wir eine einfache Liste von Personen, welche in den Romanen vorkommen. Durch unterschiedliche Varianten des gleichen Namens (Sherlock Holmes vs. Mr. Holmes vs. Sherlock) ist dies Methode nicht ganz akkurat, es genügt aber für eine einfache Demonstration.  
+
+```{r Filtern der DFM nach Personennamen}
+personen <- scan("daten/sherlock/sherlock.personen.txt", what = "char", sep = "\n")
+meine.dfm.personen <- dfm_select(meine.dfm, personen, selection = "keep", case_insensitive = F)
+```
+
+Nun bereichnen wir eine Feature Cooccurance Matrix (FCM) welche auf der bereits vorhandenen DFM basiert. Dann plotten wir das Ergebnis als Netzwerk. 
+
+```{r Berechnen einer FCM und Plotten eines Textnetzwerkes}
+meine.fcm <- fcm(meine.dfm.personen)
+textplot_network(meine.fcm)
+```
+
+Auch wenn man sich noch nicht eingehend mit Netzwerken beschäftigt hat, lässt sich das Ergebnis leicht intuitiv interpretieren. Zwei Namen ("Knoten") sind dann mit einer Linie verbunden wenn sie innerhalb des gleichen Dokuments (in diesem Fall also im gleichen Absatz) vorkommen. Verbindungslinien ("Kanten") sind dort dicker, wo zwei Namen mehrmals gemeinsam erwähnt werden. 
+
+Die FCM ist die Grundlage des Netzwerkes. Während die Zeilen einer DFM die Dokumente und die Spalten die Wörter enthalten, enthält eine FCM Wörter als Zeilen und Spalten, und die Anzahl der Kookkurenzen als Zelleninhalt. Stimmen der Inhalt von Zeile und Spalte überein, wird einfach die Gesamtanzahl der Treffer im Korpus bezeichnet. 
+
+```{r Darstellung der FCM als Tabelle}
+convert(meine.fcm, to = "data.frame")
+```
+
