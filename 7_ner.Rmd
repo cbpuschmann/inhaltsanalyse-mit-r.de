@@ -55,8 +55,7 @@ head(finanzkrise.pos, 100)
 
 Die tabellarische Auflistung ist bereits hinlänglich bekannt, neu sind aber die Felder pos (Wortart), head_token_id, dep_rel und entity, welche durch die linguistische Analyse hinzugekommen sind. 
 
-Ein praktisches Beispiel zeigt konkrete Vorteile der Annotation von Wortart und Satzkonstituente: Wir ermitteln
-
+Ein praktisches Beispiel zeigt konkrete Vorteile der Annotation von Wortart und Satzkonstituente: Wir ermitteln die frequentesten Satzsubjekte im Finanzkrise-Korpus, also solche Nomen, die das Hauptwort eines Satzes darstellen. Dies gibt Aufschluss über die Akteure die im Korpus eine Rolle spielen, auch wenn es sich beim Subjekt um eine rein syntaktische Kategorie handelt.
 
 ```{r Frequenteste Satzsubjekte im Finanzkrise-Korpus ermitteln}
 subjekte <- finanzkrise.pos %>% 
@@ -70,8 +69,9 @@ subjekte <- finanzkrise.pos %>%
 ggplot(subjekte, aes(reorder(Wort, Rang), Frequenz)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ggtitle("Frequenteste Satzsubjekte im Finanzkrise-Korpus")
 ```
 
+Wie das
 
-```{r}
+```{r Laden und Parsen des Twitter-Korpus}
 load("daten/twitter/trumpclinton.korpus.RData")
 spacy_initialize(mode = "en")
 twitter.pos <- spacy_parse(korpus, lemma = F, entity = F)
@@ -79,7 +79,7 @@ spacy_finalize()
 head(twitter.pos, 100)
 ```
 
-```{r}
+```{r Typische Adjektive bei Donald Trump und Hillary Clinton}
 adjektive.trumpclinton <- scan("daten/twitter/adjektive.trumpclinton.txt", what = "char", sep = "\n", quiet = T)
 adjektive <- twitter.pos %>% 
   mutate(Wort = str_to_lower(token)) %>% 

@@ -5,3 +5,5 @@ daten/
 .Rproj.user
 .DS_Store
 .RData
+.Rproj
+.nb.html

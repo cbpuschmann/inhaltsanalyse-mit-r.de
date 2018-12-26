@@ -1,8 +1,10 @@
 ---
-title: ''
-author: ''
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
 subtitle: Wort- und Textmetriken
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 \
@@ -26,7 +28,7 @@ Diese und ähnliche Fragen werden in den folgenden Kapiteln aufgegriffen -- zun�
 
 Zunächst werden wieder die notwendigen Bibliotheken geladen. Dann wird in einem zweiten Schritt das Sherlock-Korpus eingelesen und aufbereitet und dann Korpus-Statistiken berechnet. Schließlich erstellen wir wieder eine DFM (vgl. [Kapitel 1](1_grundlagen.html)), da wir diese später noch benötigen. 
 
-```{r}
+```{r Packetinstallation, message = FALSE}
 # Installation und Laden der Bibliotheken
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
@@ -46,7 +48,7 @@ Zu den einfachsten Funktionen von quanteda gehört die Möglichkeit, [Konkordanz
 
 *Anmerkung: Die Konkordanz kann mit dem kleinen Pfeil rechts oben gescrollt werden.*
 
-```{r}
+```{r Konkordanz erstellen}
 konkordanz <- kwic(korpus, "data")
 konkordanz
 konkordanz <- kwic(korpus, phrase("John|Mary [A-Z]+"), valuetype = "regex", case_insensitive = FALSE)
