@@ -1,7 +1,7 @@
 ---
-title: ''
-author: ''
-subtitle: Themenmodelle
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
+subtitle: "Themenmodelle"
 output: html_notebook
 ---
 

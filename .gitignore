@@ -1,5 +1,6 @@
 
 daten/
+lexika/
 .Rproj.user/
 .Rhistory
 .Rproj.user
@@ -7,3 +8,6 @@ daten/
 .RData
 .Rproj
 .nb.html
+.html
+.pdf
+

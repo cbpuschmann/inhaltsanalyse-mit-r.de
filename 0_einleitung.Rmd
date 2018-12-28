@@ -1,10 +1,8 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: Einleitung
-output:
-  pdf_document: default
-  html_notebook: default
+subtitle: "Einleitung"
+output: html_notebook
 ---
 
 \

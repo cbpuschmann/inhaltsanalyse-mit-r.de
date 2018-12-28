@@ -1,7 +1,7 @@
 ---
-title: ''
-author: ''
-subtitle: Lexika
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
+subtitle: "Lexika"
 output: html_notebook
 ---
 
