@@ -60,7 +60,7 @@ Die Konkordanzen bestehen aus den Metadaten (Textname und Position), dem linken 
 
 Als nächstes berechnen wir die Häufigkeit und Dispersion von Tokens pro Erzählung, welche die Begriffe 'dark' und 'light' enthalten. 
 
-```{r}
+```{r Häufigkeit von Tokens anhand von KWIC}
 term1 <- kwic(korpus, "dark", valuetype = "regex", case_insensitive = FALSE) %>% group_by(docname) %>% summarise(Treffer = n()) %>% mutate(Prozentanteil = Treffer/(korpus.stats$Tokens/100), Suchterm = "dark") %>% arrange(desc(Prozentanteil))
 term2 <- kwic(korpus, "light", valuetype = "regex", case_insensitive = FALSE) %>% group_by(docname) %>% summarise(Treffer = n()) %>% mutate(Prozentanteil = Treffer/(korpus.stats$Tokens/100), Suchterm = "light") %>% arrange(desc(Prozentanteil))
 term1
@@ -73,7 +73,7 @@ Wortfrequenzen lassen sich allerdings wesentlich einfacher durch die quanteda-ei
 
 Zunächst plotten wie die absolute und relativen Häufigkeit der beiden Begriffe.
 
-```{r}
+```{r Absolute und relative Häufigkeit plotten}
 terme.kombiniert <- bind_rows(term1, term2)
 terme.kombiniert$docname <- factor(terme.kombiniert$docname, levels = levels(korpus.stats$Text))
 ggplot(terme.kombiniert, aes(docname, Treffer, group = Suchterm, col = Suchterm)) + geom_line(size = 1) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Häufigkeit der Suchbegriffe \"dark\" und \"light\" pro Roman (absolut)") + xlab("Roman") + ylab("Wörter (gesamt)")
@@ -84,7 +84,7 @@ Wir sehen zwei unterschiedliche Berechnungen: das erste Plot zeigt die absolute 
 
 Was tun, wenn man sich weniger für die Häufigkeit als für die Position der Suchterme interessiert? Dazu kann das Plotten der Begiffsdispersion als 'xray-plot' nützlich sein, wozu die Funktion [textplot_xray](https://docs.quanteda.io/reference/textplot_xray.html) existiert. Die X-Achse stellt hierbei die Position innerhalb des Textes dar, an dem der Suchbegriff vorkommt. 
 
-```{r}
+```{r Lexikalische Dispersion plotten}
 textplot_xray(kwic(korpus, "dark", valuetype = "regex", case_insensitive = FALSE)) + ggtitle("Lexikalische Dispersion von \"dark\" in Sherlock Holmes")
 textplot_xray(kwic(korpus, "light", valuetype = "regex", case_insensitive = FALSE)) + ggtitle("Lexikalische Dispersion von \"light\" in Sherlock Holmes")
 ```
@@ -96,7 +96,7 @@ Wir gehen nun zu den sogenannten Textstatistken über. Dabei handelt es sich um 
 
 Folgend wenden wir die Funktion [textstat_collocations()](https://docs.quanteda.io/reference/textstat_collocations.html) an, die häufige Kollokate im Sherlock Holmes-Korpus ermittelt. Anhand von write_delim wird das Ergebnis dann noch als Excel-kompatible CSV-Datei gespeichert.
 
-```{r}
+```{r Kollokationen extrahieren}
 meine.tokens <- tokens(korpus)
 kollokationen <- textstat_collocations(meine.tokens, min_count = 10)
 arrange(kollokationen, desc(count))
@@ -113,7 +113,7 @@ Die beiden Tabellen illustrieren diesen Unterschied. Während die erste nach der
 
 Wie sich im ersten Kapitel bereits angedeutet hat, lassen sich auf Grundlage einer DFM zahlreiche Metriken berechnen, welche die Nähe und Distanz von Wörtern und Dokumenten zu einander relektieren. Dies geschieht mit [textstat_simil()](https://docs.quanteda.io/reference/textstat_frequency.html). Zunächst konstruieren wir dazu eine DFM, in der jeder Satz einem Dokument entspricht. Dies wird deshalb notwendig, weil sich Wortähnlichkeiten bei einer geringen Dokumentanzahl nicht besonders zuverlässig berechnen lassen, da Ähnlichkeit als Kookurenz innerhalb des gleichen Dokuments operationalisiert wird. Dann Berechnen wir die Wortähnlichkeit zum Begriff 'love' mittels [Kosinusdistanz](https://de.wikipedia.org/wiki/Kosinus-%C3%84hnlichkeit). Andere verfügbare Metriken sind 'correlation', 'jaccard', 'eJaccard', 'dice', 'eDice', 'simple matching', 'hamann' und 'faith', welche Wortähnlichkeit jeweils unterschiedlich operationalisieren. 
 
-```{r}
+```{r Wortähnlichkeiten in einem Satzkorpus berechnen}
 korpus.saetze <- corpus_reshape(korpus, to = "sentences")
 meine.dfm.saetze <- dfm(korpus.saetze, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
 meine.dfm.saetze <- dfm_trim(meine.dfm.saetze, min_docfreq = 5)
@@ -123,7 +123,7 @@ head(aehnlichkeit.woerter[order(aehnlichkeit.woerter[,1], decreasing = T),], 10)
 
 Analog zur Ähnlichkeit funktionert auch die Berechnung von Wortdistanzen mit der Funktion [textstat_dist()](https://docs.quanteda.io/reference/textstat_frequency.html). Auch hier haben wir wieder eine große Anzahl von Distanzmaßen zur Auswahl ('euclidean', 'chisquared', 'chisquared2', 'hamming', 'kullback'. 'manhattan', 'maximum', 'canberra', 'minkowski').
 
-```{r}
+```{r Wortdistanzen in einem Satzkorpus berechnen}
 distanz.woerter <- textstat_dist(meine.dfm.saetze, "love", margin = "features", method = "euclidean")
 head(distanz.woerter[order(distanz.woerter[,1], decreasing = T),], 10)
 ```

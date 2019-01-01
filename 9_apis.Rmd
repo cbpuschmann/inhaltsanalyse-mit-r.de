@@ -1,0 +1,73 @@
+---
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
+subtitle: "Programmierschnittstellen (APIs)"
+output: html_notebook
+---
+
+\
+\
+\
+
+[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+
+Die Methoden der (teil)automatisierten Textanalyse, die in dieser Einführung im Mittelpunkt stehen, sind bisher anhand von Funktionen und Paketen vorgestellt worden, die man selbst auf dem eigenen Rechner installieren, ausführen und mit der notwendigen Expertise auch einsehen und verändern kann. Ob es sich nun um solche Verfahren handelt, die zum Funktionsumfang von quanteda gehören, um jene, die über ein zusätzliche Pakete wie etwa RTextTools, topicmodels, stm oder spacyr realisiert werden, oder um einfache ad-hoc-Verfahren, die man anhand vorhandenerer Funktionen selbst zusammenstellen kann, die Lösung wurde bisher immer auf Grundlage von Paketen erzielt, über die man als R-Nutzer selbst vollständige Kontrolle hat.
+
+In diesem Abschnitt geht es um Programmierschittestellen (application programming interfaces oder APIs), also um Schnittstellen, die den Zugang zu Daten, aber auch die Anwendung bestimmter computergestützter Analyseverfahren über das Internet ermöglichen. Zunächst ist am Zugang zu Daten über APIs nichts auszusätzen -- statt mühevoll Parser zu schreiben, die aus Webseiten oder uneinheitlich formatierten PDF-Dokumenten strukturierte Daten herausholen verwendet man oft lieber eine gut dokumentierte API, die ordentliche Daten in genau der Form liefert, wie man sie haben möchte. APIs gibt es in ganz unterschiedlichen Formen und für unterschiedliche Zielgruppen. Da aber häufig gerade bei kommerziellen Social Media-Plattformen die Entwicklung von Apps durch Drittentwickler der eigentliche Grund für das Vorhandensein einer API ist, sind viele diese APIs nicht ideal für die Untersuchung sozialwissenschaftlicher Fragegestellungen geeignet. 
+
+Wir beginnen allerdings mit der Untersuchung schon vorliegender Textdaten mit API-Diensten, und konkret mit dem Angebot von [MonkeyLearn](https://monkeylearn.com/api). MonkeyLearn ist ein auf automatisierte Sprachverarbeitung spezialisiertes Startup
+
+Um das (kostenlose) Angebot von MonkeyLearn nutzen zu können, muss man sich zunächst [hier](https://app.monkeylearn.com/accounts/register/). Einen Überblick der einzelnen Module findet sich [hier](https://app.monkeylearn.com/main/explore/).
+
+```{r Packetinstallation und API-Einstellungen, message = FALSE}
+# Installation und Laden der Bibliotheken
+if(!require("quanteda")) { install.packages("quanteda") library("quanteda") }
+if(!require("tidyverse")) { install.packages("tidyverse") library("tidyverse") }
+if(!require("devtools")) {
+  install.packages("devtools")
+  devtools::install_github("ropensci/monkeylearn")
+}
+if(!require("monkeylearn")) { devtools::install_github("ropensci/monkeylearn") library("monkeylearn") }
+theme_set(theme_bw())
+
+# API-Einstellungen
+ml.apikey <- "aed10806f2387f5060762ca351afdd215d45dec4"
+```
+
+Zunächst verwenden wir einen Extractor, mit dem wir Personennamen aus einem Text extrahieren können. Dies funktioniert ähnlich wie im vorherigen Kapitel, allerdings übernimmt hier die MonkeyLearn-API die eigentliche Analyse.
+
+```{r}
+devtools::install_github("MarkEdmondson1234/googleLanguageR")
+
+library("googleLanguageR")
+gl_auth("verschiedenes/googleLanguageR-b70ebebb5229.json")
+
+#texts <- c("to administer medicince to animals is frequently a very difficult matter, and yet sometimes it's necessary to do so", "I don't know how to make a text demo that is sensible")
+x <- scan("daten/sherlock/romane/01 A Scandal in Bohemia.txt", what = "char", sep = "\n")
+nlp_result <- gl_nlp(paste(x, collapse = " "))
+
+text <- "to administer medicine to animals is frequently a very difficult matter, and yet sometimes it's necessary to do so"
+
+## translate British into Danish
+gl_translate(text, target = "de")$translatedText
+
+```
+
+
+
+```{r}
+text <- "More than 100 friends, sports figures, casting directors, actors, golf and bridge partners — even kindergarten classmates from Austin, Minn. — had gathered to celebrate at a friend’s Los Angeles home. At a V.I.P. table were the biggest names Mr. Dauer could muster: the actor-turned-polemicist James Woods; former Senator Norman Coleman; and Bruce McNall, the former Los Angeles Kings owner who served time for fraud. Then, at about 8 p.m., a star arrived: Leslie Moonves, the chief executive of CBS and one of Hollywood’s most powerful people. Mr. Moonves presented Mr. Dauer with a yellow tie embossed with the logo of the Masters golf tournament."
+ml.entities <- monkey_extract(text, extractor_id = "ex_SmwSdZ3C", key = ml.apikey, verbose = F)
+ml.entities
+```
+
+xxx
+
+```{r}
+load("daten/twitter/trumpclinton.korpus.RData")
+korpus.sample <- corpus_sample(korpus, size = 100)
+tweets <- texts(korpus.sample)
+ml.sentiment <- monkey_extract(tweets, extractor_id = "cl_pi3C7JiL", key = ml.apikey, verbose = T)
+ml.sentiment
+```
+

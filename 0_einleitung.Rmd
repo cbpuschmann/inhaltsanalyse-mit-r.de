@@ -5,13 +5,15 @@ subtitle: "Einleitung"
 output: html_notebook
 ---
 
-\
-\
-\
+<!---
+* pdf-version vorbereiten
+* literatur hinzufügen
+* ggf. plotly-support
+-->
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
-Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentliche Ansätze der automatisierten Inhaltsanalyse in R anhand von Beispielen vorgestellt werden, und zwei Beispielstudien, in denen eine Kombination zuvor vorgestellter Methoden systematisch angewandt wird. Derzeit ist nur die Arbeit an den Kapiteln 1-6 abgeschlossen.
+Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentliche Ansätze der automatisierten Inhaltsanalyse in R anhand von Beispielen vorgestellt werden, und zwei Beispielstudien, in denen eine Kombination zuvor vorgestellter Methoden systematisch angewandt wird. Die aktuellste (Entwicklungs-)Fassung der R-Notebooks findet sich auf [GitHub](https://github.com/cbpuschmann/inhaltsanalyse-mit-r.de), eine zusätzliche Leseversion ist auch auf [rpubs.com](https://rpubs.com/cbpuschmann/AIR1) abrufbar.
 
 
 ### Inhalt
@@ -21,26 +23,26 @@ Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentlich
 1. [Grundlagen von quanteda](1_grundlagen.html)
 2. [Wort- und Textmetriken](2_metriken.html)
 3. [Sentimentanalyse](3_sentiment.html)
-4. [spezialisierte Lexika](4_lexika.html)
-5. [Themenmodelle](5_themenmodelle.html)
-6. [überwachtes maschinelles Lernen](6_maschinelles_lernen.html)
-7. Tagging, Parsing, Entitätenerkennung
-8. Programmierschnittstellen (APIs)
-9. Datenimport und -aufbereitung
+4. [themenspezifische Lexika](4_lexika.html)
+5. [überwachtes maschinelles Lernen](5_maschinelles_lernen.html)
+6. [Themenmodelle](6_themenmodelle.html)
+7. [Tagging, Parsing und Entitätenerkennung](7_ner.html)
+8. [Texte und Wörter als Netzwerke](8_netzwerke.html)
+9. [Programmierschnittstellen (APIs)](9_apis.html)
 10. Erste Modellstudie: Deutscher Bundestag
 11. Zweite Modellstudie: Syrien-Berichterstattung
 
 
 ### Downloads
 
-Sämtliche in dieser Einführung verwendeten R-Notebooks, Korpora und Lexika und können [hier](inhaltsanalyse_mit_r.zip) heruntergeladen werden. 
+Sämtliche in dieser Einführung verwendeten R-Notebooks, Korpora und Lexika und können [hier](inhaltsanalyse_mit_r.zip) heruntergeladen werden. Ebenfalls herunterladbar ist [eine PDF-Version](inhaltsanalyse_mit_r.pdf) dieser Website.
 
 
 ### R-Pakete
 
 Die technische Grundlage dieser Einführung liefert das Paket [quanteda](https://quanteda.io/), entwickelt von [Ken Benoit](http://kenbenoit.net/) und Kollegen, welches eine umfangreiche Basisinfrastruktur für die Analyse von Textdaten in [R](https://www.r-project.org/) darstellt. Mit quanteda [liest man Textdaten ein, legt man Korpora an, zählt man Wörter und wendet Lexika auf Daten an](https://tutorials.quanteda.io/). Damit ist quanteda deutlich umfangreicher als die meisten vergleichbaren Pakete und eher ein vollumfängliches Textmining-Framework. Äquivalent mit Blick auf die Funktionalität sind allenfalls die Pakete [tm](https://cran.r-project.org/web/packages/tm/vignettes/tm.pdf) und (begrenzt) [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). Im Vergleich zu tm ist quanteda zwar jünger, zeichnet sich aber durch einen großen Funktionsumfang, sehr gute Performance, und eine exzellente Dokumentation aus. Tatsächlich sind zahlreiche hier vorgestellte Beispiele direkt der quanteda-Dokumentation entnommen, die allerdings häufig etwas gegenüber dem Paket selbst hinterherhinkt. 
 
-Weitere Pakete werden für spezialisierte Aufgaben verwendet, die quanteda nicht abdeckt. Dazu gehören Themenmodelle genauso wie das überwachte maschinelle Lernen. Für den ersten Punkt setzen wir die Pakete [topicmodels](https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf) und [stm](https://www.structuraltopicmodel.com/) ein, für den zweiten Punkt das Paket [RTextTools](http://www.rtexttools.com/). 
+Weitere Pakete werden für spezialisierte Aufgaben verwendet, die quanteda nicht abdeckt. Dazu gehört das überwachte maschinelle Lernen (Kapitel 5) genauso wie sogenannte Themenmodelle (Kapitel 6). Für den ersten Punkt setzen wir die Pakete [topicmodels](https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf) und [stm](https://www.structuraltopicmodel.com/) ein, für den zweiten Punkt wird das Paket [RTextTools](http://www.rtexttools.com/) herangezogen. 
 
 Schließlich arbeiten wir intensiv mit den Paketen des [tidyverse](https://www.tidyverse.org/), die gemeinsam so etwas wie den großangelegten Versuch des neuseeländischen Statistikers [Hadley Wickham](https://en.wikipedia.org/wiki/Hadley_Wickham) darstellen, R trotz zahlreicher nicht unwesentlicher syntaktischer Indiosynkratien und Leistungsprobleme zu einer führenenden Sprache im Bereich der Datenwissenschaft zu machen. Wer sich einmal an die Logik von [tidyr](https://tidyr.tidyverse.org/), [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) und [ggplot](https://en.wikipedia.org/wiki/Ggplot2) gewöhnt hat, möchte sie für gewöhnlich nicht mehr missen, auch wenn der Weg dorthin mitunter beschwerlich sein kann, etwa weil die spezielle Syntax nicht jedermanns Sache ist. Eine essentielle Einführung in das tidyverse ist das Buch [R for Data Science](http://r4ds.had.co.nz/) von Garrett Grolemund und Hadley Wickham.
 
@@ -78,4 +80,4 @@ CoRnelius Puschmann
 
 [puschmann@gmail.com](mailto:puschmann@gmail.com) / [cbpuschmann](http://twitter.com/cbpuschmann)
 
-Hamburg, August 2018
+Hamburg, Januar 2019

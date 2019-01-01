@@ -1,33 +1,28 @@
 ---
-title: ''
-author: ''
-subtitle: Tagging, Parsing, Entitätenerkennung
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
+subtitle: "Tagging, Parsing und Entitätenerkennung"
 output: html_notebook
 ---
 
-\
-\
-\
+<!---
+* Netzwerk Entitäten UN
+-->
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
-Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während ihnen in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, Tagging (die Bestimmung von Wortklassen), Parsing (die Bestimmung von Satz–Konstituenten) und Entitätenerkennung (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden aus können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant für die Frage sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen. Auch sind etwa syntaktische Informationen ausgesprochen wertvoll, wenn man Muster erkennen will, die sich mithilfe des "Bag of words"-Ansatzes nicht adäquat abbilden lassen. 
+Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während den in diesem Abschnitt behandelten Verfahren in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, *Tagging* (die Bestimmung von Wortklassen), *Parsing* (die Bestimmung von Satz–Konstituenten) und *Entitätenerkennung* (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen auch deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant dafür sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen. Auch sind etwa syntaktische Informationen ausgesprochen wertvoll, wenn man Muster erkennen will, die sich mithilfe des "Bag of words"-Ansatzes nicht adäquat abbilden lassen. 
 
-Technisch arbeiten wir in diesem Abschnitt mit dem Paket [https://github.com/quanteda/spacyr](spacyr), welches wie auch andere hier vorgestellte Pakete eine direkte Schnittstelle zu quanteda hat. Spacyr ist allerdings ein Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gibt, führt der Weg hierfür zwangsläufig über Java oder Python. 
+Technisch arbeiten wir in diesem Abschnitt mit dem Paket [spacyr](https://github.com/quanteda/spacyr), welches wie auch andere hier vorgestellte Pakete eine direkte Schnittstelle zu quanteda hat. Spacyr ist allerdings ein Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gibt, führt der Weg hierfür zwangsläufig über Java oder Python. 
 
 Zunächst laden wir wieder das Korpus mit Beiträgen Schweizer Tageszeitungen zum Thema Finanzkrise.
-
-– verben oder ajektive finanzkrise (alle)
-– Banken als Subjekt??
-– entitäten twitter 
-– themenmodell die zeit o. new york times nur mit nomen
-
 
 ```{r Packetinstallation, message = FALSE}
 # Installation und Laden der Bibliotheken
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("scales")) install.packages("scales")
+if(!require("ggplotly")) install.packages("ggplotly")
 theme_set(theme_bw())
 ```
 
@@ -42,7 +37,7 @@ if (!require("spacyr")) {
 }
 ```
 
-Nun können wir das Paket einsetzen, um etwa die Wortklassen in einem Korpus zu bestimmen. Wir beginnen mit dem Finanzkrise-Korpus und einem einfachen Überblick des Outputs von spacyr. 
+Nun können wir das Paket einsetzen, um etwa die Wortklassen in einem Korpus zu bestimmen. Wir beginnen mit dem Finanzkrise-Korpus und einem einfachen Überblick des Outputs von spacyr. Die Diagnostik-Meldungen aus Python können wir dabei ignorieren.
 
 ```{r Laden und Parsen des Finanzkrise-Korpus}
 load("daten/cosmas/finanzkrise/finanzkrise.korpus.RData")
@@ -53,7 +48,7 @@ spacy_finalize()
 head(finanzkrise.pos, 100)
 ```
 
-Die tabellarische Auflistung ist bereits hinlänglich bekannt, neu sind aber die Felder pos (Wortart), head_token_id, dep_rel und entity, welche durch die linguistische Analyse hinzugekommen sind. 
+Die tabellarische Auflistung ist bereits hinlänglich bekannt, neu sind aber die Felder *pos* (Wortart), *head_token_id* (Hauptwort), *dep_rel* (syntaktische Abhängigkeitsbeziehung) und *entity* (Art der Entität), welche durch die linguistische Analyse hinzugekommen sind.
 
 Ein praktisches Beispiel zeigt konkrete Vorteile der Annotation von Wortart und Satzkonstituente: Wir ermitteln die frequentesten Satzsubjekte im Finanzkrise-Korpus, also solche Nomen, die das Hauptwort eines Satzes darstellen. Dies gibt Aufschluss über die Akteure die im Korpus eine Rolle spielen, auch wenn es sich beim Subjekt um eine rein syntaktische Kategorie handelt.
 
@@ -69,7 +64,9 @@ subjekte <- finanzkrise.pos %>%
 ggplot(subjekte, aes(reorder(Wort, Rang), Frequenz)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ggtitle("Frequenteste Satzsubjekte im Finanzkrise-Korpus")
 ```
 
-Wie das
+Wie das Ergebnis zeigt, lassen sich im Gegensatz zu einer einfachen Frequenzliste aller Wörter im Korpus viel leichter Rückschlüsse über wichtige Akteure anstellen.
+
+Wir wenden uns nun einem anderen Beispiel zu, nämlich den Trump-Clinton-Tweets. Hier interessieren uns besonders Adjektive, und ganz spezifisch, welche für wen der beiden Kandidaten besonders charakteristisch sind. Zunächst müssel wir spacy erneut initialisieren, und zwar um die Sprache von Deutsch auf Englisch umzustellen. Anschließend wenden wir wieder die Funktion [spacy_parse](https://www.rdocumentation.org/packages/spacyr/versions/1.0/topics/spacy_parse) an. Wir beschränken uns hier darauf, die Wortart zu bestimmen. 
 
 ```{r Laden und Parsen des Twitter-Korpus}
 load("daten/twitter/trumpclinton.korpus.RData")
@@ -78,6 +75,8 @@ twitter.pos <- spacy_parse(korpus, lemma = F, entity = F)
 spacy_finalize()
 head(twitter.pos, 100)
 ```
+
+Nun vergleichen wir anhand einer zuvor aus der Gesamtliste aller verwendeten Adjektive ausgewählten Gruppe von Adjektiven, wie charakteristische diese jeweils für Donald Trump und Hillary Clinton sind.
 
 ```{r Typische Adjektive bei Donald Trump und Hillary Clinton}
 adjektive.trumpclinton <- scan("daten/twitter/adjektive.trumpclinton.txt", what = "char", sep = "\n", quiet = T)
@@ -95,15 +94,14 @@ adjektive.diff <- data.frame(Wort = unique(adjektive$Wort), Differenz = adjektiv
   mutate(Differenz.S = as.vector(scale(Differenz, center = 0))) %>% 
   arrange(Differenz.S)
 
-p <- ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5)) + xlab("") + ggtitle("Adjektive Trump vs. Clinton (mit 'great', 'big' enfernt)") + ylab("Trump                                                               Clinton") + coord_flip()
-p
-#ggplotly(p)
+ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5)) + xlab("") + ggtitle("Adjektive Trump vs. Clinton (mit 'great', 'big' enfernt)") + ylab("Trump                                                               Clinton") + coord_flip()
 ```
 
+Gerade die Adjektive machen die Unterschiede zwischen den Kandidaten bezüglich des politischen Stils sehr deutlich, und nicht nur deshalb, weil Trump deutlich häufiger negative Adjektive verwendet als Clinton.
 
+Als nächstes wechseln wir den Ansatz und schauen uns die Erwähnung von Entitäten im UN-Korpus -- in diesem Fall Organisationen -- in etwas genauer an. 
 
-
-```{r}
+```{r Entitäten im UN-Korpus}
 load("daten/un/un.korpus.RData")
 korpus.un.sample <- corpus_sample(korpus.un, size = 100)
 spacy_initialize(mode = "en")
@@ -114,10 +112,4 @@ head(str_remove(un.entities$entity[un.entities$entity_type=="ORG"], "\n"), 50)
 ```
 
 
-```{r}
-library(plotly)
-p <- ggplot(data = diamonds, aes(x = cut, fill = clarity)) +
-            geom_bar(position = "dodge")
-ggplotly(p)
-```
 
