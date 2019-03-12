@@ -13,7 +13,7 @@ output: html_notebook
 
 Texte und Wörter lassen sich neben den bisher vorgestellen Techniken auch noch mit einem weiteren Ansatz untersuchen. Die Netzwerkanalyse stellt eine sehr wichtige Methode der Sozialwissenschaften dar, die grundsätzlich für die Untersuchung von Akteursbeziehungen von großer Relevanz ist. Sie ist aber darüber hinaus auch durchaus für die automatisierte Inhaltsanalyse von Bedeutung, zum einen, weil sich mit ihr etwa abbilden lässt, welche Akteure zusammen in einem Text genannte werden, aber auch dann, wenn beispielsweise ermittelt werden soll, wer ähnliche Begriffe verwendet.
 
-Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. In dieem Kapitel wenden wir uns nun ihrem pendant z, der fcm.
+Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. In diesem Kapitel wenden wir uns nun dem Pendant der DFM zu, der Feature Co-occurance Matrix (FCM).
 
 ```{r Packetinstallation, message = FALSE}
 # Installation und Laden der Bibliotheken
@@ -23,6 +23,9 @@ if(!require("devtools")) {install.packages("devtools"); devtools::install_github
 if(!require("textnets")) {devtools::install_github("cbail/textnets"); library("textnets")}
 theme_set(theme_bw())
 ```
+
+
+#### Netzwerke mit quanteda
 
 Nachdem wir die notwendigen Bibliotheken gelanden haben, greifen wir eneut auf die Variante des Sherlock Holmes-Korpus zurück, welche die zwölf Romane in 174 Abschnitte gleicher Länge unterteilt. Wir erstellen eine DFM auf Basis von Bigrammen (Zweiwort-Folgen) in der wir die Unterscheidung zwischen Groß- und Kleinschreibung aufrechterhalten. 
 
@@ -37,11 +40,11 @@ meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symb
 Dann Laden wir eine einfache Liste von Personen, welche in den Romanen vorkommen. Durch unterschiedliche Varianten des gleichen Namens (Sherlock Holmes vs. Mr. Holmes vs. Sherlock) ist dies Methode nicht ganz akkurat, es genügt aber für eine einfache Demonstration.  
 
 ```{r Filtern der DFM nach Personennamen}
-personen <- scan("daten/sherlock/sherlock.personen.txt", what = "char", sep = "\n")
+personen <- scan("daten/sherlock/sherlock.personen.txt", what = "char", sep = "\n", quiet = T)
 meine.dfm.personen <- dfm_select(meine.dfm, personen, selection = "keep", case_insensitive = F)
 ```
 
-Nun bereichnen wir eine Feature Cooccurance Matrix (FCM) welche auf der bereits vorhandenen DFM basiert. Dann plotten wir das Ergebnis als Netzwerk. 
+Nun bereichnen wir eine Feature Cooccurance Matrix (FCM) welche auf der bereits vorhandenen DFM basiert. Dann plotten wir das Ergebnis als Netzwerk mit der quanteda-eigenen Funktion [textplot_network()](https://quanteda.io/reference/textplot_network.html). 
 
 ```{r Berechnen einer FCM und Plotten eines Textnetzwerkes}
 meine.fcm <- fcm(meine.dfm.personen)
@@ -56,52 +59,74 @@ Die FCM ist die Grundlage des Netzwerkes. Während die Zeilen einer DFM die Doku
 convert(meine.fcm, to = "data.frame")
 ```
 
-Was lässt sich aus der Kookkurenz von Begriffen in einem größeren Korpus ableiten? Wir laden das Bundestags-Korpus und extrahieren zentrale Begriffe nach Redner mittels TD-IDF, um diese Frage zu beanrtworten. 
 
-```{r}
+#### Netzwerke mit qtextnets (eigener Code)
+
+Was lässt sich aus der Kookkurenz von Begriffen in einem größeren Korpus ableiten? Wir laden folgend das Bundestags-Korpus und extrahieren zentrale Begriffe nach Redner mittels TD-IDF, um diese Frage zu beantworten. Zudem greifen wir an dieser Stell auf eine Gruppen von Funktionen zurück, die nicht aus quanteda stammen, sondern von dem R-Paket [textnets](https://github.com/cbail/textnets) inspiriert sind. Mit Hilfe von textnets lassen sich nicht nur die Beziehungen von Begriffen zu einander, sondern auch die Beziehung von Begriffen und Texten sowie von Texten auf Grundlage geteilter Begriffe darstellen. In unserer Implementation (abgelegt unter verschiedenes/qtextnets.R) gibt es dementsprechend drei Funktionen:
+
+* textplot_mixednet(gemisches Dokument-Begriffsnetz)
+* textplot_termnet(Begriffsnetz)
+* textplot_docnet(Dokumentnetz)
+
+Jede dieser Funktionen erwartet eine DFM als Input und berechnet aus dieser mit dem Paket igraph eine ungerichtetes Netzwerk. Folgend werden die drei Funktionen mit Beispielen illustriert.
+
+Zunächst berechnen wir zwei DFMs: eine nach Parteien (Variable "party") und eine weitere nach MdB ("speaker_cleaned").  
+
+```{r Berechnung einer DFM nach Partei und einer weiteren nach MdB}
+source("verschiedenes/qtextnets.R", echo = F)
 load("daten/bundestag/bundestag.korpus.RData")
 korpus.bundestag <- corpus_subset(korpus.bundestag, type == "speech")
-meine.dfm <-
+meine.dfm.partei <-
   dfm(korpus.bundestag,
-      groups = "speaker_key",
+      groups = "party",
       remove_numbers = TRUE,
       remove_punct = TRUE,
       remove_symbols = TRUE,
       remove = stopwords("german")) %>%
   dfm_trim(min_termfreq = 7, max_termfreq = 2283) %>%
   dfm_tfidf(.)
-textstat_frequency(meine.dfm, n = 300)
+meine.dfm.mdb <-
+  dfm(korpus.bundestag,
+      groups = "speaker_cleaned",
+      remove_numbers = TRUE,
+      remove_punct = TRUE,
+      remove_symbols = TRUE,
+      remove = stopwords("german")) %>%
+  dfm_trim(min_docfreq = 19, max_docfreq = 311) %>% # min = 3% aller MdBs, max = nicht mehr als die Hälfte aller MdBs
+  dfm_tfidf(.)
 ```
 
-Wir verwenden die 300 nach TF-IDF distinktivsten Begriffe nun für eine einfaches Lexikon, mithilfe dessen wir ein Netzwerk erstellen, welches uns die Kookkurenz der Begriffe in Redebeiträgen zeigt.
+Nun verwenden zunächst die 50 distinktivsten Begriffe nach TF-IDF, um Unterschiede zwischen den Parteien bezüglich der Begriffsverwendung aufzuzeigen. 
 
-```{r}
-netzwerk.begriffe <- scan("daten/bundestag/netzwerk_begriffe.txt", what = "char", sep = "\n")
-meine.dfm <- dfm(korpus.bundestag)
-meine.dfm.netzwerk <- dfm_keep(meine.dfm, netzwerk.begriffe)
-meine.fcm <- fcm(meine.dfm.netzwerk)
-textplot_network(meine.fcm, edge_alpha = 0.2)
+```{r Plotten eines Partei-Begriffsnetzwerkes}
+netzwerk.begriffe.parteien <- scan("daten/bundestag/netzwerk_begriffe_parteien.txt", what = "char", sep = "\n", quiet = T)
+meine.dfm.netzwerk <- dfm_keep(meine.dfm.partei, netzwerk.begriffe.parteien)
+textplot_mixednet(meine.dfm.netzwerk, main = "Partei-Begriffsnetzwerk der distinktivsten Begriffe nach TF-IDF im Bundestagskorpus")
 ```
 
-Wir wenden 
+Wie man schnell erkennt, sind Begriffe wie "Wertentscheidung" (CSU) oder "Millionärssteuer" (LINKE) recht klar mit der Parteizugehörigkeit verknüpft. Ein änhlicher Ansatz lässt sich auch mit Bezug auf einzelne MdBs anstatt von Parteien wählen, auch hier wieder mit einem sehr kleinen Lexikon von nur 50 Begriffen. 
 
-```{r}
-meine.dfm <- dfm(korpus.bundestag, groups = "speaker_key")
-meine.dfm.netzwerk <- dfm_keep(meine.dfm, netzwerk.begriffe)
-nw <- convert(meine.dfm.netzwerk, to = "matrix")
-ueb <- NULL
-ueb.df <- data.frame(0, nrow = 1, ncol = ncol(nw))
-for (i in 1:nrow(nw))
-{
-  for (j in 1:nrow(nw)) ueb <- c(ueb, cor(nw[i,], nw[j,]))
-  ueb.df <- bind_rows(ueb.df, ueb)
-}
-
-head(x, 1)
-
-
-korpus.bundestag.sample <- corpus_sample(korpus.bundestag, 1000)
-bundestag.sample <- data.frame(text = texts(korpus.bundestag.sample), docvars(korpus.bundestag.sample), stringsAsFactors = F)
-bundestag.tt <- PrepText(bundestag.sample, groupvar = "speaker_cleaned", textvar = "text", node_type = "groups", tokenizer = "words", pos = "nouns", remove_stop_words = TRUE, compound_nouns = TRUE)
+```{r Plotten eines MdB-Begriffsnetzwerkes}
+netzwerk.begriffe.mdbs <- scan("daten/bundestag/netzwerk_begriffe_abgeordnete.txt", what = "char", sep = "\n", quiet = T)
+meine.dfm.netzwerk <- dfm_keep(meine.dfm.mdb, netzwerk.begriffe.mdbs) %>% 
+  dfm_subset(docnames(.) %in% c("Sigmar Gabriel", "Thomas Oppermann", "Hubertus Heil", "Johannes Kahrs", "Dr. Anton Hofreiter", "Katrin Göring-Eckardt", "Volker Beck", "Dr. Joachim Pfeiffer", "Michael Grosse-Brömer", "Dr. Thomas de Maizière", "Alexander Dobrindt", "Max Straubinger", "Dr. Dietmar Bartsch", "Heike Hänsel", "Klaus Ernst", "Dr. Angela Merkel,"))
+textplot_mixednet(meine.dfm.netzwerk, main = "MdB-Begriffsnetzwerk der distinktivsten Begriffe nach TF-IDF im Bundestagskorpus", maxdocs = 16)
 ```
 
+Es lassen sich sowohl fachliche Schwerpunkte als auch z.T. Rückschlüsse über die Parteizugehörigkeit treffen, wobei das erste Netzwerk hier aufschlussreicher ist. Schließlich lassen sich auch die Beziehungen zwischen Begriffen analysieren, um Verwendungsmuster zu identifizieren. Dabei wird lediglich die Ähnlichkeit, welche Verfahren wie die in Kapitel 2 beschriebeben Funktionen [textstat_dist()](https://docs.quanteda.io/reference/textstat_frequency.html) und [textstat_simil()](https://docs.quanteda.io/reference/textstat_frequency.html) angewendet, um ein Netzwerk zu berechnen.
+
+```{r Plotten eines Netzwerks distinktiver Begriffe}
+meine.dfm <- dfm(korpus.bundestag) %>% 
+  dfm_keep(., unique(c(netzwerk.begriffe.mdbs, netzwerk.begriffe.parteien)))
+textplot_termnet(meine.dfm, "Begriffsnetzwerk distinktivster Begriffe im Bundestagskorpus")
+```
+
+Ein sehr ähnliches Ergebnis lässt sich auch mit der Funktion textplot_network() erzielen, welche auf der gleichen Grundlage beruht. Schließlich lässt sich auch noch ein reines Dokumentennetzwerk plotten, hier als Kreis angeordnet. 
+
+```{r Plotten eines MdB-Netzwerks nach geteilten Begriffen}
+sprecher <- names(head(sort(table(korpus.bundestag.stats$speaker_cleaned[korpus.bundestag.stats$type=="speech"]), decreasing = T), 50))
+meine.dfm.netzwerk <- dfm_subset(meine.dfm.mdb, docnames(meine.dfm.mdb) %in% sprecher)
+textplot_docnet(meine.dfm.netzwerk, main = "MdB-Netzwerk nach geteilten Begriffen im Bundestagskorpus")
+```
+
+Abschließend lässt sich festhalten, das Netzwerke ein weiteres Werkzeug für die Analyse von Wort- und Textbeziehungen darstellen. Die Netzwerkanalyse kennt natürlich noch zahlreiche weitere relevante Techniken, allerdings besteht zum Teil einer Überlappung mit Metriken für die Erfassung von Wort- und Textähnlichkeit, für die die Netzwerkvisualisierung lediglich eine weitere Präsentationsform bietet. 
