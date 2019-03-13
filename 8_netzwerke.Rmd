@@ -129,4 +129,5 @@ meine.dfm.netzwerk <- dfm_subset(meine.dfm.mdb, docnames(meine.dfm.mdb) %in% spr
 textplot_docnet(meine.dfm.netzwerk, main = "MdB-Netzwerk nach geteilten Begriffen im Bundestagskorpus")
 ```
 
-Abschließend lässt sich festhalten, das Netzwerke ein weiteres Werkzeug für die Analyse von Wort- und Textbeziehungen darstellen. Die Netzwerkanalyse kennt natürlich noch zahlreiche weitere relevante Techniken, allerdings besteht zum Teil einer Überlappung mit Metriken für die Erfassung von Wort- und Textähnlichkeit, für die die Netzwerkvisualisierung lediglich eine weitere Präsentationsform bietet. 
+Abschließend lässt sich festhalten, das Netzwerke ein weiteres nützliches Werkzeug für die Analyse von Wort- und Textbeziehungen darstellen. Die Netzwerkanalyse kennt natürlich noch zahlreiche weitere relevante Techniken, allerdings besteht zum Teil einer Überlappung mit Metriken für die Erfassung von Wort- und Textähnlichkeit, für die die Netzwerkvisualisierung lediglich eine weitere Präsentationsform bietet. "Gemischte" Netzwerke, etwa aus Akteuren und Begriffen sind insofern ein interessantes Instrument, als dass wir gerade im Bereich der digitalen Kommunikation oftmals den Zusammenhang zwischen Nutzeraccounts oder Quellen zur Begriffswahl untersuchen, also in der Regel zahlreiche relevante Metadaten zu Texten vorliegen.  
+

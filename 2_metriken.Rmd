@@ -185,7 +185,3 @@ write_delim(lesbarkeit, path = "lesbarkeit.csv", delim = ";") # Datei ist Excel-
 
 Ein schönes Beispiel für den Nutzen solcher Metriken findet sich in der Dokumentation der Funktion textstat_readability(). Hatte die Antrittsrede von George Washington im Jahr 1789 noch einen Flesh-Kincaid-Index von 28, so betrug der Wert bei der Antrittsrede von Donald Trump in 2017 nur noch 9 (was allerdings dem Trend seit Mitte des 20. Jhd. entspricht). 
 
-
-
-
-

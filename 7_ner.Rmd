@@ -6,27 +6,54 @@ output: html_notebook
 ---
 
 <!---
-* Netzwerk Entitäten UN
+* APIs hinzufügen (indigo)
 -->
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während den in diesem Abschnitt behandelten Verfahren in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, *Tagging* (die Bestimmung von Wortklassen), *Parsing* (die Bestimmung von Satz–Konstituenten) und *Entitätenerkennung* (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen auch deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant dafür sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen. Auch sind etwa syntaktische Informationen ausgesprochen wertvoll, wenn man Muster erkennen will, die sich mithilfe des "Bag of words"-Ansatzes nicht adäquat abbilden lassen. 
 
-Technisch arbeiten wir in diesem Abschnitt mit dem Paket [spacyr](https://github.com/quanteda/spacyr), welches wie auch andere hier vorgestellte Pakete eine direkte Schnittstelle zu quanteda hat. Spacyr ist allerdings ein Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gibt, führt der Weg hierfür zwangsläufig über Java oder Python. 
-
-Zunächst laden wir wieder das Korpus mit Beiträgen Schweizer Tageszeitungen zum Thema Finanzkrise.
+Während R lange Zeit keine mit Python vergleichbare Bibliotheken vorweisen konnte, scheint dieses Problem inzwischen (endlich) weitgehend gelöst. Technisch arbeiten wir in diesem Abschnitt mit zwei Paketen: [udpipe](https://cran.r-project.org/package=udpipe) und [spacyr](https://github.com/quanteda/spacyr). Letzteres zeichnet sich wie auch andere hier vorgestellte Pakete durch direkte Interoperabilität mit quanteda aus. Spacyr ist allerdings insofern ein etwas komplizierter Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es lange keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gab, führt der Weg hierfür zwangsläufig über Java oder Python. Glücklicherweise steht seit Anfang 2019 mit udpipe ein solches Paket zur Verfügung, welches direkt auf C++ basiert, und weder Java noch Python erfordert. 
 
 ```{r Packetinstallation, message = FALSE}
 # Installation und Laden der Bibliotheken
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("scales")) install.packages("scales")
-if(!require("ggplotly")) install.packages("ggplotly")
+if(!require("udpipe")) {install.packages("udpipe"); library("udpipe")}
 theme_set(theme_bw())
 ```
 
-Dann laden wir das Paket spacyr, bzw. laden dieses sofern bereits vorhanden. Die Installation von spacyr ist vergleichsweise aufwändig, weil zusätzlich eine aktuelle Version von Python benötigt wird, und kann mitunter eine Zeit in Anspruch nehmen. Zusästzliche benötigen wir zudem auch noch ein Sprachmodul für Deutsch, welches Tagging, Parsing und Entitätenerkennung in dieser Sprache ermöglicht. Nach dem Laden erfolgt schließlich die Initialisierung von spacyr, welche jeweils auf die zu benutzende Sprache abgestimmt sein muss.
+
+#### Erste Gehversuche mit Hilfe von udpipe
+
+Nach der Paketinstallation laden wir das sogenannte Sprachmodell, welches udpipe für die Annotation verwenden soll (hier "german"), und testen es an einem einfachen Beispielsatz. Ein Überblick über sämtliche unterstützen Sprachen (derzeit 56, mit z.T. mehrereen Implementationen von Varietäten der gleichen Sprache) findet sich im [Download-Archiv von LIDAT/CLARIN](https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-2898), Performancemetriken sowie weitere Informationen, welche Aufschluss über die Genauigkeit der Tagger/Parser geben auf der [Seite des udpipe-Projekts](http://ufal.mff.cuni.cz/udpipe/models#universal_dependencies_23_models). 
+
+```{r Laden des udpipe Sprachmodells für deutsch und Annotation eines Beispielsatzes}
+if (!file.exists("verschiedenes/german-gsd-ud-2.3-181115.udpipe")) udpipe_download_model(language = "german", model_dir = "verschiedenes") # download model if it doesn't exist
+sprachmodell.udpipe <- udpipe_load_model(file = "verschiedenes/german-gsd-ud-2.3-181115.udpipe")
+beispiel <- udpipe_annotate(sprachmodell.udpipe, "Dies ist ein einfacher Beispielsatz.")
+beispiel <- as.data.frame(beispiel, detailed = T)
+beispiel
+```
+
+Wofür lässt sich der Output des PoS-Taggings konkret nutzen? Im folgenden Beispiel laden wir das bereits in Kapitel 5 eingesetzte Korpus aus der Onlineausgabe der Wochenzeitung "Die Zeit"" und filtern den Output anschließend so, dass wir (a) nur Nomen (mit upos == "NOUN"), dem Genus Femininum bzw. Maskulinum (mit "Gender=Fem" und "Gender=Masc") und der Endung "-in" bzw. "-er" erhalten. Dieses etwas hemdsärmelige Verfahren liefert uns Begriffspaare wie etwa "Politikerin" / "Politiker" zurück und erlaubt so eine grobe Schätzung des Anteils weiblicher Berufsbezeichnungen gegenüber generisch-maskulinen Bezeichnungen (in der Zeit etwa 1:10). Dabei sind allerdings sowohl falsch-positive Ergebnisse enthalten ("Putin", "Kilometer"), als auch Fälle, in denen man nicht von einer stilistischen Wahlentscheidung sprechen kann ("Bundeskanzlerin"). Jedenfalls gibt das Beispiel bereits einen ersten Vorgeschmack darauf, welche Möglichkeiten sich aufgrund der zusätzlichen Informationen, welche eine PoS-Tagger liefert, für die sozialwissenschaftliche Analyse bieten, wenn man nur etwas kreativ wird. 
+
+```{r Laden und Annotation des Zeit-Korpus mit udpipe}
+load("daten/zeit/zeit.sample.korpus.RData")
+zeit.sample <- texts(zeit.korpus)
+zeit.pos <- udpipe_annotate(sprachmodell.udpipe, zeit.sample, doc_id = docnames(zeit.korpus), tagger = "default", parser = "none")
+zeit.pos.df <- as.data.frame(zeit.pos)
+nomen.fem <- filter(zeit.pos.df, upos == "NOUN" & str_detect(feats, "Gender=Fem") & str_detect(lemma, "in$"))
+nomen.masc <- filter(zeit.pos.df, upos == "NOUN" & str_detect(feats, "Gender=Masc") & str_detect(lemma, "er$"))
+as.data.frame(head(sort(table(nomen.fem$lemma, dnn = list("Term")), decreasing = T), 10), responseName = "Frequenz")
+as.data.frame(head(sort(table(nomen.masc$lemma, dnn = list("Term")), decreasing = T), 10), responseName = "Frequenz")
+```
+
+
+#### Weitergehende Analyse mittels spacyr
+
+Wir wenden uns nun dem Paket spacyr zu, das entgegen udpipe auch noch einen weiteren Vorteil bietet: es erkennt auch sog. benannted Entitäten ("named entities"). Wir installieren zunächst das Paket, bzw. laden dieses sofern bereits vorhanden. Die Installation von spacyr ist vergleichsweise aufwändig, weil zusätzlich eine aktuelle Version von Python benötigt wird, und kann mitunter eine Zeit in Anspruch nehmen. Zusästzliche benötigen wir zudem auch noch ein Sprachmodul für Deutsch, welches Tagging, Parsing und Entitätenerkennung in dieser Sprache ermöglicht. Nach dem Laden erfolgt schließlich die Initialisierung von spacyr, welche jeweils auf die zu benutzende Sprache abgestimmt sein muss.
 
 ```{r Installation des Spezialpakets spacyr}
 if (!require("spacyr")) {
@@ -37,7 +64,7 @@ if (!require("spacyr")) {
 }
 ```
 
-Nun können wir das Paket einsetzen, um etwa die Wortklassen in einem Korpus zu bestimmen. Wir beginnen mit dem Finanzkrise-Korpus und einem einfachen Überblick des Outputs von spacyr. Die Diagnostik-Meldungen aus Python können wir dabei ignorieren.
+Nun können wir das Paket einsetzen, um etwa die Wortklassen in einem Korpus zu bestimmen. Zunächst laden wir wieder das Korpus mit Beiträgen Schweizer Tageszeitungen zum Thema Finanzkrise. Wir beginnen mit einem einfachen Überblick des Outputs von spacyr. Die Diagnostik-Meldungen aus Python können wir dabei ignorieren.
 
 ```{r Laden und Parsen des Finanzkrise-Korpus}
 load("daten/cosmas/finanzkrise/finanzkrise.korpus.RData")
@@ -99,7 +126,7 @@ ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + geom_bar(
 
 Gerade die Adjektive machen die Unterschiede zwischen den Kandidaten bezüglich des politischen Stils sehr deutlich, und nicht nur deshalb, weil Trump deutlich häufiger negative Adjektive verwendet als Clinton.
 
-Als nächstes wechseln wir den Ansatz und schauen uns die Erwähnung von Entitäten im UN-Korpus -- in diesem Fall Organisationen -- in etwas genauer an. 
+Zum Schluss wechseln wir noch einmal den Ansatz und schauen uns die Erwähnung von Entitäten im UN-Korpus -- in diesem Fall Organisationen -- etwas genauer an. Die Entitätenerkennung von spacyr ist alles andere als fehlerfrei -- man sollte die Ergebnisse auf jeden Fall genau inspizieren. Dennoch lassen sich durchaus interessante Ergebnisse erzielen. Die Frequenzliste enthält vor allem Dopplungen ("The United Nations" vs. "United Nations") die sich aber relativ leicht entfernen lassen. So lässt sich etwa ein Lexikon generieren, welches Organizationen bspw. nach Organisationstyp oder nach geographischem Fokus einordnen könnte. 
 
 ```{r Entitäten im UN-Korpus}
 load("daten/un/un.korpus.RData")
@@ -108,8 +135,16 @@ spacy_initialize(mode = "en")
 un.parsed <- spacy_parse(korpus.un.sample, pos = F, lemma = F)
 un.entities <- entity_extract(un.parsed)
 spacy_finalize()
-head(str_remove(un.entities$entity[un.entities$entity_type=="ORG"], "\n"), 50)
+organizations <- un.entities$entity[un.entities$entity_type=="ORG"] %>% 
+  str_remove("\n|\t") %>% 
+  str_replace_all("_+", " ") %>% 
+  str_trim(.) %>% 
+  str_to_title(.) %>% 
+  table(.) %>% 
+  sort(., decreasing = T)
+head(organizations[names(organizations)!=""], 25)
 ```
 
 
+Zusammenfassend sind die Funktionen Tagging, Parsing und Entitätenerkennung nützliche Hilfswerkzeuge für die sozialwissenschaftliche Untersuchung von Textinhalten. Der vielleicht zentralste Vorteil besteht in der Möglichkeit dieser Ansätze, gezielt Wortklassen zu identifizieren die für die Analyse relevant sind (i.d.R. die Inhaltswortklassen Nomen, Verben und Adjektive). Ein weiterer Nutzen besteht darin, sehr basale Akteursbeziehungen zu identifizieren (Parsing) und eine verbesserte Erkennung von Akteuren, Orten und abstrakten Konzepten zu erreichen (Entitätenerkennung). Das die letztgenannten Verfahren gerade für deutschsprachige Inhalte nicht unbedingt immer besonders gute Ergebnisse liefern, hat schlicht damit zu tun, dass es für deutschsprachige Inhalte immer noch vergleichsweise weniger exakte Modelle existieren als etwas für Englisch. 
 
