@@ -21,39 +21,20 @@ Um das (kostenlose) Angebot von MonkeyLearn nutzen zu können, muss man sich zun
 
 ```{r Packetinstallation und API-Einstellungen, message = FALSE}
 # Installation und Laden der Bibliotheken
-if(!require("quanteda")) { install.packages("quanteda") library("quanteda") }
-if(!require("tidyverse")) { install.packages("tidyverse") library("tidyverse") }
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("devtools")) {
   install.packages("devtools")
   devtools::install_github("ropensci/monkeylearn")
 }
-if(!require("monkeylearn")) { devtools::install_github("ropensci/monkeylearn") library("monkeylearn") }
+if(!require("monkeylearn")) {devtools::install_github("ropensci/monkeylearn"); library("monkeylearn")}
 theme_set(theme_bw())
 
 # API-Einstellungen
-ml.apikey <- "aed10806f2387f5060762ca351afdd215d45dec4"
+ml.apikey <- scan("verschiedenes/monkeylearn_api.key", what = "char", quiet = T)
 ```
 
 Zunächst verwenden wir einen Extractor, mit dem wir Personennamen aus einem Text extrahieren können. Dies funktioniert ähnlich wie im vorherigen Kapitel, allerdings übernimmt hier die MonkeyLearn-API die eigentliche Analyse.
-
-```{r}
-devtools::install_github("MarkEdmondson1234/googleLanguageR")
-
-library("googleLanguageR")
-gl_auth("verschiedenes/googleLanguageR-b70ebebb5229.json")
-
-#texts <- c("to administer medicince to animals is frequently a very difficult matter, and yet sometimes it's necessary to do so", "I don't know how to make a text demo that is sensible")
-x <- scan("daten/sherlock/romane/01 A Scandal in Bohemia.txt", what = "char", sep = "\n")
-nlp_result <- gl_nlp(paste(x, collapse = " "))
-
-text <- "to administer medicine to animals is frequently a very difficult matter, and yet sometimes it's necessary to do so"
-
-## translate British into Danish
-gl_translate(text, target = "de")$translatedText
-
-```
-
-
 
 ```{r}
 text <- "More than 100 friends, sports figures, casting directors, actors, golf and bridge partners — even kindergarten classmates from Austin, Minn. — had gathered to celebrate at a friend’s Los Angeles home. At a V.I.P. table were the biggest names Mr. Dauer could muster: the actor-turned-polemicist James Woods; former Senator Norman Coleman; and Bruce McNall, the former Los Angeles Kings owner who served time for fraud. Then, at about 8 p.m., a star arrived: Leslie Moonves, the chief executive of CBS and one of Hollywood’s most powerful people. Mr. Moonves presented Mr. Dauer with a yellow tie embossed with the logo of the Masters golf tournament."
@@ -61,7 +42,14 @@ ml.entities <- monkey_extract(text, extractor_id = "ex_SmwSdZ3C", key = ml.apike
 ml.entities
 ```
 
-xxx
+xxxx
+
+```{r}
+text <- "Dies ist ein Beispielsatz."
+ml.lang <- monkey_classify(text, extractor_id = "cl_Vay9jh28", key = ml.apikey, verbose = F)
+ml.lang
+```
+
 
 ```{r}
 load("daten/twitter/trumpclinton.korpus.RData")
