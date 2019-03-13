@@ -6,7 +6,7 @@ output: html_notebook
 ---
 
 <!---
-* APIs hinzufügen (indigo)
+* deepl-übersetzung hinzufügen
 -->
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
@@ -21,6 +21,7 @@ if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("scales")) install.packages("scales")
 if(!require("udpipe")) {install.packages("udpipe"); library("udpipe")}
+if(!require("googlenlp")) {install.packages("googlenlp"); library("googlenlp")}
 theme_set(theme_bw())
 ```
 
@@ -145,6 +146,47 @@ organizations <- un.entities$entity[un.entities$entity_type=="ORG"] %>%
 head(organizations[names(organizations)!=""], 25)
 ```
 
+
+#### Annotation mit Hilfe des Paketes googlenlp und der Cloud Natural Language API
+
+Die Methoden der (teil)automatisierten Textanalyse, die in dieser Einführung im Mittelpunkt stehen, sind bisher anhand von Funktionen und Paketen vorgestellt worden, die man selbst auf dem eigenen Rechner installieren, ausführen und mit der notwendigen Expertise auch einsehen und verändern kann. Ob es sich nun um solche Verfahren handelt, die zum Funktionsumfang von quanteda gehören, um jene, die über ein zusätzliche Pakete wie etwa RTextTools, topicmodels, stm oder spacyr realisiert werden, oder um einfache ad-hoc-Verfahren, die man anhand vorhandenerer Funktionen selbst zusammenstellen kann, die Lösung wurde bisher immer auf Grundlage von Paketen erzielt, über die man als R-Nutzer selbst vollständige Kontrolle hat.
+
+In diesem Abschnitt geht es um Programmierschittestellen (application programming interfaces oder APIs), also um Schnittstellen, die den Zugang zu Daten, aber auch die Anwendung bestimmter computergestützter Analyseverfahren über das Internet ermöglichen. Zunächst ist am Zugang zu Daten über APIs nichts auszusätzen -- statt mühevoll Parser zu schreiben, die aus Webseiten oder uneinheitlich formatierten PDF-Dokumenten strukturierte Daten herausholen verwendet man oft lieber eine gut dokumentierte API, die ordentliche Daten in genau der Form liefert, wie man sie haben möchte. APIs gibt es in ganz unterschiedlichen Formen und für unterschiedliche Zielgruppen. Da aber häufig gerade bei kommerziellen Social Media-Plattformen die Entwicklung von Apps durch Drittentwickler der eigentliche Grund für das Vorhandensein einer API ist, sind nicht unbedingt alle APIs ideal für die Untersuchung sozialwissenschaftlicher Fragegestellungen geeignet. 
+
+Folgend verwenden wir das Paket [googlenlp](https://github.com/BrianWeinstein/googlenlp), welches die Dienste von [Googles Cloud Natural Language API](https://cloud.google.com/natural-language/) in R zugänglich macht. Um diese Dienste nutzen zu können ist eine Anmeldung auf der [Google Cloud Platform](https://cloud.google.com/) notwendig, sowie die Registrierung eines Projekts und die Freischaltung der eigentlichen API, die nur eine von sehr (!) vielen Diensten darstellt, die Google auf diesem Weg anbietet. Zudem müssen Zahlungsmethoden hinterlegt werden für den Fall, dass ein Projekt eine größere Anzahl von Anfragen generiert. Alle großen Internet-Unternehmen bieten solche Dienste an, die in der Regel im geringen Umfang kostenlos nutzbar sind. Für die Google Cloud Platform kann man sich [hier](https://cloud.google.com/) kostenlos registrieren, näheres zur Cloud Natural Lanuage API findet sich [hier](https://cloud.google.com/natural-language/). Wichtigster Schritt ist nach der Registrierung eines Projekts und der API-Freischaltung das Kopieren eines API-Schlüssels, welchen man braucht, um Anfragen an Google schicken zu können.
+
+Nachdem wir den Schlüssel aus einer Textdatei geladen haben, schicken wir einen Beispielsatz an die API, welcher mittels [annotate_text()]() annotiert wird (die Funktion fasst hierbei die Funktionen Tagging, Parsing, Entitätenerkennung, Spracherkennung sowie Sentimentanalyse zusammen).
+
+Zunächst schauen wir uns das Ergebnis des PoS-Taggings und Syntax-Parsings an. 
+
+```{r Tagging und Parsing mittels googlenlp}
+gl.apikey <- scan("verschiedenes/googlenlp_api.key", what = "char", quiet = T)
+set_api_key(gl.apikey)
+gl.annotation <- annotate_text("Dies ist ein einfacher Satz, analysiert mit den Diensten von Google.")
+gl.annotation$tokens
+```
+
+In einem zweiten Schritt nehmen wir den Entitäten-Auswertung in den Blick, welche die Anfrage gleich mitgeliefert hat. 
+
+```{r Entitätenerkennung mittels googlenlp}
+gl.annotation$entities
+```
+
+Um nicht bei diesem etwas dürftigen Beispiel zu bleiben, wenden wir die Entitätenerkennung auf die Zeit-Daten an, die auch vielfältig genug sind, um die Qualität der Annotation zu demonstrieren. 
+
+```{r Entitätenerkennung der Zeit-Daten mittels googlenlp}
+load("daten/zeit/zeit.sample.korpus.RData")
+zeit.sample <- sample(texts(zeit.korpus), size = 5)
+entitaeten <- tibble(doc_id = character(0), name = character(0), entity_type = character(0), mid = character(0), wikipedia_url = character(0), salience = double(0), content = character(0), beginOffset = integer(0), mentions_type = character(0))
+for (i in 1:5) {
+  print(paste0("Analyzing document ", names(zeit.sample[i]), "..."))
+  entitaeten <- bind_rows(entitaeten, data.frame(doc_id = names(zeit.sample[i]), analyze_entities(zeit.sample[i])$entities, stringsAsFactors = F))
+} 
+entitaeten
+```
+
+
+Wie man sieht, liefert die Google Cloud Natural Language API auch für deutsch gute Ergebnisse. Wir gehen hier nicht weiter auf die Facetten Sentimentanalyse, Sprachbestimmung, sowie automatische Übersetzung der Google-Dienste ein, aber auch diese sind durchaus nützlich für inhaltsanalytische Projekte. 
 
 Zusammenfassend sind die Funktionen Tagging, Parsing und Entitätenerkennung nützliche Hilfswerkzeuge für die sozialwissenschaftliche Untersuchung von Textinhalten. Der vielleicht zentralste Vorteil besteht in der Möglichkeit dieser Ansätze, gezielt Wortklassen zu identifizieren die für die Analyse relevant sind (i.d.R. die Inhaltswortklassen Nomen, Verben und Adjektive). Ein weiterer Nutzen besteht darin, sehr basale Akteursbeziehungen zu identifizieren (Parsing) und eine verbesserte Erkennung von Akteuren, Orten und abstrakten Konzepten zu erreichen (Entitätenerkennung). Das die letztgenannten Verfahren gerade für deutschsprachige Inhalte nicht unbedingt immer besonders gute Ergebnisse liefern, hat schlicht damit zu tun, dass es für deutschsprachige Inhalte immer noch vergleichsweise weniger exakte Modelle existieren als etwas für Englisch. 
 
