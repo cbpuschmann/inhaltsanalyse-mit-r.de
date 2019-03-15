@@ -7,7 +7,12 @@ output: html_notebook
 
 <!---
 * deepl-übersetzung hinzufügen
+* 
 -->
+
+\
+\
+\
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
@@ -15,8 +20,7 @@ Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel
 
 Während R lange Zeit keine mit Python vergleichbare Bibliotheken vorweisen konnte, scheint dieses Problem inzwischen (endlich) weitgehend gelöst. Technisch arbeiten wir in diesem Abschnitt mit zwei Paketen: [udpipe](https://cran.r-project.org/package=udpipe) und [spacyr](https://github.com/quanteda/spacyr). Letzteres zeichnet sich wie auch andere hier vorgestellte Pakete durch direkte Interoperabilität mit quanteda aus. Spacyr ist allerdings insofern ein etwas komplizierter Sonderfall, weil das Paket seinerseits eine Schnittstelle zu einer externen Ressource darstellt, und zwar zu Python. Weil es lange keine nativen R–Bibliotheken für das Tagging und Parsing von Texten gab, führt der Weg hierfür zwangsläufig über Java oder Python. Glücklicherweise steht seit Anfang 2019 mit udpipe ein solches Paket zur Verfügung, welches direkt auf C++ basiert, und weder Java noch Python erfordert. 
 
-```{r Packetinstallation, message = FALSE}
-# Installation und Laden der Bibliotheken
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("scales")) install.packages("scales")

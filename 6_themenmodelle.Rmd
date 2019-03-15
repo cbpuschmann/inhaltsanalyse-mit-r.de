@@ -5,6 +5,11 @@ subtitle: "Themenmodelle"
 output: html_notebook
 ---
 
+<!---
+* 
+* 
+-->
+
 \
 \
 \
@@ -15,9 +20,7 @@ Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (en
 
 Da Themenmodelle im Kontrast zu den bisher vorgestellten Methoden nicht Teil der Ausstattung von quanteda sind, nutzen wir folgend zwei neue Pakete für ihre Berechnung: [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://cran.r-project.org/package=stm). Das Paket topicmodels implementiert die beiden Verfahren Latent Dirichlet Allocation (LDA) und [Correlated Topic Models (CTM)](http://people.ee.duke.edu/~lcarin/Blei2005CTM.pdf), während [STM](https://www.structuraltopicmodel.com/) auf einem ganz neuen Ansatz basiert, der zahlreiche Erweiterungen gegenüber LDA enthält. Hinzu kommt schließlich noch das Paket [urltools](https://cran.r-project.org/package=urltools), welches bei der Auswertung von Online-Nachrichtenbeiträgen nützlich sein wird, aber nicht direkt etwas mit Themenmodellen zu tun hat.
 
-### Installation und Laden der benötigten R-Bibliotheken
-
-```{r}
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("topicmodels")) install.packages("topicmodels")
@@ -38,14 +41,14 @@ Zunächst laden wir wieder das Sherlock-Holmes Korpus, allerdings dieses Mal in 
 
 Wieso dieser Aufwand? Für die LDA-Analyse ist die Anzahl von nur 12 (relativ langen) Texten insgesamt ungünstiger als diese Aufteilung, auch wenn die arbiträre Unterteilung nach der Anzahl der Sätze weniger gut funktioniert, als dies sinngebenden Kapite tun würden. Hier ein Überblick über das refakturierte Korpus.
 
-```{r}
+```{r Sherlocke Holmes-Korpus laden}
 load("daten/sherlock/sherlock.absaetze.RData")
 as.data.frame(korpus.stats)
 ```
 
 Auch der nächste Schritt ist inzwischen schon hinreichend bekannt: Wieder einmal berechnen wir eine DFM und entfernen Zahlem, Symbole und englische Standard-Stoppwörter. In einem zweiten Schritt entfernen wir solche Begriffe die nur ein einziges Mal vorkommen, sowie solche, die häufiger als 75x vorkommen. Der Befehl *dfm_trim* erlaubt durchaus komplexere Parameter wie die Begriffshäufigkeit relativ zur Termfrequenz oder Dokumentfrequenz insgesamt, aber an dieser Stelle reicht uns diese einfache Filterung. 
 
-```{r}
+```{r DFM vorbereiten und trimmen}
 meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = c(stopwords("english"), "sherlock", "holmes"))
 meine.dfm.trim <- dfm_trim(meine.dfm, min_termfreq = 2, max_termfreq = 75)
 meine.dfm.trim
@@ -53,7 +56,7 @@ meine.dfm.trim
 
 Nun folgt die eigentliche Modellierung der Themen. Wir legen zunächst arbiträr eine Themenanzahl von *k* = 10 fest. Die Anzahl der Themen ist grundsätzliche variabel und wird anhand unterschiedlicher Faktoren bestimmt (dazu später noch etwas mehr). Dann konvertieren wir mit dem bereits bekannten Befehl *convert* die quanteda-DFM in ein Format, welches das Paket *topicmodels* versteht. Während die bisher verwendeten Befehle aus quanteda kamen, ist der Befehl LDA dem Paket topicmodels entnommen. 
 
-```{r}
+```{r Einfaches LDA-Modell mit 10 Themem rechnen}
 anzahl.themen <- 10
 dfm2topicmodels <- convert(meine.dfm.trim, to = "topicmodels")
 lda.modell <- LDA(dfm2topicmodels, anzahl.themen)
@@ -62,13 +65,13 @@ lda.modell
 
 Nachdem das eigentliche Modell berecht wurde, können wir uns nun zwei zentrale Bestandteile des Modells ausgeben lassen: Die Begriffe, die besonders stark mit jedem der Themen verknüpft sind (mit dem Befehl [terms](https://www.rdocumentation.org/packages/topicmodels/versions/0.2-6/topics/terms_and_topics)) ... 
 
-```{r}
+```{r LDA-Begriffe ausgeben}
 as.data.frame(terms(lda.modell, 10))
 ```
 
 ...und die Dokumente, in denen die Themen besonders stark vertreten sind (mit dem Befehl [topics](https://www.rdocumentation.org/packages/topicmodels/versions/0.2-6/topics/terms_and_topics)).
 
-```{r}
+```{r LDA-Themenausprägungen ausgeben}
 data.frame(Thema = topics(lda.modell))
 ```
 
@@ -78,7 +81,7 @@ Für Begiffe und Texte gilt gleichermaßen, dass *alle* Themen in einer gewissen
 
 Welche quantitative Verteilung ergibt sich hieraus? Dies lässt sich leicht ermitteln, wenn man die Themen-Vorkommnisse für einen Roman durch die Gesamtanzahl der Abschnitte teilt. 
 
-```{r}
+```{r LDA-Themenverteilung im Sherlock Holmes-Korpus plotten}
 lda.themen.absaetze <- data.frame(korpus.stats, Thema = topics(lda.modell)) %>%
   add_count(Roman, Thema) %>%
   group_by(Roman) %>% 
@@ -92,8 +95,7 @@ ggplot(lda.themen.absaetze, aes(Roman, Anteil, color = Thema, fill = Thema)) + g
 Es fällt sofort ins Auge, das mehrere Roman gewissermaßen ihr eigenes Thema besitzen, was angesichts der Merkmale des Roman-Genres durchaus nachvollziehbar ist. Es existieren aber auch solche Themen, die in mehreren Romanen vorkommen und eher allgemeiner Natur sind, oder die Charaktere beeinhalten, die in einer Vielzahl von Sherlock Holmes-Erzählungen auftreten. 
 
 Die Verteilung von Themen in Dokumenten wird in diesem Beispiel etwas anders als sonst berechnet, weil wir diesen Schritt mithilfe von Funktionen aus [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) gewissermaßen händisch durchführen. Die "normale" Berechnung der Beziehung zwischen Begriffen und Themen bzw. Dokumenten und Themen erfolgt über die Extraktion der Variablen *beta* und *gamma*, die im LDA-Modell bereits enthalten sind (die Struktur des Modells kann mit dem Standard-R-Befehl [str](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/str) genauer untersucht werden). Das Ergebnis ist jeweils ein Data Frame, den man natürlich auch plotten kann. Die Variablen V1-VX bezeichnen hier die Themen, während die Zeilen die Begriffe bzw. die Dokumente beinhalten. Die Zahlewerte beschreiben die *Wahrscheinlichkeit der Assoziation* eines Begriffs mit einem Thema, bzw. der Anteil eines Themas an einem Dokument. 
-
-```{r}
+```{r LDA-Kennwerte Beta und Gamma ausgeben}
 head(as.data.frame(t(lda.modell@beta), row.names = lda.modell@terms)) # Begriffe > Themen
 head(as.data.frame(lda.modell@gamma, row.names = lda.modell@documents)) # Dokumente > Themen
 ```
@@ -105,14 +107,14 @@ Was haben wir durch das Modell erfahren? Zunächst einmal existieren Themen, wel
 
 Bevor wir uns diesem Beispiel zuwenden, nehmen wir aber noch eine Heuristik für die Ermittlung des idealen *k* (also der Themenanzahl) in den Blick. Statt einfach eine ärbiträtre Zahl festzulegen ist es sinnvoll, die Passung unterschiedlicher Einstellungen zu testen. Dies erleichtert das Paket [LDAtuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html), in das eine Reihe unterschiedlicher Metriken für die Bestimmung einer guten Themenanzahl auf Grundlage statistischer Faktoren integriert sind. Achtung: diese Berechnung ist deshalb sehr aufwändig, weil für alle Schritte ein eigenes Modell gerechnet wird (also in diesem Beispiel 15 einzelne Modelle), was vor allem bei größeren Datensätzen leicht mehrere Tage dauern kann.
 
-```{r}
+```{r LDAtuning-Metriken berechenen}
 ldatuning.metriken <- FindTopicsNumber(dfm2topicmodels, topics = seq(from = 2, to = 15, by = 1), metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"), method = "Gibbs", control = list(seed = 77), mc.cores = 2L, verbose = TRUE
 )
 ```
 
 Auch für unsere Sherlock Holmes-LDA lassen sich diese Metriken grafisch darstellen. 
 
-```{r}
+```{r LDAtuning-Metriken plotten}
 FindTopicsNumber_plot(ldatuning.metriken)
 ```
 
@@ -122,14 +124,14 @@ Die Ergebnisse sind etwas uneinheitlich, was primär damit zusammenhängt, dass 
 
 Wie sieht eine ähnliche Analyse für ein etwas repräsentativeres und heterogeneres Korpus aus? Um diese Frage zu beantworten, laden wir ein bisher noch unverwendetes Korpus, bestehend aus 377 Beiträgen aus der Wochenzeitung [Die Zeit](https://www.zeit.de/), die zwischen 2011 und 2016 veröffentlicht wurden. Diese wurden anhand des Pakets [rzeit2](https://cran.r-project.org/web/packages/rzeit2/vignettes/introduction.html) erhoben, welches in Kapitel 8 noch etwas genauer besprochen wird. Zunächste werfen wir wie immer einen Blick auf die Metadaten. 
 
-```{r}
+```{r Zeit-Korpus laden}
 load("daten/zeit/zeit.sample.korpus.RData")
 as.data.frame(zeit.korpus.stats)
 ```
 
 Relevant für die spätere Verwendung sind unter anderem die URLs der Beiträge, aber auch das Veröffentlichungsdatum. Die folgenden Schritte unterscheiden sich zunächst nicht von denen für die Analyse des Sherlock Holmes-Korpus.
 
-```{r}
+```{r DFM für LDA vorbereiten und trimmen}
 meine.dfm <- dfm(zeit.korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("german"))
 meine.dfm.trim <-  dfm_trim(meine.dfm, min_docfreq = 3, max_docfreq = 65)
 meine.dfm.trim
@@ -139,7 +141,7 @@ Unsere DFM ist um Vergleich zum ersten Beispiel aber deutlich ergiebiger, weil d
 
 Wir modellieren nun 15 statt 10 Themen, was allerdings immer noch eine relativ geringen Anzahl darstellt. Wie der Zuschnitt der Themen erkennen lässt, ist eine größeres *k* i.d.R. durchaus sinnvoll. 
 
-```{r}
+```{r LDA-Modell mit 15 Themen rechnen}
 anzahl.themen <- 15
 dfm2topicmodels <- convert(meine.dfm.trim, to = "topicmodels")
 lda.modell <- LDA(dfm2topicmodels, anzahl.themen)
@@ -148,7 +150,7 @@ lda.modell
 
 Auch hier lassen sich wieder die Schlüsselbegriffe und -themen extrahieren. 
 
-```{r}
+```{r Schlüsselbegriffe im LDA-Modell}
 as.data.frame(terms(lda.modell, 10))
 data.frame(Thema = topics(lda.modell))
 ```
@@ -159,7 +161,7 @@ Wie ähnlich sind sich die Themen untereinander? Diese Frage ist einerseits desh
 
 Das Resultat ist insofern vielversprechend, als dass die außen- und innenpolitischen Themen jeweils einen Cluster ergeben. Auch sonst lassen sich Gemeinsamkeiten identifizieren, die durchaus plausibel erscheinen, auch wenn gerade die Beziehung von Gesellschafts- und Kulturthemen zum Teil nur schwer nachvollziehbar ist. 
 
-```{r}
+```{r LDA-Themenähnlichkeit nach Features plotten}
 lda.themen.aehnlichkeit <- as.data.frame(lda.modell@beta) %>% 
   scale() %>% 
   dist(method = "euclidean") %>% 
@@ -168,9 +170,9 @@ par(mar = c(0, 4, 4, 2))
 plot(lda.themen.aehnlichkeit, main = "LDA-Themenähnlichkeit nach Features", xlab = "", sub = "")
 ```
 
-Wie verhalten sich die ermittelten Themen zu einer externen Variable, wie etwa dem Ressort? Die Beiträge aus der *Zeit* können anhand ihrer URL in Ressorts differenziert werden, etwa http://www.zeit.de/politik/deutschland/2011-01/gorch-fock-ushuaia in *politik* (nach dem sehr einfachen Muster zeit.de/Ressort). Wir erwarten, dass eine klare Beziehung zwischen den Themen und den Ressorts existiert, denn auch wenn es natürlich Überlappungen gibt, sollte sich bspw. der Bereich Sport vom Bereich Politik unterscheiden lassen.
+Wie verhalten sich die ermittelten Themen zu einer externen Variable, wie etwa dem Ressort? Die Beiträge aus der *Zeit* können anhand ihrer URL in Ressorts differenziert werden, etwa http://www.zeit.de/politik/deutschland/2011-01/gorch-fock-ushuaia in *politik* (nach dem sehr einfachen Muster zeit.de/Ressort). Wir erwarten, dass eine klare Beziehung zwischen den Themen und den Ressorts existiert, denn auch wenn es natürlich Überlappungen gibt, sollte sich bspw. der Bereich *Sport* vom Bereich *Politik* unterscheiden lassen.
 
-```{r}
+```{r Themen-Ressort-Verteilung berechnen und plotten}
 lda.themen.artikel <- merge(docvars(meine.dfm.trim), as.data.frame(lda.modell@gamma, row.names = lda.modell@documents), by = "row.names", sort = F)
 lda.themen.artikel <- mutate(lda.themen.artikel, Ressort = str_split(url_parse(lda.themen.artikel$href)$path, pattern = "/", simplify = T)[,1]) %>%
   gather(Thema, Prozent, V1:V15) %>%
@@ -186,7 +188,7 @@ ggplot(lda.themen.artikel, aes(Ressort, Prozent, color = Thema, fill = Thema)) +
 
 Da das Plot in diesem Fall vermutlich etwas schlechter interpretierbar ist, als es die "nakten" Zahlen sind, anbei auch noch die Themen-Ressort-Verteilung als einfache Tabelle. Wie beim ersten Beispiel zum Sherlock Holmes-Korpus re-aggregieren wir die Themenanteile hier, d.h. die Gesamtanteile aller Themen an *einem* Ressort summieren sich auf 100%.
 
-```{r}
+```{r Tabelle der Themen-Ressort-Verteilung}
 lda.themen.verteilung <- lda.themen.artikel %>% 
   group_by(Thema, Ressort) %>% 
   summarise(Prozent = sum(Prozent)*100) %>% 
@@ -205,14 +207,14 @@ Eine sehr gute Einführung in STM liefert [dieser Artikel von Molly Roberts und 
 
 Zunächst laden wir wieder die vorbereiteten UN-Korpus-Daten. 
 
-```{r}
+```{r UN-Korpus laden}
 load("daten/un/un.korpus.RData")
 head(korpus.un.stats, 100)
 ```
 
 Dann berechnen wir -- Sie ahnen es bereits -- eine DFM unter Ausschluss von Zahlen, Interpunktion, Symbolen, und Stoppwörtern, und reduzieren diese wieder, in diesem Fall besonders großzügig, indem wir Wörter die in weniger als 7.5% *und* mehr als 90% aller Dokumente vorkommen, entfernen. Dies hat mit der Größe des Korpus zu tun, die es uns erlaubt, den Inhalt stark zu destillieren, ohne wirklich relevante Informationen zu verlieren. Gerade in diesem Fall wird die Berechnung des Modells extrem langsam, wenn wir die Daten nicht effektiv reduzieren, und dabei bleibt zudem auch noch "Lärm" zurück, welcher die Analyse wesentlich erschwert. 
 
-```{r}
+```{r DFM für STM vorbereiten und trimmen}
 meine.dfm.un <- dfm(korpus.un, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
 meine.dfm.un.trim <- dfm_trim(meine.dfm.un, min_docfreq = 0.075, max_docfreq = 0.90, docfreq_type = "prop") # min 7.5% / max 90%
 meine.dfm.un.trim
@@ -224,7 +226,7 @@ Da die Berechnung eines STM-Modells mit einer größeren Anzahl von Themen für 
 
 Schließlich erstellen wir eine Tabelle, welche uns die wichtigsten Schlüsselwörter für jedes Thema (X1-X40) anzeigt.
 
-```{r}
+```{r STM-Modell mit 40 Themen rechnen}
 anzahl.themen <- 40
 dfm2stm <- convert(meine.dfm.un.trim, to = "stm")
 #modell.stm <- stm(dfm2stm$documents, dfm2stm$vocab, K = anzahl.themen, data = dfm2stm$meta, init.type = "Spectral")
@@ -234,7 +236,7 @@ as.data.frame(t(labelTopics(modell.stm, n = 10)$prob))
 
 Wer eine visuelle Darstellung bevorzugt (und zudem das Paket [wordcloud](https://cran.r-project.org/web/packages/wordcloud/wordcloud.pdf) installiert hat), kann auch die STM-Themen anschaulich als Wortwolke plotten. 
 
-```{r}
+```{r Wordclouds zu vier STM-Themen plotten}
 par(mar=c(0.5, 0.5, 0.5, 0.5))
 cloud(modell.stm, topic = 1, scale = c(2.25,.5))
 cloud(modell.stm, topic = 3, scale = c(2.25,.5))
@@ -246,7 +248,7 @@ Praktisch an STM-Modellen ist unter anderem, dass das Paket mit dem Befehl [plot
 
 Die folgenden vier Plots zeigen (a) den jeweilige Themenanteil am Korpus insgesamt, (b) ein Histogramm der Themenanteile innerhalb der Dokumente, (c) zentrale Begriffe zu vier verwandten Themen, sowie (d) den Kontrast zwischen zwei verwandten Themen.
 
-```{r}
+```{r Vordefinierte Plots zu STM-Modellen}
 plot(modell.stm, type = "summary", text.cex = 0.5, main = "Themenanteile am Korpus insgesamt", xlab = "geschätzter Themenanteil")
 plot(modell.stm, type = "hist", topics = sample(1:anzahl.themen, size = 9), main = "Histogramme der Anteile einzelner Themen")
 plot(modell.stm, type = "labels", topics = c(5, 12, 16, 21), main = "Themenbegriffe")
@@ -255,7 +257,7 @@ plot(modell.stm, type = "perspectives", topics = c(16,21), main = "Themenkontras
 
 Als nächstes berechnen wir die Prävalenz der Themen über die Zeit. Dafür wird die Funktion [estimateEffect](https://www.rdocumentation.org/packages/stm/versions/1.3.3/topics/estimateEffect) verwendet, die ebenfalls zur Ausstattung von stm gehört und eine Regression der geschätzten Themenanteile rechnet. Im Unterschied zu der Möglichkeit, die wir auch im LDA-Beispiel für die Bestimmung von Themenanteilen hatten (wo eine Berechnung der Anteile nach Zeit ja auch kein Hindernis dargestellt hätte), können mit estimateEffekt auch [Kovariaten](https://support.minitab.com/de-de/minitab/18/help-and-how-to/modeling-statistics/anova/supporting-topics/anova-models/understanding-covariates/) berücksichtigt werden, was die Genauigkeit des Modells erheblich steigern kann. Zudem erhalten wir ein lokales Konfidenzintervall zu unserer Schätzung. 
 
-```{r}
+```{r Regression der Themenprävalenz mittels estimateEffect()}
 modell.stm.labels <- labelTopics(modell.stm, 1:anzahl.themen)
 dfm2stm$meta$datum <- as.numeric(dfm2stm$meta$year)
 modell.stm.effekt <- estimateEffect(1:anzahl.themen ~ country + s(year), modell.stm, meta = dfm2stm$meta)
@@ -263,7 +265,7 @@ modell.stm.effekt <- estimateEffect(1:anzahl.themen ~ country + s(year), modell.
 
 Wir plotten nun die Themenprävalenz für neun ausgewählte Themen. Als Labels sind hier zur besseren Anschaulichkeit gleich die wichtigsten Schlüsselbegriffe gewählt worden; die etwas unansehnliche Schleifenstruktur wird notwendig, um eine Vielzahl von Themen direkt vergleichen zu können. 
 
-```{r}
+```{r Themenprävalenz für neun ausgewählte Themen plotten}
 par(mfrow=c(3,3))
 for (i in 1:9)
 {
@@ -280,7 +282,7 @@ Wie sind die Unterschiede bei dem angezeigten Konfidenzintervall zu interpretier
 
 Auch für ein STM-Modell lässt sich die (statistisch) ideale Anzahl von Themen bestimmen. Zunächst laden wir hierfür wieder den uninformativen (aber kleinen) Sherlock Holmes-Datensatz. Im folgenden Codeabschnitt wird dieser in eine DFM umgewandelt und anschließend konvertiert (diese Schritte sind identisch mit denen am Anfang des Kapitels). 
 
-```{r}
+```{r Sherlock Holmes-Absatzkorpus laden, DFM rechnen und nach STM konvertieren}
 load("daten/sherlock/sherlock.absaetze.RData")
 meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = c(stopwords("english"), "sherlock", "holmes"))
 meine.dfm.trim <- dfm_trim(meine.dfm, min_termfreq = 2, max_termfreq = 75)
@@ -289,7 +291,7 @@ dfm2stm <- convert(meine.dfm.trim, to = "stm")
 
 Nun wenden wir analog zur Verwendung von LDAtuning die Funktion [searchK](https://www.rdocumentation.org/packages/stm/versions/1.3.3/topics/searchK) an, die direkt aus dem Funktionsumfang von [stm](https://www.structuraltopicmodel.com/) kommt. Auch diese Funktion probiert alle Einstellung nacheinander durch, d.h. man muss Zeit mitbringen, um sie anzuwenden, insbesondere bei einem größeren Korpus als dem im Beispiel verwendeten. Analog zur obigen Berechnung des eigentlichen STM-Modells habe ich um Zeit zu sparen auch hier das Diagnose-Ergebnis bereits als RData-Datei gespeichert, die gleich geplottet werden kann. Die Funktionsweise ist analog zu den in LDAtuning verwendeten Verfahren auch hier die Maximierung bzw. Minimierung der Kennwerte mit steigendem *k*. Auch hier gilt, dass die statistischen Verfahren keinerlei unmittelbaren Aufschluss darüber bieten, wie einleuchtend die Themen für menschliche Leser notwendigerweise sind. 
 
-```{r}
+```{r Themenanzahlbestimmung mittels searchK()}
 load("daten/sherlock/sherlock.stm.idealK.RData")
 #mein.stm.idealK <- searchK(dfm2stm$documents, dfm2stm$vocab, K = seq(4, 20, by = 2), max.em.its = 75)
 plot(mein.stm.idealK)

@@ -7,7 +7,12 @@ output: html_notebook
 
 <!---
 * Begriffs-Netzwerk MdBs mit Partei als Farbe
+* 
 -->
+
+\
+\
+\
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 

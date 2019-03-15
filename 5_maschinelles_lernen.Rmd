@@ -5,6 +5,11 @@ subtitle: "Maschinelles Lernen"
 output: html_notebook
 ---
 
+<!---
+* Zeit-SML: Titel durch Volltexte ersetzen?
+* MdB-SML: Split in Traings- und Testset?
+-->
+
 \
 \
 \
@@ -28,8 +33,7 @@ Eine Reihe von Algorithmen stehen zur Verfügung, um solche Analysen durchzufüh
 
 Wieder beginnen wir damit, die notwendigen Bibliotheken zu laden. Dieser Schritt enthält hier das Paket [RTextTools](https://cran.r-project.org/package=RTextTools), welches eine Reihe von Algorithmen sowie Funktionen für die Bewertung der Klassifikationsgenauigkeit bereithält. 
 
-```{r Packetinstallation, message = FALSE}
-# Installation und Laden der Bibliotheken
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("RTextTools")) install.packages("RTextTools")
@@ -42,14 +46,14 @@ theme_set(theme_bw())
 
 Wir laden zunächst das [New York Times Headline Corpus](http://www.amber-boydstun.com/supplementary-information-for-making-the-news.html) (Boydstun, 2013), welches eine gute Grundlage für eine erste Demonstration des überwachten Lernens darstellt, weil es sehr zuverlässig annotiert ist und zugleich eine große Datengrundlage liefert. Basis der Analyse ist die Kurzzusammenfassung des Artikels (nicht der Volltext), die je nach Beitrag unterschiedlich informativ ausfallen kann. Zusätzlich enthält jede Zeile eine Zahl, welche die Kategorie bezeichnet, welcher der Beitrag zugeordnet wurde.
 
-```{r}
+```{r Laden des New York Times-Korpus}
 load("daten/nytimes/nyt.korpus.RData")
 as.data.frame(korpus.nyt.stats)
 ```
 
 Für die bessere Interpretierbarkeit der Ergebnisse lesen wir zudem einen einfachen Datensatz ein, welcher die schriftlichen Bezeichnungen der numerischen Themen-Codes enthält.
 
-```{r}
+```{r Laden der Inhaltsanalyse-Kategorie-Labels}
 labels.kategorien <- scan("daten/nytimes/majortopics2digits.txt", what = "char", sep = "\n", quiet = T)
 labels.kategorien <- data.frame(Kategorie = as.character(1:length(labels.kategorien)), Label = labels.kategorien, stringsAsFactors = F)
 labels.kategorien
@@ -57,14 +61,14 @@ labels.kategorien
 
 Wieder einmal erstellen wir eine Dokument-Feature-Matrix (DFM). Da es sich bei den Texten um Kurzzusammenfassungen handelt, müssen kaum Features entfernt werden. 
 
-```{r}
+```{r DFM für New York Times-Daten vorbereiten}
 meine.dfm <- dfm(korpus.nyt, remove_numbers = TRUE, remove_punct = TRUE, remove = stopwords("english"))
 meine.dfm
 ```
 
 Auch diese DFM wird reduziert. Die Reduktion ist hier relativ stark angesetzt, um den Trainingsprozess bei einem zufriedenstellenden Ergebnis schnell durchführen zu können. Bei einem Forschungsprojekt oder einer Abschlussarbeit ist es hingegen kein Problem, wenn die Berechnung des Modells mehrere Stunden in Anspruch nimmt. Auch bei einer richtigen Analyse sollte getestet werden, mit welcher Feature-Dichte sich ein optimales Ergebnis erzielen lässt. 
 
-```{r}
+```{r DFM für New York Times-Daten trimmen}
 meine.dfm.trim <- dfm_trim(meine.dfm, min_docfreq = 0.0005, docfreq_type = "prop")
 meine.dfm.trim
 ```
@@ -73,7 +77,7 @@ Zunächst wenden wie ein vergleichsweise einfaches Verfahren an, nämlich eine s
 
 Die Anwendung der Klassifikation erfolgt mit Hilfe des Befehls textmodel_nb. Dieser erwartet als seine Argumente eine DFM, eine Liste mit Labels (in unserem Fall das Feld "Topic_2digit", welches den Zahlencode der manuellen Kodierung enthält), sowie eine A-priori-Verteilung. Letzteres meint die Häufigkeit des Auftretens der einzelnen Kategorien im Datensatz. Die mit dem Befehl head angezeigten Codes sind hier dementsprechend die Vorhersage, die der Algorithmus auf Grundlage seines Trainings für die Testdaten trifft.
 
-```{r}
+```{r Naive-Bayes-Klassifikation durchführen und Vorhersage mit manueller Kodierung vergleichen}
 modell.NB <- textmodel_nb(meine.dfm.trim, korpus.nyt.stats$Topic_2digit, prior = "docfreq")
 head(as.character(predict(modell.NB)))
 head(as.character(korpus.nyt.stats$Topic_2digit))
@@ -81,13 +85,13 @@ head(as.character(korpus.nyt.stats$Topic_2digit))
 
 Wie viele der Texte wurden korrekt klassifiziert, d.h. stimmen mit der manuellen Kodierung überein? Wir gehen später noch genauer darauf ein, wie sich die Qualität der Kodierung noch etwas genauer messen lässt, aber für einen erste Eindruck genügt uns die einfache Übereinstimmung der Vorhersage mit der manuellen Kodierung in Prozent.
 
-```{r}
+```{r Prozentanteil der korrekt klassifizierten Schlagzeilen bestimmen}
 prop.table(table(predict(modell.NB) == korpus.nyt.stats$Topic_2digit))*100
 ```
 
 Handelt es sich hierbei um ein gutes Ergebnis? Um diese Frage beantworten zu könnnen vergleichen wir das Resultat mit einem Zufallsergebnis. Dafür randomisieren wir einfach die Labels der Annotation, wobei wir die Häufigkeitsverteilung der Kategorien beibehalten, um unserem Zufallsalgorithmus zumindest eine gewisse Chance einzuräumen. 
 
-```{r}
+```{r Vergleich mit einem Zufallsklassifikator}
 prop.table(table(sample(predict(modell.NB)) == korpus.nyt.stats$Topic_2digit))*100
 ```
 
@@ -95,7 +99,7 @@ Wie wir sehen, ist der Bayes-Klassifizierer zwar nicht perfekt, aber sehr deutli
 
 Dafür können wir uns die Übereinstimmung der Vorhersage mit der menschlichen Annotation nach Kategorie anzeigen lassen. Wie wir sehen, liegen die Werte dafür zwischen 28% und 88%, der Mittelwert (angezeigt durch die blaue Linie) bei circa 65%.
 
-```{r}
+```{r Anteil korrekt klassifizierter Texte nach Kategorie}
 modell.NB.klassifikation <- bind_cols(korpus.nyt.stats, Klassifikation = as.character(predict(modell.NB))) %>%
   mutate(Kategorie = as.character(Topic_2digit)) %>% 
   mutate(RichtigKodiert = Klassifikation == Kategorie) %>% 
@@ -112,7 +116,7 @@ Warum variiert die Genauigkeit der Klassifikation nach Kategorie so stark? Dies 
 
 Welche Begriffe sind auf Grundlage der Kodierung besonders stark mit einer bestimmten Inhaltsanalyse-Kategorie assoziiert? Indem wir ähnlich wie bereits beim LDA-Modell bestimmte Kennzahlen aus der Modell-Datenstruktur extrahieren, können wir diese Frage leicht beantworten. Folgend plotten wie die fünf relevantesten Begriffe für sechs der 26 Inhaltsanalyse-Kategorien. Die Variable *PwGc* bezeichnet innerhalb des Modells die empirische Wahrscheinlichkeit des Begriffs für die Klasse. Der Aufruf ist deshalb ein wenig komplizierter, weil er mit dplyr und ggplot umgesetzt ist, und nicht zum Lieferumfang von quanteda gehört. 
 
-```{r}
+```{r Distinktive Begriffe nach Kategorie extrahieren}
 nb.terme <- as.data.frame(t(modell.NB$PwGc)) %>% 
   rownames_to_column("Wort") %>% 
   gather(Kategorie, Wahrscheinlichkeit, -Wort) %>% 
@@ -138,7 +142,7 @@ In einem nächsten Schritt klassifizieren wir nun die Daten erneut, allerdings m
 
 Dazu wird zunächst der sog. Container vorbereitet, welcher Textdaten und Labels enthält. Zudem wird festgelegt, welcher Teil des Datensatzes für das Training verwendet und welcher Teil für die eigentliche Klassifikation herangezogen wird (man spricht auch von Trainings- und Testdaten). Es ist üblich, circa 10% der Daten für Testzwecke zurückzuhalten.
 
-```{r}
+```{r Container für die Klassifikation mit RTextTools vorbereiten}
 container <- create_container(convert(meine.dfm.trim, to = "matrix"), korpus.nyt.stats$Topic_2digit, trainSize = 1:27775, testSize = 27776:30862, virgin = FALSE)
 ```
 
@@ -146,7 +150,7 @@ Nun werden vier verschiedene Modelle trainiert. Im Unterschied zu unserem Naive 
 
 Wem der Trainingsprozess zu lange dauert, der kann auch einfach vier bereits trainierte Modelle laden. 
 
-```{r}
+```{r RTextTools-Modelle trainieren}
 load("daten/nytimes/nyt.modelle.RData")
 
 # primäre Modelle
@@ -165,7 +169,7 @@ load("daten/nytimes/nyt.modelle.RData")
 
 Nun können wir die vier Modelle anwenden, also die verbleibenden Daten klassifizieren. Solange die Entwicklung eines Klassifikationsmodells noch nicht abgeschlossen ist, wendet man das Modell zumeist auf Daten an, die ebenfalls schon annotiert sind, weil dies es erlaubt, präzise Aussagen über die Genauigkeit des Algorithmus zu machen, indem man die vorgeschlagene Klassfikation mit der Annotation vergleicht. Je höher die Übereinstimmung, desto besser das Modell, mit der Einschränkungen, dass die Übertragbarkeit auf neue, unbekannte Daten i.d.R ein Ziel darstellt, welches schwerer wiegt, als ein perfektes Klassifikationsergebnis für einen bekannten Datensatz. 
 
-```{r}
+```{r Anhand der Modelle klassifizieren}
 SVM_CLASSIFY <- classify_model(container, modell.SVM)
 GLMNET_CLASSIFY <- classify_model(container, modell.GLMNET)
 MAXENT_CLASSIFY <- classify_model(container, modell.MAXENT)
@@ -179,14 +183,14 @@ SLDA_CLASSIFY <- classify_model(container, modell.SLDA)
 
 Zunächst lassen wir uns zentrale Informationen dazu generieren, wie genau die vier Klassifikatoren unsere Daten annotiert haben. Von RTextTools erhält man hierzu sehr genaue Informationen. 
 
-```{r}
+```{r Performance der unterschiedlichen Algorithmen bestimmen}
 analytics <- create_analytics(container, cbind(SVM_CLASSIFY, GLMNET_CLASSIFY, MAXENT_CLASSIFY, SLDA_CLASSIFY))
 summary(analytics)
 ```
 
 Auch hier lässt sich das Ergebnis plotten, um einen Eindruck davon zu erhalten, wie die Algorithmen im direkten Vergleich nach Kategorie abschneiden, und zwar bezüglich der Maße Precision und Recall, also sowohl in Hinblick auf ihre Genauigkeit, als auch mit Blick auf ihre Vollständigkeit. Das folgende Plot zeigt drei Metrien für vier Algorithmen und sechs Inhaltskategorien. 
 
-```{r}
+```{r Performancevergleich von vier Algorithmen für sechs Inhaltskategorien}
 topic.codes <- scan("daten/nytimes/majortopics2digits.txt", what = "char", sep = "\n", quiet = T)
 topic.codes <- data.frame(category = as.factor(1:length(topic.codes)), category.label = topic.codes)
 algdf <- data.frame(algorithm = str_split(colnames(analytics@algorithm_summary), "_", simplify = T)[,1], measure = factor(str_split(colnames(analytics@algorithm_summary), "_", simplify = T)[,2], levels = str_split(colnames(analytics@algorithm_summary), "_", simplify = T)[1:3,2]), category = factor(rep(rownames(analytics@algorithm_summary), each = ncol(analytics@algorithm_summary)), levels = rownames(analytics@algorithm_summary)), score = as.vector(t(analytics@algorithm_summary)))
@@ -197,19 +201,21 @@ ggplot(algdf, aes(score, algorithm, color = measure, shape = measure)) + geom_po
 ```
 
 
-### Verwenden von Metadaten als Klassifikation 
+### Verwenden von Metadaten als Klassifikation: Ressort in Die Zeit 
 
 Bisher haben wir uns auschließlich mit Daten aus einer tatsächlichen Inhaltsanalyse beschäftigt, aber wie sieht es mit Metadaten aus, welche sich als Kategorisierung einsetzen lassen, ohne dass sie dies im inhaltsanalytischen Sinne tatsächlich sind? Folgend laden wir die bereits in Kapitel 5 verwendeten Daten aus der Wochzeitung *Die Zeit*, arbeiten allerdings diesmal mit den Datensatz, welcher nur die Titel der Beiträge enthält. Wir bestimmen anhand der URL des Artikels das Ressort, filtern nach den frequentesten Ressorts, ziehen ein Zufallssample, und berechnen schließlich eine DFM. 
 
 Anchließend wenden wir zwei Algorithmen aus RTextTools an und vergleichen ihre Performance (mittels einfacher *precision*) mit einem Zufallsalgorithmus. 
 
-```{r}
+```{r Vorhersage von zwei Algorithmen für das Zeit-Korpus anhand des Ressorts}
 load("daten/zeit/zeit.korpus.RData")
 docvars(korpus.zeit, "ressort") <- str_split(url_parse(korpus.zeit.stats$href)$path, pattern = "/", simplify = T)[,1]
+docvars(korpus.zeit, "docID") <- docnames(korpus.zeit)
 korpus.zeit.sample <- corpus_subset(korpus.zeit, ressort %in% c("politik", "wirtschaft", "gesellschaft", "sport", "kultur", "wissen", "karriere", "digital"))
-korpus.zeit.sample <- corpus_sample(korpus.zeit.sample, size = 2500)
+zufallssample.ressorts <- data.frame(doc_id = docnames(korpus.zeit.sample), docvars(korpus.zeit.sample), stringsAsFactors = F) %>% group_by(ressort) %>% sample_n(1000)
+korpus.zeit.sample <- corpus_subset(korpus.zeit.sample, docID %in% zufallssample.ressorts$doc_id)
 meine.dfm.trim <- dfm_trim(dfm(korpus.zeit.sample), min_docfreq = 2)
-container <- create_container(convert(meine.dfm.trim, to = "matrix"), docvars(korpus.zeit.sample)$ressort, trainSize = 1:2250, testSize = 2251:2500, virgin = FALSE)
+container <- create_container(convert(meine.dfm.trim, to = "matrix"), docvars(korpus.zeit.sample)$ressort, trainSize = 1:7200, testSize = 7201:8000, virgin = FALSE)
 modelle.MAXENT.SVM.TREE <- train_models(container, algorithms = c("MAXENT", "SVM"))
 klassifikation.MAXENT.SVM <- classify_models(container, modelle.MAXENT.SVM.TREE)
 prop.table(table(sample(docvars(korpus.zeit.sample)$ressort) == docvars(korpus.zeit.sample)$ressort))*100 # Zufall
@@ -217,10 +223,9 @@ prop.table(table(klassifikation.MAXENT.SVM$MAXENTROPY_LABEL == docvars(korpus.ze
 prop.table(table(klassifikation.MAXENT.SVM$SVM_LABEL == docvars(korpus.zeit.sample)$ressort))*100 # SVM
 ```
 
-Dieses Ergebnis ist zunächst einmal alles andere als berauschend. Während der Zufallsalgorithmus (der allerdings auch die Kategorien-Distribution innerhalb des Samples kennt) immerhin rund ein Viertel aller Beiträge richtig klassifiziert, schneiden Maximum Entropy und SVM zwar besser, aber nicht unbedingt sehr gut ab. Allerdings muss man berücksichtigen dass es (a) um die Beziehung von Text und Ressort geht (die auch verschiedenen Gründen nicht sehr eng sein muss) und (b) dass lediglich der Titel des jeweiligen Artikels die Grundlage der Klassifikation bildet, und nicht etwa der Volltext. 
-Wie unterscheidet sich die Qualität der Klassifikation nach Ressort? Die Frage ist auch deshalb wichtig, weil durch die ungleichverteilung der Ressorts und die Verwendung von nur einer Metrik das Ergebnis noch etwas besser aussieht, als es im Grunde genommen ist. Um die Frage zu beantworten plotten wir den Anteil der richtig klassifizierten Artikel für acht Ressorts. 
+Dieses Ergebnis ist zunächst einmal alles andere als berauschend. Sowohl der Zufallsalgorithmus, als auch Maximum Entropy und SVM, schneiden ausgesprochen schlecht ab, wobei der Vergleich mit dem Zufall verdeutlicht, dass nur cica 2-3% der Schlagzeilen auf Grundlage des jeweiligen Modells erkannt werden. Allerdings muss man berücksichtigen dass es (a) um die Beziehung von Text und Ressort geht (die auch verschiedenen Gründen nicht sehr eng sein muss) und (b) dass lediglich der Titel des jeweiligen Artikels die Grundlage der Klassifikation bildet, und nicht etwa der Volltext. Wie unterscheidet sich die Qualität der Klassifikation nach Ressort?
 
-```{r}
+```{r Korrekt klassifizierte Texte nach Ressort}
 ergebnis.MAXENT<- data.frame(MAXENT = as.character(klassifikation.MAXENT.SVM$MAXENTROPY_LABEL), Kategorie = docvars(korpus.zeit.sample)$ressort, stringsAsFactors = F) %>% 
 	mutate(Algorithmus = "MAXENT") %>% 
 	mutate(TF = MAXENT == Kategorie) %>% 
@@ -243,12 +248,18 @@ ergebnis.RANDOM <- data.frame(RANDOM = sample(docvars(korpus.zeit.sample)$ressor
 	mutate(Anteil = n/sum(n)) %>% 
   filter(TF == TRUE)
 ergebnis.MAXENT.SVM <- bind_rows(ergebnis.MAXENT, ergebnis.SVM, ergebnis.RANDOM)
-ggplot(ergebnis.MAXENT.SVM, aes(Kategorie, Anteil, colour = Algorithmus, group = Algorithmus)) + geom_line(size = 1) + ylim(c(0,1)) + scale_colour_brewer(palette = "Set1") + ggtitle("Korrekt klassifizierte Zeit-Artikel mit zwei Algorithmen nach Ressort") + xlab("") + ylab("korrekt klassifiziert")
+ggplot(ergebnis.MAXENT.SVM, aes(Kategorie, Anteil, colour = Algorithmus, group = Algorithmus)) + geom_line(size = 1) + ylim(c(0,1)) + scale_colour_brewer(palette = "Set1") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Korrekt klassifizierte Zeit-Artikel mit zwei Algorithmen nach Ressort") + xlab("") + ylab("korrekt klassifiziert")
 ```
 
 Es fällt auf, dass Maximum Entropy sich in diesem Fall nicht signifikant vom Zufallsalgorithmus unterscheidet, während SVM immerhin etwas besser abschneidet. Das Ergebnis für das Poltik-Ressort scheint hier auf den ersten Blick für SVM deutlich besser zu sein, als für die verbleibenden Kategorien, was allerdings auch an der sehr ungleichen Verteilung der Ressorts im Gesamtkorpus liegt (SVM überschätzt den Anteil der Beiträge aus dem Bereicht Politik schlicht). Trotzdem sollte das Fazit deshalb nicht zu ernüchtert ausfallen, weil klar wird, dass selbst die Beitragstitel in einem relativ kleinen Sample ein gewisses Vorhersagepotenzial für das Ressort haben, was ja auch zu erwarten war. Man kann sich so leicht vorstellen, in bestimmten Fällen mit der richtigen Kombination von Metadaten zu einem guten Klassifikationsergebnis zu kommen, und das ganz ohne zuvor eine manuellen Inhaltsanalyse durchgeführt zu haben. 
 
-```{r}
+### Verwenden von Metadaten als Klassifikation: Parteizugehörigkeit von MdBs
+
+Um zu verdeutlichen, wie das überwachte maschinelle Lernen sich Metadaten als Inhaltslabels zunutze machen, greifen wir nun noch auf ein weiteres Beispiel zurück: die Parteizugehörigkeit von Mitgliedern des Bundestags. Hierbei handelt es sich aus Sicht eines Klassifikators auch "nur" um ein Metadatum, welches wir anhand der Wortverwendung vorherzusagen versuchen können.
+
+Folgend laden wir zunächst die Daten und rechenen eine DFM. Hierbei sind wir sehr großzügig und entfernen lediglich Stoppwörter und solche Begriffe, die nur in einem einzigen Redebeitrag vorkommen. 
+
+```{r DFM für das Bundestags-Korpus rechnen und trimmen}
 load("daten/bundestag/bundestag.korpus.RData")
 docvars(korpus.bundestag, "Tokens") <- korpus.bundestag.stats$Tokens
 korpus.bundestag <- korpus.bundestag %>% 
@@ -258,30 +269,27 @@ korpus.bundestag <- korpus.bundestag %>%
 partei <- docvars(korpus.bundestag, "party")
 weitere.stoppwoerter <- scan("daten/bundestag/weitere_stoppwoerter.txt", what = "char", sep = "\n", quiet = T)
 meine.dfm <- dfm(korpus.bundestag, remove_numbers = TRUE, remove_punct = TRUE, remove = c(stopwords("german"), weitere.stoppwoerter))
-meine.dfm
 meine.dfm.trim <- dfm_trim(meine.dfm, min_docfreq = 2)
 meine.dfm.trim
 ```
 
-xxxx
+Wieder wenden wir den NB-Klassifikator an, den quanteda bereits mitliefert. Der Performance-Vergleich mit einem Zufallsalgorithmus verrät, dass die Zuordnung mit vergleichsweise hoher Genauigkeit funktioniert (88%). 
 
-```{r}
-# nb classification
-
+```{r Vorhersage des NB-Algorithmus für das Bundestags-Korpus anhand der Parteizugehörigkeit}
 modell.NB <- textmodel_nb(meine.dfm.trim, partei, prior = "docfreq")
-head(as.character(predict(modell.NB)))
+head(as.character(predict(modell.NB)))  # vorhersage
+head(docvars(meine.dfm.trim)$party)  # manuell
+prop.table(table(predict(modell.NB) == partei))*100  # genauigkeit modell
+prop.table(table(sample(predict(modell.NB)) == partei))*100  # genauigkeit zufall
+```
 
-# prediction accuracy
-prop.table(table(predict(modell.NB) == partei))*100
-# random guessing accuracy
-prop.table(table(sample(predict(modell.NB)) == partei))*100
+Erneut extrahieren wir im nächsten Schritt solche Begriffe, die besonders distinktiv für die jeweilige Kategorie (also Partei) sind. Das Bild ist etwas unschärfer als für die New York-Times-Schlagzeilen, was einerseits mit der Textsorte (Schlagzeilen einer Zeitung vs. Redebeiträge im Bundestag) und andererseits mit der Qualität der Annotation (systematisch kodiert vs. Parteizugehörigkeit als Label) zusammenhängt. Das Resultat kann sich trotzdem sehen lassen: eine Reihe von Begriffen sind recht eindeutig mit der politischen Richtung verbunden, auch wenn etwa die Unterschiede zwischen CDU und CSU gering ausfallen. 
 
-# plot entscheidender terme
+```{r Distinktive Begriffe im Bundestags-Korpus nach Kategorie extrahieren}
 nb.terme <- as.data.frame(t(modell.NB$PwGc)) %>% 
   rownames_to_column("Wort") %>% 
   gather(Partei, Wahrscheinlichkeit, -Wort) %>% 
   arrange(Partei, desc(Wahrscheinlichkeit)) %>% 
-  #left_join(labels.kategorien, by = "Kategorie") %>% 
   group_by(Partei) %>% 
   mutate(Rang = row_number()) %>% 
   filter(Rang <= 12)
@@ -293,19 +301,22 @@ p5 <- ggplot(filter(nb.terme, Partei == "DIE LINKE"), aes(reorder(Wort, Rang), W
 grid.arrange(p1, p2, p3, p4, p5, nrow = 3)
 ```
 
+In einem letzten Schritt nehmen wir auch hier wieder die einfache Genauigkeit nach Kategorie (Partei) in den Blick. Es zeigt sich, dass vor allem die CSU Probleme bereitet, was sowohl auf den relativ geringeren Redenateil als auch an der (vergleichsweise) geringen Abgrenzung von der Schwesterpartei liegen dürfte. 
 
-```{r}
-# svm classification
-netzwerk.begriffe <- scan("daten/bundestag/netzwerk_begriffe.txt", what = "char", sep = "\n", quiet = T)
-meine.dfm.netzwerk <- dfm_keep(meine.dfm, netzwerk.begriffe)
+Die auf den ersten Blick guten Ergebnisse unserer sehr primitven Analyse sind aber deshalb mit großer Vorsicht zu genießen, weil ein starkes Risiko der [Überanpassung](https://de.wikipedia.org/wiki/%C3%9Cberanpassung) (engl. *overfitting*) besteht. Das Modell verwendet rund 65.000 Features (Wörter) von denen manche nur sehr selten auftreten. Tritt ein Wort aber nur eine handvoll Male in den Redebeiträgen eines Mitglieds der Grünen-Fraktion auf, trägt dieses Feature zum Erfolg des Modells bei, auch wenn dieses Wort in einem anderen Datensatz wahscheinlich niemals vorkommt. Ein erster Schritt, um dieses Problem zu beheben, wäre es, zwischen Trainings- und Klassifikationsdaten zu unterscheiden (was wir in der Analyse der New York Times-Daten mit RTextTools auch getan haben, in diesem Fall aber nicht). So würde sich zeigen, ob auch neue Daten erfolgreich mit den im Training gelernten Features klassifiziert werden könnten. 
 
-container <- create_container(convert(meine.dfm.netzwerk, to = "matrix"), as.numeric(factor(partei)), trainSize = 1:21456, testSize = 21457:23840, virgin = FALSE)
-models <- train_models(container, algorithms = c("SVM", "GLMNET", "MAXENT", "SLDA"))
-classifiers <- classify_models(container, models)
-analytics <- create_analytics(container, classifiers)
-summary(analytics)
+```{r Anteil korrekt klassifizierter Redebeiträge nach Partei mit Bayes-Klassifikator}
+modell.NB.klassifikation <- bind_cols(docvars(meine.dfm.trim), Klassifikation = as.character(predict(modell.NB))) %>%
+  mutate(Partei = party) %>% 
+  mutate(RichtigKodiert = Klassifikation == Partei) %>% 
+  group_by(Partei, RichtigKodiert) %>% 
+  summarise(n = n()) %>% 
+  mutate(Anteil = n/sum(n)) %>% 
+  filter(RichtigKodiert == TRUE) %>% 
+  mutate(Label = factor(Partei, levels = rev(c("CDU", "CSU", "SPD", "DIE GRÜNEN", "DIE LINKE")))) %>% 
+  select(Partei, Label, n, Anteil)
+ggplot(modell.NB.klassifikation, aes(Label, Anteil)) + geom_bar(stat = "identity") + geom_hline(yintercept = mean(modell.NB.klassifikation$Anteil), color = "blue") + ylim(0, 1) + ggtitle("Anteil korrekt klassifizierter Redebeiträge nach Partei\nmit Bayes-Klassifikator") + xlab("") + ylab("") + coord_flip()
 ```
 
-
-Zusammenfassend lässt sich festhalten, dass das überwachte maschinelle Lernen gerade in Kombination mit anderen hier vorgestellten Techniken ein sehr nützliches Werkzeug sein kann. So lässt sich etwa ein Feature-Lexikon entwickeln, welches auf einer manuellen Inhhaltsanalyse eines kleineren Samples basiert. Zu beachten gilt auch hier, dass die automatisierte Klassifikation nur so gut sein kann, wie die händische Kategorisierung, die ihre Grundlage bildet. Entscheidend sind die hier nur angerissenen Techniken für die Validierung des Klassifikationsergebnis.
+Zusammenfassend lässt sich festhalten, dass das überwachte maschinelle Lernen gerade in Kombination mit anderen hier vorgestellten Techniken ein sehr nützliches Werkzeug sein kann. So lässt sich etwa ein Feature-Lexikon entwickeln, welches auf einer manuellen Inhhaltsanalyse eines kleineren Samples basiert. Zu beachten gilt auch hier, dass die automatisierte Klassifikation nur so gut sein kann, wie die händische Kategorisierung, die ihre Grundlage bildet. Entscheidend sind die hier nur angerissenen Techniken für die Validierung des Klassifikationsergebnisses. Sind sowohl die Daten besonders gut geeignet als auch die Qualität der manuellen Klassifikation sehr hoch (das NYT-Beispiel), kann sich auch das Ergebnis der automatisierten Zuordnung sehen lassen. Sind die Daten komplexer und ist die manuelle Klassifikation eher ungenau (das Zeit-Beispiel) sind auch die Resultate der automatisierten Klassifikation kaum besser als der Zufall. 
 
