@@ -1,11 +1,9 @@
-
 daten/
 lexika/
 .Rproj.user/
 .Rhistory
-.Rproj.user
 .DS_Store
-*.RData
+*.Rproj.user
 *.Rproj
 *.nb.html
 *.html
