@@ -5,6 +5,12 @@ subtitle: "Wort- und Textmetriken"
 output: html_notebook
 ---
 
+<!---
+* Zeit-SML: Titel durch Volltexte ersetzen?
+* MdB-SML: Split in Traings- und Testset?
+* 
+-->
+
 \
 \
 \
@@ -22,20 +28,23 @@ Einige Beispiele:
 
 Diese und ähnliche Fragen werden in den folgenden Kapiteln aufgegriffen -- zunächst werden aber die Funktionen vorgestellt, welche die Arbeit mit Wörtern und Texten in quanteda ermöglichen. 
 
-#### Installation und Laden der benötigten R-Bibliotheken, Erstellen des Korpus, Berechnen einer DFM
+#### Installation und Laden der benötigten R-Bibliotheken, Laden des Korpus, Berechnen einer DFM
 
-Zunächst werden wieder die notwendigen Bibliotheken geladen. Dann wird in einem zweiten Schritt das Sherlock-Korpus eingelesen und aufbereitet und dann Korpus-Statistiken berechnet. Schließlich erstellen wir wieder eine DFM (vgl. [Kapitel 1](1_grundlagen.html)), da wir diese später noch benötigen. 
+Zunächst werden wieder die notwendigen Bibliotheken geladen. 
 
-```{r Packetinstallation, message = FALSE}
-# Installation und Laden der Bibliotheken
-if(!require("quanteda")) install.packages("quanteda")
-if(!require("tidyverse")) install.packages("tidyverse")
+
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 theme_set(theme_bw())
+```
 
-# Laden der Sherlock Holmes-Daten (bereits als RData-File gespeichert)
+Nun wird in einem zweiten Schritt das Sherlock-Korpus geladen, welches wir bereits im ersten Kapitel mittels [readtext()](https://readtext.quanteda.io/reference/readtext.html) aus dem Rohtext erstellt und als RData-Datei gespeichert haben. In der RData-Datei ist nebem dem Korpus selbst auch eine mit summary() erstellter Data Frame enthalten, welcher die Korpus-Metadaten enthält. Zum einen sparen wir uns so das anlegen eines Korpus, zum anderen ist das RData-Format komprimiert, was sich bei Textdaten durchaus bemerkbar macht.
+
+Als nächstes berechnen wir dann auf Grundlage des Korpus-Objekts wieder eine DFM (vgl. [Kapitel 1](1_grundlagen.html)), da wir diese später noch benötigen. 
+
+```{r Lades des Sherlock Holmes-Korpus und Berechnen einer DFM}
 load("daten/sherlock/sherlock.korpus.RData")
-
-# Berechnen einer DFM
 meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
 ```
 
@@ -132,7 +141,7 @@ Was sagt das Ergebnis aus? Vor allem das (wenig überraschend) Wörter wie 'upon
 
 Wer die Dokumentation von textstat_simil() und textstat_dist() anschaut, wird feststellen, dass es dort den etwas kryptischen Hinweis auf das Argument 'margin' gibt. Dieses hat zwei mögliche erinstellungen: 'documents' oder 'features'. Stellt man hier 'documents' ein, werden die besprochenen Metriken nicht auf Wörter, sondern auf Texte angewandt. Folgend plotten wir die Textnähe via Kosinusähnlichkeit (hier ausgehend vom ersten Roman, 'A Case of Identity').
 
-```{r}
+```{r Ähnlichkeit von Texten zu einander plotten}
 aehnlichkeit.texte <- data.frame(Text = factor(korpus.stats$Text, levels = rev(korpus.stats$Text)), as.matrix(textstat_simil(meine.dfm, selection = 3, margin = "documents", method = "cosine")))
 ggplot(aehnlichkeit.texte, aes(A.Case.of.Identity, Text)) + geom_point(size = 2.5) + ggtitle("Text-Kosinusähnlichkeit (hier für 'A Case of Identity')") + xlab("Kosinunsähnlichkeit")
 ```
@@ -144,7 +153,7 @@ Wie wir sehen, ist die Ähnlichkeit der Romane 'The Red-headed League' und 'The 
 
 Bei der sog. Keyness handelt es sich um ein Maß für die Distinktivität eines Begriffs für einen bestimmten Text, also wie stark der Begriff den jeweiligen Text im Vergleich zum gesamten Korpus kennzeichnet. Während wir zuvor die Distanz von Wörtern und Texten zu einander untersucht haben, macht sich die Keyness die Verteilungshäufigkeit von Wörtern auf Texte zunutze, ohne deren Position zu berücksichtigen. Keyness funktioniert daher auch mit längeren Texten gut, solange diese sich ausreichend markant unterscheiden. Folgend berechnen wir zunächst die Keyness für vier Texte mit [textstat_keyness()](https://docs.quanteda.io/reference/textstat_keyness.html) und plotten wir diese Keyness-Statistiken dann für vier Erzählungen mit Hilfe von [textplot_keyness()](https://docs.quanteda.io/reference/textplot_keyness.html).
 
-```{r}
+```{r Keyness von Begriffen plotten}
 keyness <- textstat_keyness(meine.dfm, target = "A Scandal in Bohemia", measure = "lr")
 textplot_keyness(keyness)
 keyness <- textstat_keyness(meine.dfm, target = "A Case of Identity", measure = "lr")
@@ -162,10 +171,10 @@ Schaut man sich die vier Beispieltexte einmal genauer an, so wird schnell klar, 
 
 Unter Maßen lexikalischer Vielfalt versteht man Metriken, welche die Diversität eines Textes mit Blick auf den Wortgebrauch wiedergeben. Ein Beispiel ist die bereits in Kapitel 1 berechtete [Typ-Token-Relation](https://de.wikipedia.org/wiki/Type-Token-Relation). Diese beschreibt die Wortvielfalt und geben so auch Aufschluss über die Komplexität eines Textes. Wir berechnen folgend zahlreiche Metriken für die lexikalische Diversität der zwölf Romane mit mit der Funktion [textstat_lexdiv()](https://docs.quanteda.io/reference/textstat_lexdiv.html).
 
-```{r}
+```{r Lexikalische Vielfalt berechnen}
 lexdiversitaet <- textstat_lexdiv(meine.dfm)
 lexdiversitaet
-write_delim(lexdiversitaet, path = "lexdiversitaet.csv", delim = ";") # Datei ist Excel-kompatibel
+#write_delim(lexdiversitaet, path = "lexdiversitaet.csv", delim = ";") # Datei ist Excel-kompatibel
 ```
 
 Bei einem oberflächliche Vergleich der Metriken fällt auf, dass sich die Texte nicht sehr stark unterscheiden, was ihre jeweilige lexikalische Vielfalt betrifft, ganz unabhängig davon, welche Metrik verwendet wird. Dies ist nicht unbedingt verwunderlich, da es sich um Texte des selben Genres und Autors handelt. Interessanter werden solche Metriken dann, wenn wir sehr unterschiedliche Genres oder Autoren vergleichen wollen, etwa die Programmen von Parteien, Texte aus unterschiedlichen Medien, oder Tweets von unterschiedlichen Nutzern. 
@@ -177,10 +186,10 @@ Eine weitere Klasse von Text-Metriken, die sich für ein Dokument aufgrund seine
 
 Die Kalkulation zahlreicher Lesbarkeitsindizes erfolgt in quanteda mit [textstat_readability()](https://docs.quanteda.io/reference/textstat_readability.html), Auch hier wird das Ergebnis in einer Excel-kompatible CSV-Datei gespeichert.
 
-```{r}
+```{r Lesbarkeitsindizes berechnen}
 lesbarkeit <- textstat_readability(korpus)
 lesbarkeit
-write_delim(lesbarkeit, path = "lesbarkeit.csv", delim = ";") # Datei ist Excel-kompatibel
+#write_delim(lesbarkeit, path = "lesbarkeit.csv", delim = ";") # Datei ist Excel-kompatibel
 ```
 
 Ein schönes Beispiel für den Nutzen solcher Metriken findet sich in der Dokumentation der Funktion textstat_readability(). Hatte die Antrittsrede von George Washington im Jahr 1789 noch einen Flesh-Kincaid-Index von 28, so betrug der Wert bei der Antrittsrede von Donald Trump in 2017 nur noch 9 (was allerdings dem Trend seit Mitte des 20. Jhd. entspricht). 

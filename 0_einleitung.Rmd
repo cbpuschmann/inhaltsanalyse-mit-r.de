@@ -11,6 +11,10 @@ output: html_notebook
 * ggf. plotly-support
 -->
 
+\
+\
+\
+
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentliche Ansätze der automatisierten Inhaltsanalyse in R anhand von Beispielen vorgestellt werden, und zwei Beispielstudien, in denen eine Kombination zuvor vorgestellter Methoden systematisch angewandt wird. Die aktuellste (Entwicklungs-)Fassung der R-Notebooks findet sich auf [GitHub](https://github.com/cbpuschmann/inhaltsanalyse-mit-r.de), eine zusätzliche Leseversion ist auch auf [rpubs.com](https://rpubs.com/cbpuschmann/AIR1) abrufbar.
@@ -28,9 +32,7 @@ Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentlich
 6. [Themenmodelle](6_themenmodelle.html)
 7. [Tagging, Parsing und Entitätenerkennung](7_ner.html)
 8. [Texte und Wörter als Netzwerke](8_netzwerke.html)
-9. [Programmierschnittstellen (APIs)](9_apis.html)
-10. Erste Modellstudie: Deutscher Bundestag
-11. Zweite Modellstudie: Syrien-Berichterstattung
+9. [Datenimport](9_datenimport.html)
 
 
 ### Downloads

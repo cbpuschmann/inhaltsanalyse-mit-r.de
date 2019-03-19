@@ -7,7 +7,7 @@ output: html_notebook
 
 <!---
 * Begriffs-Netzwerk MdBs mit Partei als Farbe
-* 
+* mehr Beispiele (Enron-Korpus)
 -->
 
 \
@@ -20,8 +20,7 @@ Texte und Wörter lassen sich neben den bisher vorgestellen Techniken auch noch 
 
 Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. In diesem Kapitel wenden wir uns nun dem Pendant der DFM zu, der Feature Co-occurance Matrix (FCM).
 
-```{r Packetinstallation, message = FALSE}
-# Installation und Laden der Bibliotheken
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("devtools")) {install.packages("devtools"); devtools::install_github("cbail/textnets")}

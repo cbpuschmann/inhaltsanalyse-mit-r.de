@@ -5,6 +5,12 @@ subtitle: "Grundlagen"
 output: html_notebook
 ---
 
+<!---
+* Zeit-SML: Titel durch Volltexte ersetzen?
+* MdB-SML: Split in Traings- und Testset?
+* 
+-->
+
 \
 \
 \
@@ -20,28 +26,26 @@ Die Basis der Analyse in diesem ersten Kapitel sind die beliebten Geschichten vo
 
 #### Installation und Laden der benötigten R-Bibliotheken
 
-Zunächst werden die notwendigen Bibliotheken installiert (sofern noch nicht vorhanden) und anschließend geladen. Zudem wird vorbereitend die Theme-Einstellung für das Paket ggplot gesetzt (dies sorgt für hübschere Plots). Diesen Schritt wiederholen wir zu Beginn jedes Kapitels, daher wird auf ihn später nicht mehr weiter eingegangen. In einigen Kapiteln werden noch weiteren Pakete gelanden, etwa für eine erweiterte Farbpalette (RColorBrewer), Wortwolken (wordclouds) oder um URLs zu parsen (urltools).  
+Zunächst werden die notwendigen Bibliotheken installiert (sofern noch nicht vorhanden) und anschließend geladen. Zudem wird vorbereitend die Theme-Einstellung für das Paket ggplot gesetzt (dies sorgt für hübschere Plots). Diesen Schritt wiederholen wir zu Beginn jedes Kapitels, daher wird auf ihn später nicht mehr weiter eingegangen. In einigen Kapiteln werden noch weiteren Pakete gelanden, etwa für eine erweiterte Farbpalette ([RColorBrewer](https://cran.r-project.org/package=RColorBrewer)), Wortwolken ([wordcloud](https://cran.r-project.org/package=wordcloud)) oder um URLs zu parsen ([urltools](https://cran.r-project.org/package=urltools)).  
 
-```{r Packetinstallation, message = FALSE}
-# Installation und Laden der Bibliotheken
-if(!require("quanteda")) install.packages("quanteda")
-if(!require("readtext")) install.packages("readtext")
-if(!require("tidyverse")) install.packages("tidyverse")
-if(!require("RColorBrewer")) install.packages("RColorBrewer")
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("readtext")) {install.packages("readtext"); library("readtext")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
+if(!require("RColorBrewer")) {install.packages("RColorBrewer"); library("RColorBrewer")}
 theme_set(theme_bw())
 ```
 
 
 #### Einlesen der Daten und Anlegen eines Korpus
 
-Nachdem alle notwendigen Pakete geladen wurden, können wir nun die Daten einlesen und daraus ein quanteda-Korpus erstellen. Für das Einlesen der Plaintext-Dateien wird die Funktion [readtext](https://www.rdocumentation.org/packages/readtext) aus dem gleichnamigen Paket verwendet, durch die sich eine Reihe von Dateiformaten erfolgreich importieren lassen (u.a. TXT, PDF und Word). Grundsätzlich sich Plaintext–Daten (i.d.R. mit der Endung ".txt") und Daten in Tabellenform (etwa im Format CSV oder auch als Excel–Datei) für readtext ohne größere Probleme lesbar, allerdings muss man beim Einlesen erklären, wie genau die einzelnen Datensätze von einander getrennt sind (bei Plaintext–Dateien wo nicht 1 Datei == 1 Text, was etwa bei Exporten aus Lexis Nexis der Fall sein kann), bzw. welche Felder die Primär– und welche Metadaten beinhalten (bei Tabellen).
+Nachdem alle notwendigen Pakete geladen wurden, können wir nun die Daten einlesen und daraus ein quanteda-Korpus erstellen. Für das Einlesen der Plaintext-Dateien wird die Funktion [readtext](https://www.rdocumentation.org/packages/readtext) aus dem gleichnamigen Paket verwendet, durch die sich eine Reihe von Dateiformaten erfolgreich importieren lassen (u.a. TXT, PDF und Word). Grundsätzlich sich Plaintext–Daten (i.d.R. mit der Endung ".txt") und Daten in Tabellenform (etwa im Format CSV oder auch als Excel–Datei) für readtext ohne größere Probleme lesbar, allerdings muss man beim Einlesen erklären, wie genau die einzelnen Datensätze von einander getrennt sind (bei Plaintext–Dateien wo nicht 1 Datei == 1 Text, was etwa bei Exporten aus Lexis Nexis der Fall sein kann), bzw. welche Felder die Primär– und welche Metadaten beinhalten (bei Tabellen). Eine gute Einführung zum Paket readtext findet sich [hier](https://cran.r-project.org/web/packages/readtext/vignettes/readtext_vignette.html).
 
 In diesem Fall entspricht jede Datei einem Text, wodurch der Import sehr umkompliziert ausfällt. Wir entfernen die Endung ".txt" aus dem Dokumentnamen, um diese später in Plot–Beschriftungen verwenden zu können. Schließlich wird die Variable *korpus* aufgerufen, was uns die wichtigen Eckdaten Dokumentanzahl und Docvars (Metadaten zu den Texten im Korpus) zurückliefert. 
 
 ```{r Daten einlesen und Korpus anlegen}
 daten.sherlock <- readtext("daten/sherlock/romane/[0-9]*.txt") # Dateiname beginnt mit Zahl und endet mit .txt
 daten.sherlock$doc_id <- str_sub(daten.sherlock$doc_id, start = 4, end = -5) # Dateiendung weglassen
-
 korpus <- corpus(daten.sherlock, docid_field = "doc_id") # Korpus anlegen
 docvars(korpus, "Textnummer") <- sprintf("%02d", 1:ndoc(korpus)) # Variable Textnummer generieren
 korpus

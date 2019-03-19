@@ -21,13 +21,13 @@ Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (en
 Da Themenmodelle im Kontrast zu den bisher vorgestellten Methoden nicht Teil der Ausstattung von quanteda sind, nutzen wir folgend zwei neue Pakete für ihre Berechnung: [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://cran.r-project.org/package=stm). Das Paket topicmodels implementiert die beiden Verfahren Latent Dirichlet Allocation (LDA) und [Correlated Topic Models (CTM)](http://people.ee.duke.edu/~lcarin/Blei2005CTM.pdf), während [STM](https://www.structuraltopicmodel.com/) auf einem ganz neuen Ansatz basiert, der zahlreiche Erweiterungen gegenüber LDA enthält. Hinzu kommt schließlich noch das Paket [urltools](https://cran.r-project.org/package=urltools), welches bei der Auswertung von Online-Nachrichtenbeiträgen nützlich sein wird, aber nicht direkt etwas mit Themenmodellen zu tun hat.
 
 ```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
-if(!require("quanteda")) install.packages("quanteda")
-if(!require("tidyverse")) install.packages("tidyverse")
-if(!require("topicmodels")) install.packages("topicmodels")
-if(!require("ldatuning")) install.packages("ldatuning")
-if(!require("stm")) install.packages("stm")
-if(!require("wordcloud")) install.packages("wordcloud")
-if(!require("urltools")) install.packages("urltools")
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
+if(!require("topicmodels")) {install.packages("topicmodels"); library("topicmodels")}
+if(!require("ldatuning")) {install.packages("ldatuning"); library("ldatuning")}
+if(!require("stm")) {install.packages("stm"); library("stm")}
+if(!require("wordcloud")) {install.packages("wordcloud"); library("wordcloud")}
+if(!require("urltools")) {install.packages("urltools"); library("urltools")}
 theme_set(theme_bw())
 ```
 

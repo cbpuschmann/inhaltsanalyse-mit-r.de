@@ -8,6 +8,7 @@ output: html_notebook
 <!---
 * Zeit-SML: Titel durch Volltexte ersetzen?
 * MdB-SML: Split in Traings- und Testset?
+* ...
 -->
 
 \
@@ -34,11 +35,11 @@ Eine Reihe von Algorithmen stehen zur Verfügung, um solche Analysen durchzufüh
 Wieder beginnen wir damit, die notwendigen Bibliotheken zu laden. Dieser Schritt enthält hier das Paket [RTextTools](https://cran.r-project.org/package=RTextTools), welches eine Reihe von Algorithmen sowie Funktionen für die Bewertung der Klassifikationsgenauigkeit bereithält. 
 
 ```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
-if(!require("quanteda")) install.packages("quanteda")
-if(!require("tidyverse")) install.packages("tidyverse")
-if(!require("RTextTools")) install.packages("RTextTools")
-if(!require("gridExtra")) install.packages("gridExtra")
-if(!require("urltools")) install.packages("urltools")
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
+if(!require("RTextTools")) {install.packages("RTextTools"); library("RTextTools")}
+if(!require("gridExtra")) {install.packages("gridExtra"); library("gridExtra")}
+if(!require("urltools")) {install.packages("urltools"); library("urltools")}
 theme_set(theme_bw())
 ```
 

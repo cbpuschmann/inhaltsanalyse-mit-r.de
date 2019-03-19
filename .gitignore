@@ -10,3 +10,4 @@ lexika/
 *.udpipe
 *.key
 *.json
+.Rproj.user
