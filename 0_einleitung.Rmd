@@ -8,7 +8,7 @@ output: html_notebook
 <!---
 * pdf-version vorbereiten
 * literatur hinzufügen
-* ggf. plotly-support
+* korpus-beschreibung hinzufügen (enron, schweizer vorlagen)
 -->
 
 \
@@ -54,7 +54,7 @@ Schließlich arbeiten wir intensiv mit den Paketen des [tidyverse](https://www.t
 Wir verwenden in dieser Einführung insgesamt neun unterschiedlich Korpora, anhand derer die vorgestellten Methoden anschaulich gemacht werden sollen. Bewusst unterscheiden sich die Daten in Bezug auf Sprache, Genre, Medium, Struktur und Umfang sehr deutlich. Von Social Media-Daten aus Facebook und Twitter über Pressetexte (in Auszügen) aus Deutschland, der Schweiz und den USA, bis hin zu politischen Reden und Parlmamentsdebatten ist eine große Bandbreite an Textsorten und Kontexten vertreten. Einige Korpora, etwa das Sherlock-Holmes-Korpus, sind primär wegen ihrer Anschaulichkeit und (durch vergleichsweise geringe Größe) gute Handhabbarkeit ausgewählt worden, und weniger deshalb, weil ihnen unbedingt große sozialwissenschaftliche Relevanz unterstellt wird. Zudem sind die Daten gemeinfrei, d.h. das Urheberrecht ist entweder erloschen oder schützt den Inhalt nicht (im Fall von Tweets oder Kommentaren). Im Korpus der Facebook-Kommentare sind bewusst keinelei Metadaten enthalten, um die Privatsphäre der Autoren so gut möglich zu schützen. Vom Sherlock Holmes-Korpus abgesehen sind die Daten ausgesprochen aktuell.
 
 Korpus | Beschreibung | Texte | Wörter | Genre|Sprache|Quelle|Kapitel|
------- | -------------|-------|--------|------|--------|------|
+------ | -------------|-------|--------|------|--------|------|------|
 Sherlock Holmes|Detektiv-Erzählungen von Arthur Conan Doyle|12|126.804|Literatur|en|archive.org|x|
 Twitter|Tweets von Donald Trump und Hillary Clinton im US-Präsidentschaftswahlkampf 2016|18.826|458.764|Social Media|en|[trumptwitterarchive.com](https://github.com/bpb27/trump-tweet-archive) eigene Sammlung|x|
 Finanzkrise|Artikel aus fünf Schweizer Tageszeitungen mit dem Schlagwort 'Finanzkrise'|21.280|3.989.262|Presse|de|[COSMAS](https://www.ids-mannheim.de/cosmas2/)|x|
@@ -64,6 +64,7 @@ UN|United Nations General Debate Corpus aus Transkripten der jährlichen UN-Gene
 Facebook|Zufallssample aus Kommentaren von sechs öffentlichen deutschsprachigen Facebook-Seiten, geposted zwischen 2015-2016|20.000|1.054.477|Social Media|de|eigene Sammlung|x|
 Die Zeit|Zufallssample von zwischen 2011 und 2016 veröffentlichten Nachrichtenbeiträgen|377|195.734|Presse|de|eigene Sammlung|x|
 New York Times|Inhaltanalyse von Beiträgen aus der New York Times zu dem Projekt 'Making the News' (1996-2006)|30.862|215.275|Presse|en|[Boydstun, 2013](http://www.amber-boydstun.com/supplementary-information-for-making-the-news.html)|x|
+Enron|Enron Email-Datensatz|341.071|178.908.873|Wirtschaft|en|[Klimt & Yang, 2004](https://doi.org/10.1007/978-3-540-30115-8_22)|x|
 
 
 ### Hintergrund

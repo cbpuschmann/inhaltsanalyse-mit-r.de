@@ -45,7 +45,7 @@ textplot_mixednet <- function(mydfm, maxdocs = 10, main = "Document Feature Mixe
 # Networks of terms only
 textplot_termnet <- function(mydfm, main = "Termnet")
 {
-  termnet <- fcm(mydfm) %>% 
+  termnet <- fcm(mydfm, count = "boolean") %>% 
     convert(to = "matrix")
   termgraph <- graph_from_adjacency_matrix(termnet, mode = "undirected", weighted = T)
   ggraph(termgraph, layout = "graphopt") +

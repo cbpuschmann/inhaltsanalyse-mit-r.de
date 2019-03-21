@@ -291,7 +291,7 @@ meine.dfm.finanzkrise.prop
 
 Auch diese sehr einfache Tabelle können wir plotten, auch wenn das in diesem konkreten Fall vielleicht nicht unbedingt notwendig ist. 
 
-```{r TREEMAP!}
+```{r Treemap zu Sentiment-Anteilen nach Medium im Finanzkrise-Korpus}
 sentiment.finanzkrise <- convert(meine.dfm.finanzkrise.prop, "data.frame") %>% 
   gather(positive, negative, key = "Polarität", value = "Sentiment")
 ggplot(sentiment.finanzkrise, aes(document, Sentiment, colour = Polarität, fill = Polarität)) + 
@@ -310,7 +310,7 @@ Wie wir sehen ist die Berichterstattung zur Finanzkrise überwiegende negativ, w
 
 Wie stellt sich das Sentiment in den fünf Zeitungen im Vergleich über die Zeit dar? Wir berechnen noch einmal eine DFM unter Verwendung des SentiWS–Lexikons, gruppieren aber dieses Mal sowohl nach Quelle als auch nach Jahr. 
 
-```{r}
+```{r DFM mit Sentiment-Entwicklung nach Medium und Zeit berechnen}
 meine.dfm.finanzkrise <- dfm(korpus.finanzkrise, groups = c("quelle", "jahr"), dictionary = sentiment.lexikon.sentiws)
 meine.dfm.finanzkrise.prop <- dfm_weight(meine.dfm.finanzkrise, scheme = "prop")
 head(meine.dfm.finanzkrise.prop)
@@ -318,7 +318,7 @@ head(meine.dfm.finanzkrise.prop)
 
 Die resultierende DFM formen wir etwas um und plotten dann wieder eine Grafik, welche einerseits die zeitliche Entwicklung darstellt, und andererseits, wie auch schon im vorherigen Beispiel, die Unterschiede stark hervorhebt -- einerseits zwischen den fünf Zeitungen und andererseits innerhalb des fünfjährigen Messzeitraums. So kann man erkennen, das 'Der Bund' durchweg etwas negativer ist, als es die anderen Zeitungen sind, dass die Berner Zeitung in 2010 positiver ist als die andere vier Blätter, und dass die NZZ tendenziell über die Zeit etwas positiver wird, aber im Vergleich doch negativ bleibt. Die Berner Zeitung schwankt im Vergleich relativ stark. 
 
-```{r}
+```{r Sentiment-Entwicklung nach Medium und Zeit plotten}
 sentiment.finanzkrise.zeit <- convert(meine.dfm.finanzkrise.prop, "data.frame") 
 finanzkrise.quellen <- data.frame(str_split(sentiment.finanzkrise.zeit$document, "\\.", simplify = T))
 colnames(finanzkrise.quellen) <- c("Zeitung", "Jahr")
