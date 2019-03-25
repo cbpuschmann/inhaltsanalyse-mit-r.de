@@ -3,39 +3,105 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-Der Import von Daten gehört immer zu den wichtigsten Themen, wenn es um studentische Projekte unter Nutzung der automatisierten Inhaltsanalyse geht. Aber auch bei großen Forschungvorhaben ist die Verfügbarkeit, Vorverarbeitung und Speicherung von Textdaten grundsätzlich ein sehr bedeutender Aspekt. Daher mag es verwundern, dass dieses Kapitel nicht gleich zu Beginn dieser Einführung steht, sondern am Schluss. Grund für diesem Umstand ist die Erfahrung, dass die erfolgreiche Datenbeschaffung und der Import von Daten oft (zu) viel Zeit in Anspruch nehmen, worunter die Analyse häufig leidet. Gerade in der Lehre ist dies aus offensichtlichen Gründen ein Problem. Aus diesem Grund gebe ich in dieser Einführung bewusst Daten vor, auch wenn das gewisse Einschränkungen bezüglich der Vielfalt der möglichen Projekte darstellt. 
+Der Import von Daten gehört immer zu den wichtigsten Themen, wenn es um studentische Projekte unter Nutzung der automatisierten Inhaltsanalyse geht. Aber auch bei großen Forschungvorhaben ist die Verfügbarkeit, Vorverarbeitung und Speicherung von Textdaten grundsätzlich ein sehr bedeutender Aspekt. Daher mag es verwundern, dass dieses Kapitel nicht gleich zu Beginn dieser Einführung steht, sondern gnz am Schluss. Grund für diesem Umstand ist die Erfahrung, dass die erfolgreiche Datenbeschaffung und der Import von Daten oft (zu) viel Zeit in Anspruch nehmen, worunter die Analyse erfahrungsgemäß leidet. Gerade in der Lehre ist dies aus offensichtlichen Gründen ein Problem. Aus diesem Grund gebe ich in dieser Einführung bewusst Daten vor, auch wenn das gewisse Einschränkungen bezüglich der Vielfalt der möglichen Projekte mit sich bringt 
 
-Ein weiterer Gesichtspunkt, der mitunter vergessen wird, liegt in der stetig wachsenden Zahl exzellenter Korpora auf Plattformen wie [GESIS Datorium](https://datorium.gesis.org/) und dem [Harvard Dataverse](https://dataverse.harvard.edu/) begründet, die man nachnutzen kann, und sich sich über Werkzeuge wie die Google Datensatzsuche auffinden lassen. Das gilt auch dann, wenn Daten zwar theoretisch abrufbar sind, aber erst aufwändig vorverarbeitet werden müssen. Korpora wie das hier verwendete Bundestagskorpus lassen sich nur mit ausgesprochen hohem Aufwand selbst von den PDF–Dokumenten, als die sie auf den Seiten der Bundestagsverwaltung vorliegen, in einen geordneten Data Frame überführen. Da ist es intelligenter, standardisierte und gut dokumentierte Ressourcen zu verwenden, als das sprichwörtliche Rad neu zu erfinden.
+Ein weiterer Gesichtspunkt, der mitunter vergessen wird, liegt in der stetig wachsenden Zahl exzellenter Korpora auf Plattformen wie [GESIS Datorium](https://datorium.gesis.org/), dem [Harvard Dataverse](https://dataverse.harvard.edu/) und [Zenodo](https://zenodo.org/) begründet, die man häufig nachnutzen kann, und die sich über Werkzeuge wie die [Google Datensatzsuche](https://toolbox.google.com/datasetsearch) oder [Mendeley Data](https://data.mendeley.com) auffinden lassen. Das ist auch dann interessant, wenn Rohdaten zwar theoretisch abrufbar sind, aber erst aufwändig vorverarbeitet werden müssen (etwa Dokumente öffentlicher Institutionen im PDF-Format). Korpora wie das hier verwendete Bundestagskorpus lassen sich nur mit ausgesprochen hohem Aufwand selbst von den PDF–Dokumenten, als die sie auf den Seiten der Bundestagsverwaltung vorliegen, in einen geordneten Data Frame überführen. Da ist es intelligenter, standardisierte und gut dokumentierte Ressourcen zu verwenden (sofern diese vorliegen), als das sprichwörtliche Rad neu zu erfinden. Muss man doch selbst bereinigen und anreichern, sollte man dann aber auch unbedingt über eine Veröffentlichung der Daten auf einer der genannten Plattformen nachdenken -- gemäß dem Motto '[pay it forward](https://en.wikipedia.org/wiki/Pay_it_forward)'. 
 
-Allerdings gibt es natürlich sehr viele Vorhaben, für die man eigens Daten erheben muss –– von Presseberichterstattung bis hin zu sozialen Medien. Folgend gebe ich eine Überblick über Ansätze, durch die dies möglich wird. Einerseits handelt es sich hierbei um Verfahren, die durch Programmierschnittstellen (APIs) realisiert werden und entsprechende R–Bibliotheken (Rfacebook, rtweet) nutzen, und andererseits um handgestrickte Skripte, die exportierte Daten aus Diensten wie Lexis Nexis oder von Webseiten einlesen (in einigen Fällen handelt es sich auch um Pakete, die genau dies vereinfachen sollen). Fehler sind zwar grundsätzlich immer möglich, im zweiten Modell schleichen sie sich allerdings besonders leicht ein, weil die exportierten Dateien oft Fehler oder Idiosynkratien aufweisen, die beim Einlesen nicht unbedingt sofort offenkundig sind. 
+Ntürlich sehr viele Vorhaben, für die man eigens Daten erheben muss –– von Presseberichterstattung bis hin zu sozialen Medien. Folgend gebe ich eine Überblick über Ansätze, durch die dies möglich wird. Einerseits handelt es sich hierbei um handgestrickte Skripte, die exportierte Daten aus Diensten wie Lexis Nexis oder von Webseiten einlesen (in einigen Fällen handelt es sich auch um Pakete, die genau dies vereinfachen sollen), andererseits um Verfahren, die durch Programmierschnittstellen (APIs) realisiert werden und entsprechende R–Bibliotheken (Rfacebook, rtweet) nutzen. Fehler sind zwar grundsätzlich immer möglich, im ersten Modell schleichen sie sich allerdings besonders leicht ein, weil die exportierten Dateien oft Fehler oder Idiosynkratien aufweisen, die beim Einlesen nicht unbedingt sofort offenkundig sind. Dafür muss man den (kommerziellen) APIs, die man für die Erhebung verwendet, bezüglich der Datenqualität vertrauen, was nicht unbedingt vorbehaltlos geschehen sollte. 
 
-Für die folgenden Dienste stelle ich folgend Importstrategien vor:
+Für die folgenden Dienste stelle ich folgend Importfunktionen und -strategien vor:
 
-Lexis Nexis
-Factiva
-COSMAS
-Web of Science
-MediaCloud
-WikiNews
-Twitter
-Facebook
-YouTube
-Reddit
-Web
+* LexisNexis
+* Factiva
+* COSMAS
+* Web of Science
+* MediaCloud
+* Twitter
+* Facebook
+* YouTube
+* Web
 
-Wie auch andere vergleichbare Dienste (Factiva, Web of Science) exportiert Lexis Nexis Datein, die sich in R einlesen lassen. Diese Dateien
+Dabei sind die Ansätze wie beschrieben sehr heterogen: von eigenes entwickeltem Code für das Einlesen von Textdaten (COSMAS, Web of Science) über Module existierender R-Bibliotheken (Lexis Nexis, Factiva), welche diese Aufgabe übernehmen, bis hin zu Daten-APIs, die über entsprechende Bibliotheken bereits strukturierte Daten liefern (MediaCloud, Twitter, Facebook, YouTube). 
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+Auch hier beginnen wir damit, die notwendigen Bibliotheken zu installieren bzw. zu laden.
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
-```{r}
-plot(cars)
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
+if(!require("tm")) {install.packages("tm"); library("tm")}
+if(!require("tm.plugin.lexisnexis")) {install.packages("tm.plugin.lexisnexis"); library("tm.plugin.lexisnexis")}
+if(!require("tm.plugin.factiva")) {install.packages("tm.plugin.factiva"); library("tm.plugin.factiva")}
+theme_set(theme_bw())
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+### LexisNexis
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+LexisNexis ist ein kommerzieller Anbieter von Recherchelösungen für die Volltextsuche in internationalen Periodika, Presse- und Wirtschaftsinformationen. Einen Schwerpunkt stellen Rechtsinformationen dar, es existieren aber auch noch zahlreiche weitere Angebote, die zum Teil von Universitätsbibliotheken lizensiert werden und dementsprechen über das Uninetz abrufbar sind (oder über VPN auch außerhalb). Durch [Nexis](http://www.nexis.com/) -- strengenommen ist LexisNexis der Name des Anbieters -- lassen sich internationale Pressevolltexte rechervieren und anschließend in unterschiedlichen Formaten exportieren. Diese Daten (in der Regel in den Formaten PDF, RTF, HTML oder TXT) lassen sich leicht in R einlesen, allerdings gibt es keine einfache Methode, den eigentlichen Textinhalt von Metadaten wie dem Medium, dem Publikationsdatum, dem Autor usw. zu trennen. 
+
+Im ersten Schritt lesen wir mittels [LexisNexisSource()](https://www.rdocumentation.org/packages/tm.plugin.lexisnexis/versions/1.4.0/topics/LexisNexisSource) die Rohdaten ein, im zweiten erstellen wir mittels [Corpus()](https://www.rdocumentation.org/packages/tm/versions/0.7-6/topics/Corpus) ein Korpus aus den Texten. Diese Funktionen kommen nicht aus quanteda oder dem Standardfunktionsumfang von R, sondern sind Teile des Pakets [tm](https://cran.r-project.org/package=tm) bzw der Erweiterung [tm.plugin.lexisnexis](https://cran.r-project.org/package=tm.plugin.lexisnexis).
+
+```{r Daten importieren und parsen (mittels tm und tm.plugin.lexisnexis)}
+lexisnexis <- LexisNexisSource("daten/lexisnexis/Nachrichten2018-03-05_13-35.HTML")
+tm.lexisnexis <- Corpus(lexisnexis, readerControl = list(language = NA))
+```
+
+Nun übergeben wir das in tm erstellte Korpus an quanteda -- glücklicherweise aktzeptiert die quanteda-Funktion [corpus](https://quanteda.io/reference/corpus.html) neben anderen Formaten auch widerspruchslos Korpora, die mit tm generiert wurden. 
+
+```{r Daten in quanteda-Korpus umwandeln}
+korpus.lexisnexis <- corpus(tm.lexisnexis)
+korpus.lexisnexis.stats <- summary(korpus.lexisnexis, n = 1000000)
+korpus.lexisnexis
+head(korpus.lexisnexis.stats)
+```
+
+Wie man sieht, funktioniert der Import insgesamgt gut, von einigen Metadatenfeldern einmal abgesehen. Konkret wird das Datum nicht richtig erkannt, was mit den Einstellungen der Funktion LexisNexisSource zu tun hat, die nun englische und französiche Daten (d.h. Wochentage und Monatsnamen) versteht. Das lässt sich allerdings leicht korregieren, wenn man etwas kreativ wird. 
+
+
+### Factiva
+
+Factiva ist ein äquivalentes Angebot zu Nexis, Anbieter ist hier Dow Jones. Ähnlich wie bei Nexis liegt hier ein relativ starker Fokus auf Wirtschrafts- und Finanzpresse, wobei die internationale Abdeckung beider Anbieter sich nicht sehr markant unterscheidet. Es spricht auch nichts dagegen, Daten aus beiden Quellen zusammenzufassen, um eine möglichst gute Abdeckung zu erreichen. 
+
+Das Vorgehen bei Factiva ist exakt das selbe wie bei Nexis, mit dem einzigen Unterschied, dass die Funktion [FactivaSource]() zum Einsatz kommt. 
+
+
+```{r Factiva-Daten importieren und parsen}
+factiva <- FactivaSource("daten/factiva/Factiva.html", format = "HTML")
+tm.factiva <- Corpus(factiva, readerControl = list(language = NA))
+```
+
+Wieder übergeben wir das in tm erstellte Korpus an quanteda, mit dem Ergebnis, dass wir ein relativ sauberes quanteda-Korpus erhalten mit dem wir dann wie gewohnt weiterarbeiten können. 
+
+```{r Factiva-Daten in quanteda-Korpus umwandeln und speichern}
+korpus.factiva <- corpus(tm.factiva)
+korpus.factiva.stats <- summary(korpus.factiva, n = 1000000)
+korpus.factiva
+head(korpus.factiva.stats)
+#save(korpus.factiva, korpus.factiva.stats, file = "factiva.korpus.RData")
+```
+
+
+### COSMAS
+
+Nexis und in geringerem Umfang auch Factiva werden in der Kommunikations- und Medienwissenschaft, aber auch in anderen Fachbereichen, umfassend genutzt, um große Datensätze für quantitative Inhaltsanalysen aufzubauen. Bei [COSMAS](https://www.ids-mannheim.de/cosmas2/), einer Korpus-Datenbank des [Leibniz-Instituts für Deutsche Sprache (IDS)](http://www1.ids-mannheim.de/) handelt es sich um einen wissenschaftlichen Dienst eines öffentlichen Forschungsinstituts, der in vielerlei Hinsicht Nexis und Factiva überlegen ist, und der zugleich in den Sozialwissenschaften derzeit noch kaum Anwendung findet.
+
+Ähnlich wie auch bei der zuvor beschriebenen Diensten werden COSMAS-Daten über eine Webschnittstelle heruntergeladen, und anschließend mit R eingelesen ("geparsed"). Das Korpus-Tool ist [hier](https://cosmas2.ids-mannheim.de/cosmas2-web/) erreichbar, zuvor muss man sich [hier](https://www.ids-mannheim.de/cosmas2/projekt/registrierung/) kostenlos registrieren (für wissenschaftliche Einrichtungen). Die [Hilfe](http://www.ids-mannheim.de/cosmas2/web-app/hilfe/allgemein/) zum COSMAS-Interface ist zwar ein wenig altmodisch (wie auch das Design des Dienstes selbst), gibt aber über alle wichtigen Aspekte wie etwa Korpusauswahl, Recherche, das Anzeigen von Resultaten und den Export von Daten informativ Aufschluss. Zu beachten ist in diesem Zusammenhang, das COSMAS nur längere Passagen extrahiert, nicht aber den vollständigen Artikeltext. Dies mag zunächst wie ein entscheidender Nachteil gegenüber anderen Ansätzen wirken, allerdings ist für die hier vorstellten Verfahren oftmals nicht entscheidend, dass wirklich der gesamte Artikeltext vorliegt. Solange der Kontext (bspw. mehrere Absätze vor und nach dem Suchbegriff) vorliegt, sind die Auswirkungen i.d.R. marginal. 
+
+Der folgende Code-Abschnitt lädt aus einem eigens für diese Einführung erstellten Zusatzskript die Funktion *import_cosmas()*, welche die Argumente *path* und *pattern* annimt (vergleiche [dir()](https://stat.ethz.ch/R-manual/R-devel/library/base/html/list.files.html)). Die Funktion liest die aus COSMAS exportierten Textdaten ein und wandelt sie in einen Data Frame um, aus dem sich dann anschließend ein Korpus mit umfassenden Metadaten erstellen lässt. 
+
+```{r COSMAS-Daten importieren und parsen}
+source("verschiedenes/inhaltsanalyse_import_cosmas.R", local = T)
+meine.cosmas.daten <- import_cosmas(path = "daten/cosmas/finanzkrise", pattern = "finanzkrise_.*.TXT", verbose = F)
+```
+
+Die Korpuserstellung funktioniert ähnlich wie bei Nexis und Factiva. Allerdings ist der Input hier ein Data Frame, daher müssen wir explizit machem, welche Variable die Dokument-ID und welche den Text enthält. Alle weiteren Spalten des Data Frames enthalten implizit docvars. 
+
+```{r COSMAS-Daten in quanteda-Korpus umwandeln und speichern}
+korpus.cosmas <- corpus(daten.df, docid_field = "id", text_field = "text") 
+korpus.cosmas.stats <- summary(korpus, n = 1000000)
+head(korpus.cosmas.stats)
+#save(korpus.cosmas, korpus.cosmas.stats, file = "cosmas.korpus.RData")
+```
+
+
 
