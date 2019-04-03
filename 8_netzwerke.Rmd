@@ -16,9 +16,9 @@ output: html_notebook
 
 [inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
-Texte und Wörter lassen sich neben den bisher vorgestellen Techniken auch noch mit einem weiteren Ansatz untersuchen. Die Netzwerkanalyse stellt eine sehr wichtige Methode der Sozialwissenschaften dar, die grundsätzlich für die Untersuchung von Akteursbeziehungen von großer Relevanz ist. Sie ist aber darüber hinaus auch durchaus für die automatisierte Inhaltsanalyse von Bedeutung, zum einen, weil sich mit ihr etwa abbilden lässt, welche Akteure zusammen in einem Text genannte werden, aber auch dann, wenn beispielsweise ermittelt werden soll, wer ähnliche Begriffe verwendet.
+Die Beziehung von Texten und Wörtern zueinander lässt sich neben den bisher vorgestellen Techniken auch noch mit einem weiteren Ansatz untersuchen. Die Netzwerkanalyse stellt eine sehr wichtige Methode der Sozialwissenschaften dar, die grundsätzlich für die Untersuchung von Akteursbeziehungen von großer Relevanz ist. Sie ist aber darüber hinaus auch durchaus für die automatisierte Inhaltsanalyse von Bedeutung, zum einen, weil sich mit ihr etwa abbilden lässt, welche Akteure zusammen in einem Text genannte werden, aber auch dann, wenn beispielsweise ermittelt werden soll, wer ähnliche Begriffe verwendet.
 
-Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. In diesem Kapitel wenden wir uns nun dem Pendant der DFM zu, der Feature Co-occurance Matrix (FCM).
+Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. In diesem Kapitel wenden wir uns nun dem Pendant der DFM für die Untersuchung der Übereinstimmung von Wörtern zu, der Feature Co-occurance Matrix (FCM). Eine FCM enthält in ihren Zeilen und Spalten jeweils alle Wörter, die im Korpus vorkommen.
 
 ```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
