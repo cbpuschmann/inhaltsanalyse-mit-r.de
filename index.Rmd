@@ -1,0 +1,69 @@
+---
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
+subtitle: "Inhalt"
+output: html_notebook
+---
+
+<!---
+* pdf-version vorbereiten
+* literatur hinzufügen
+* korpus-beschreibung hinzufügen (enron, schweizer vorlagen)
+-->
+
+\
+\
+\
+
+[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+
+Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentliche Ansätze der automatisierten Inhaltsanalyse mit R anhand von zahlreichen Beispielen vorgestellt werden. Dabei werden sog. R-Notebooks verwendet, die eine Kombination aus Erläuterungen und R-Code enthalten, welcher gemeinsam mit den hier abrufbaren Korpora und weiteren Ressourcen ausgeführt und beliebig angepasst werden kann. Die aktuellste (Entwicklungs-)Fassung der R-Notebooks findet sich auf [GitHub](https://github.com/cbpuschmann/inhaltsanalyse-mit-r.de), eine zusätzliche Leseversion ist auch auf [rpubs.com](https://rpubs.com/cbpuschmann/AIR1) abrufbar.
+
+
+### Inhalt
+
+
+0. [Einleitung](einleitung.html)
+1. [Grundlagen von quanteda](grundlagen.html)
+2. [Wort- und Textmetriken](metriken.html)
+3. [Sentimentanalyse](sentiment.html)
+4. [themenspezifische Lexika](lexika.html)
+5. [überwachtes maschinelles Lernen](maschinelles_lernen.html)
+6. [Themenmodelle](themenmodelle.html)
+7. [Tagging, Parsing und Entitätenerkennung](ner.html)
+8. [Texte und Wörter als Netzwerke](netzwerke.html)
+9. [Datenimport](datenimport.html)
+
+
+### Downloads
+
+Sämtliche in dieser Einführung verwendeten R-Notebooks, Korpora und Lexika und können [hier](inhaltsanalyse_mit_r.zip) heruntergeladen werden. Ebenfalls herunterladbar ist [eine PDF-Version](inhaltsanalyse_mit_r.pdf) dieser Website.
+
+
+### R-Pakete
+
+Die wichtigste technische Grundlage dieser Einführung liefert das Paket [quanteda](https://quanteda.io/), entwickelt von [Ken Benoit](http://kenbenoit.net/) und Kollegen, welches eine umfangreiche Basisinfrastruktur für die Analyse von Textdaten in [R](https://www.r-project.org/) darstellt. Mit quanteda [liest man Textdaten ein, legt man Korpora an, zählt man Wörter und wendet Lexika auf Daten an](https://tutorials.quanteda.io/). Damit ist quanteda deutlich umfangreicher als die meisten vergleichbaren Pakete und eher ein vollumfängliches Textmining-Framework. Äquivalent mit Blick auf die Funktionalität sind allenfalls die Pakete [tm](https://cran.r-project.org/web/packages/tm/vignettes/tm.pdf) und (begrenzt) [tidytext](https://cran.r-project.org/web/packages/tidytext/vignettes/tidytext.html). Im Vergleich zu tm ist quanteda zwar jünger, zeichnet sich aber durch einen großen Funktionsumfang, sehr gute Performance, und eine exzellente Dokumentation aus. Tatsächlich sind zahlreiche hier vorgestellte Beispiele direkt der quanteda-Dokumentation entnommen, die allerdings häufig etwas gegenüber dem Paket selbst hinterherhinkt. 
+
+Weitere Pakete werden in dieser Einführung für spezialisierte Aufgaben verwendet, die quanteda nicht abdeckt. Dazu gehört das überwachte maschinelle Lernen (Kapitel 5) genauso wie sogenannte Themenmodelle (Kapitel 6) und Tagging/Parsing (Kapitel 7). Für den ersten Punkt setzen wir die Pakete [topicmodels](https://cran.r-project.org/web/packages/topicmodels/vignettes/topicmodels.pdf) und [stm](https://www.structuraltopicmodel.com/) ein, für den zweiten Punkt wird das Paket [RTextTools](http://www.rtexttools.com/) herangezogen, und für die linguistische Annotation spielen u.a. [udpipe](https://cran.r-project.org/package=udpipe) und [spacyr](https://github.com/quanteda/spacyr) eine Rolle. 
+
+
+Schließlich arbeiten wir intensiv mit den Paketen des [tidyverse](https://www.tidyverse.org/), die gemeinsam so etwas wie den großangelegten Versuch des neuseeländischen Statistikers [Hadley Wickham](https://en.wikipedia.org/wiki/Hadley_Wickham) darstellen, R trotz zahlreicher nicht unwesentlicher syntaktischer Idiosynkratien und Leistungsprobleme zu einer führenenden Sprache im Bereich der Datenwissenschaft zu machen. Wer sich einmal an die Logik von [tidyr](https://tidyr.tidyverse.org/), [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) und [ggplot](https://en.wikipedia.org/wiki/Ggplot2) gewöhnt hat, möchte sie für gewöhnlich nicht mehr missen, auch wenn der Weg dorthin mitunter beschwerlich sein kann, etwa weil die spezielle Syntax nicht jedermanns Sache ist. Eine essentielle Einführung in das tidyverse ist das Buch [R for Data Science](http://r4ds.had.co.nz/) von Garrett Grolemund und Hadley Wickham.
+
+
+### Korpora
+
+Wir verwenden in dieser Einführung insgesamt elf unterschiedlich Korpora, anhand derer die vorgestellten Methoden anschaulich gemacht werden sollen. Bewusst unterscheiden sich die Daten in Bezug auf Sprache, Genre, Medium, Struktur und Umfang sehr deutlich. Von Social Media-Daten aus Facebook und Twitter und Unternehmens-Emails, über Pressetexte (in Auszügen) aus Deutschland, der Schweiz und den USA, bis hin zu politischen Reden, Parlamentsdebatten und Petitionen ist eine große Bandbreite an Textsorten und Kontexten vertreten. Einige Korpora, etwa das Sherlock-Holmes-Korpus, sind primär wegen ihrer Anschaulichkeit und (durch vergleichsweise geringe Größe) gute Handhabbarkeit ausgewählt worden, und weniger deshalb, weil ihnen große sozialwissenschaftliche Relevanz unterstellt wird. Zudem sind die Daten gemeinfrei, d.h. das Urheberrecht ist entweder erloschen oder schützt den Inhalt nicht (im Fall von Tweets oder Kommentaren). Im Korpus der Facebook-Kommentare sind bewusst keinelei Metadaten enthalten, um die Privatsphäre der Autoren so gut möglich zu schützen. Vom Sherlock Holmes-Korpus und den Enron-Emails abgesehen sind die Daten ausgesprochen aktuell.
+
+Korpus | Beschreibung | Texte | Wörter | Genre|Sprache|Quelle|Kapitel|
+------ | -------------|-------|--------|------|--------|------|------|
+Sherlock Holmes|Detektiv-Erzählungen von Arthur Conan Doyle|12|126.804|Literatur|en|archive.org|x|
+Twitter|Tweets von Donald Trump und Hillary Clinton im US-Präsidentschaftswahlkampf 2016|18.826|458.764|Social Media|en|[trumptwitterarchive.com](https://github.com/bpb27/trump-tweet-archive) eigene Sammlung|x|
+Finanzkrise|Artikel aus fünf Schweizer Tageszeitungen mit dem Schlagwort 'Finanzkrise'|21.280|3.989.262|Presse|de|[COSMAS](https://www.ids-mannheim.de/cosmas2/)|x|
+Bundestag|Transkripte der Plenardebatte des 18. Deutschen Bundestags (2013-2017)|205.584|15.296.742|Politik|de|[offenenesparlament.de](https://offenesparlament.de/daten/)|x|
+EU|EUSpeech-Korpus aus Reden europäischer Politiker (national/EU) zwischen 2007 und 2015|17.505|14.279.385|Poltik|en|[Schumacher et al, 2016](https://doi.org/10.7910/DVN/XPCVEI)|x|
+UN|United Nations General Debate Corpus aus Transkripten der jährlichen UN-Generaldebatte nach Land, 1970-2017|7.897|24.420.083|Politik|en|[Mikhaylov et al, 2017](https://doi.org/10.7910/DVN/0TJX8Y)|x|
+Facebook|Zufallssample aus Kommentaren von sechs öffentlichen deutschsprachigen Facebook-Seiten, geposted zwischen 2015-2016|20.000|1.054.477|Social Media|de|eigene Sammlung|x|
+Die Zeit|Zufallssample von zwischen 2011 und 2016 veröffentlichten Nachrichtenbeiträgen|377|195.734|Presse|de|eigene Sammlung|x|
+New York Times|Inhaltanalyse von Beiträgen aus der New York Times zu dem Projekt 'Making the News' (1996-2006)|30.862|215.275|Presse|en|[Boydstun, 2013](http://www.amber-boydstun.com/supplementary-information-for-making-the-news.html)|x|
+Enron|Enron Email-Datensatz|341.071|178.908.873|Wirtschaft|en|[Klimt & Yang, 2004](https://doi.org/10.1007/978-3-540-30115-8_22)|x|
+
