@@ -428,3 +428,20 @@ Eine wirklich adäquate Analyse müsste unter anderem hier noch Sprecher mit seh
 
 Abschließend sollte festgehalten werden, dass Sentimentanalyse mittels quanteda über aus Auszählen von Begriffen abläuft, allerdings auch leichte Variationen dieses Ansatzes existieren. so will man etwa für Tweets aber auch für einzelnen Sätzen in einem Debattenkorpus ein Sentiment festlegen, welches nicht allein aus der Addition von positiven/negativen Wörtern ergibt. Darauf wird später noch eingegangen, allerdings erreichen auch die bereits beschriebenen Verfahren insgesamt recht gute Ergebnisse, solange die Korpusgröße und die Genauigkeit des Lexikons ausreichend sind. 
 
+
+### Weiterführende Lektüre
+
+Auch die Sentimentanalyse ist ein sehr weites Feld, insofern handelt es sich bei den aufgeführten Quellen nur um eine kleine Auswahl. 
+
+In der Computerlinguistik seien vor allem XXX und XXX genannt. 
+
+
+
+
+Auf die Entwicklungsgeschichte der Sentimentanalyse und deren Darstellung in den Medien gehen schließlich Puschmann und Powell (2018) ein.  
+
+
+
+
+
+

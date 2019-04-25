@@ -13,14 +13,16 @@ output: html_notebook
 
 Wie bereits angekündigt, schließt sich dieses Kapitel deshalb nahtlos and das vorausgehende Kapitel 3 zur Sentimentanalyse an, weil wir im Prinzip nichts neues dazulernen müssen, jedenfalls nicht, was die Funktionalität von quanteda angeht. Mit der Funktion [dictionary](https://docs.quanteda.io/reference/dictionary.html) und dem Wissen darüber, wie wir ein Lexikon auf eine DFM anwenden, schlagen wir gewissenmaßen zwei Fliegen mit einer Klappe, denn die Logik hinter den Themen– oder Politikfeld–Lexika, die in diesem Kapitel zur Anwendung kommen, gleicht der Logik von Sentiment-Lexika. Der wichtigste Unterschied besteht darin, dass die in diesem Kapitel behandelten Lexika i.d.R. eine ganze Reihe von Kategorien kennen, nicht nur die Typen *positiv* und *negativ*.
 
-Auch hier arbeiten wir wieder mit ganz unterschiedlichen Lexika und Korpora. Hier ein Überblick über die Lexika (die Korpora werden im [Überblick](inhaltsanalyse_0_ueberblick.html) genauer beschrieben), von denen alle bis auf das LIWC-Lexikon englischsprachig sind:
+Auch hier arbeiten wir wieder mit einer Reihe ganz unterschiedlicher Lexika und Korpora. Hier ein Überblick über die Lexika (die Korpora werden im [Überblick](inhaltsanalyse_0_ueberblick.html) genauer beschrieben), von denen alle bis auf das LIWC-Lexikon englischsprachig sind:
 
-* [Policy Agendas](http://www.lexicoder.com/download.html)
-* [Laver-Garry](https://provalisresearch.com/products/content-analysis-software/wordstat-dictionary/laver-garry-dictionary-of-policy-position/)
+* [Lexicoder Policy Agendas](http://www.lexicoder.com/download.html)
+* [Laver-Garry Policy Positions](https://provalisresearch.com/products/content-analysis-software/wordstat-dictionary/laver-garry-dictionary-of-policy-position/)
 * [Moral Foundations Theory](https://doi.org/10.7910/DVN/WJXCT8)
 * [Simulating Pluralism](https://doi.org/10.7910/DVN/AFTHMK)
 * [NewsMap](https://github.com/quanteda/quanteda_tutorials/blob/master/content/dictionary/newsmap.yml)
 * [LIWC Deutsch](https://www.klinikum.uni-heidelberg.de/LIWC.137799.0.html)
+
+Wie die Namen und eine Lektüre der Datensatzdokumentationen verrät, bilden diesen Lexika unterschiedliche Themenbereiche und Politikfelder ab. Dieser Ansatz ist vielsprechender, als es möglicherweise zunächst erscheint: Makroökonomie oder Ortsnamen sind sehr kontrollierte semantische Bereiche, die sich relativ präzise und erschöpfend mit einem Lexikon abbilden lassen.
 
 Wir starten mit dem EU–Speech–Korpus, an dem wir gleich mehrere politische Lexika ausprobieren, und machen dann weiter mit dem UN–Generaldebattenkorpus, welches wir anhand unterschiedlicher Policy–Lexika untersuchen. Schließlich analysieren wir deutschsprachige Facebook–Kommentare, auf die wir die deutsche Fassung des LIWC–Lexikons anwenden, vermutlich eines der umfangreichsten Inhaltsanalyse–Lexikon überhaupt.
 
@@ -66,7 +68,7 @@ meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
 convert(meine.dfm.eu.prop, "data.frame")
 ```
 
-Ein Plot sparen wir uns an dieser Stelle. Es ist auch so sofort offensichtlich, dass Treffer auf die Kategorie Liberalismus im Vergleich klar gegenüber der Kategorie Populismus überwiegen, was angesichts der Zusammensetzung der Daten kaum überrascht. Allerdings scheinen die Unterschiede zwischen den beidr EU-Behörden Kommission und EZB, gefolgt von Deutschland, den Niederlanden und Tschechien einerseits, und Griechenland, Spanien und dem EU-Parlament andererseits den (sehr hemdsärmeligen) Kontrast, den unser Lexikons unterstellt, grundsätzlich zu bestätigen. Ist die erste Gruppe sehr wenig populistisch (jedenfalls nach Definition dieses simplen Lexikons), sieht das für die zweite Gruppe bereits etwas anders aus.
+Ein Plot sparen wir uns an dieser Stelle. Es ist auch so sofort offensichtlich, dass Treffer auf die Kategorie Liberalismus im Vergleich klar gegenüber der Kategorie Populismus überwiegen, was angesichts der Zusammensetzung der Daten kaum überrascht. Allerdings scheinen die Unterschiede zwischen den beiden EU-Behörden Kommission und EZB, gefolgt von Deutschland, den Niederlanden und Tschechien einerseits, und Griechenland, Spanien und dem EU-Parlament andererseits den (sehr hemdsärmeligen) Kontrast, den unser Lexikons unterstellt, grundsätzlich zu bestätigen. Ist die erste Gruppe sehr wenig populistisch (jedenfalls nach Definition dieses simplen Lexikons), sieht das für die zweite Gruppe bereits etwas anders aus.
 
 Als nächstes berechnen wir den relativen Populismus-Anteil nach Jahren im Zeitrum von 2007-2015, und unterscheiden dabei zwischen zwei Typen von Akteuren: nationalen Regierungen (hier inkl. EU-Parlament) einerseits und EU-Behörden (EU–Kommission und EZB) andererseits.
 

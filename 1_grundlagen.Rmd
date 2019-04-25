@@ -115,6 +115,8 @@ korpus.saetze_lang <- corpus_subset(korpus.saetze, LangerSatz == TRUE)
 korpus.saetze_lang[1:3]
 ```
 
+Die Möglichkeit, mit bestehenden (bspw. Autor, Quelle, Rubrik, Zeitstempel) und eigens erstellten Metadaten-Variablen (bspw. Thema, Sentiment) zu arbeiten gehört zu den größten Stärken von quanteda. Folgend filtern oder gruppieren wir häufig auf der Grundlage von Metadaten. 
+
 Schließlich lassen sich Korpora mithilfe von [corpus_segment()](http://docs.quanteda.io/reference/corpus_segment.html) auch nach bestimmten Kriterien aufspalten.
 
 
@@ -147,7 +149,7 @@ begriffe.entfernen <- tokens_remove(meine.tokens, c("Sherlock", "in", "is", "the
 head(begriffe.entfernen$`A Scandal in Bohemia`)
 ```
 
-Wie bereits angedeutet akzeptiert die Funktion *tokens* eine Reihe von Argumenten, mit denen ganze Klassen von Zeichenketten (Zahlen, Interpunktion, Symbole usw.) ausgeschlossen oder zurückbehalten werden können. Folgend werden zunächst Zahlen, Interpunktion und Symbole entfernt, dann mittels [tokens_tolower](https://docs.quanteda.io/reference/tokens_tolower.html) alle Wörter in Kleinschreibung umgewandelt und dann dann noch die Wörter "sherlock" und "holmes", sowie eine Reihe englischer [Stoppwörter](https://de.wikipedia.org/wiki/Stoppwort) entfernt. 
+Wie bereits angedeutet akzeptiert die Funktion *tokens* eine Reihe von Argumenten, mit denen ganze Klassen von Zeichenketten (Zahlen, Interpunktion, Symbole usw.) gezielt ausgeschlossen oder zurückbehalten werden können. Folgend werden zunächst Zahlen, Interpunktion und Symbole entfernt, dann mittels [tokens_tolower](https://docs.quanteda.io/reference/tokens_tolower.html) alle Wörter in Kleinschreibung umgewandelt und dann dann noch die Wörter "sherlock" und "holmes", sowie eine Reihe englischer [Stoppwörter](https://de.wikipedia.org/wiki/Stoppwort) entfernt. 
 
 ```{r weitere Argumente}
 meine.tokens <- tokens(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE)
@@ -156,21 +158,21 @@ meine.tokens <- tokens_remove(meine.tokens, c(stopwords("english"), "sherlock", 
 head(meine.tokens$`A Scandal in Bohemia`)
 ```
 
-Das Resultat ist der Art von Daten, mit denen man bei Verfahren wie der Anwendung von Lexika (Kapitel 2), der Berechnung von Themenmodellen (Kapitel 3), und dem überwachten maschinellen Lernen (Kapitel 4) häufig arbeitet sehr ähnlich. Durch die Stoppwortentfernung und andere Schritte gehen syntaktische Informationen verloren, d.h. man kann nicht mehr nachvollziehen, wer was mit wem tut, oder wie der Text insgesamt argumentativ oder erzählerisch aufgebaut ist. Diese Informationen sind allerdings im "[Bag-of-Words-Ansatz](https://en.wikipedia.org/wiki/Bag-of-words_model)", der in der automatisierten Inhaltsanalyse nahezu immer verwendet wird, nicht unbedingt relevant.
+Das Resultat ist der Art von Daten, mit denen man bei Verfahren wie der Anwendung von Lexika (Kapitel 2-3), dem überwachten maschinellen Lernen (Kapitel 4) und der Berechnung von Themenmodellen (Kapitel 5), häufig arbeitet sehr ähnlich. Durch die Stoppwortentfernung und andere Schritte gehen syntaktische Informationen verloren, d.h. man kann nicht mehr nachvollziehen, wer was mit wem tut, oder wie der Text insgesamt argumentativ oder erzählerisch aufgebaut ist. Diese Informationen sind allerdings im "[Bag-of-Words-Ansatz](https://en.wikipedia.org/wiki/Bag-of-words_model)", der in der automatisierten Inhaltsanalyse nahezu immer verwendet wird, nicht unbedingt relevant.
 
-Die in diesem Abschnitt beschriebenen Schritte sind zwar im Einzelfall nützlich, werden aber in den folgenden Kapitel praktisch nicht angewandt, weil die Daten dort schon als quanteda–Korpora vorliegen, und weil zudem häufig auch bis auf die Anwendung der Funktion *corpus* keine weiteren Schritte notwendig sind.
+Die in diesem Abschnitt beschriebenen Schritte sind zwar im Einzelfall nützlich, werden aber in den folgenden Kapitel praktisch nicht angewandt, weil die Daten dort schon als quanteda–Korpora vorliegen, und weil zudem häufig auch bis auf die Anwendung der Funktion *corpus* keine weiteren Schritte notwendig sind. Die Tokenisierung wird zudem implizit angewandt, sobald eine Dokument-Feature-Matrize (DFM, s.u.) erstellt wird.
 
 
 #### Dokument-Feature-Matrizen (DFMs) erstellen
 
-Wir kommen nun zu einer zentralen Datenstruktur von quanteda, die im Gegensatz zu den zuvor vorgestellten Einheiten praktisch in jedem Projekt vorkommt: die Document Feature-Matrize (DFM). Üblicherweise wird direkt nachdem ein Korpus angelegt wurde eine DFM berechnet, zuweilen auch mehrere. Eine DFM ist eine Tabelle, deren Zeilen Texte und deren Spalten Wortfrequenzen enhalten. Dabei gehen Informationen darüber, wo in einem Text ein Wort vorkommt verloren (man spricht auch vom '[Bag-of-Words-Ansatz](https://en.wikipedia.org/wiki/Bag-of-words_model)'). Immer dann, wenn wir uns für die Beziehung von Wörtern zu Texten (und umgekehrt) interessieren, berechnen wir eine DFM.
+Wir kommen nun zu einer zentralen Datenstruktur von quanteda, die im Gegensatz zu den zuvor vorgestellten Funktionen praktisch in jedem Projekt vorkommt: die Document Feature-Matrize (DFM). Üblicherweise wird direkt nachdem ein Korpus angelegt wurde eine DFM berechnet, zuweilen auch mehrere. Eine DFM ist eine Tabelle, deren Zeilen Texte und deren Spalten Wortfrequenzen enhalten. Dabei gehen Informationen darüber, wo in einem Text ein Wort vorkommt verloren (man spricht auch vom '[Bag-of-Words-Ansatz](https://en.wikipedia.org/wiki/Bag-of-words_model)' und davon, dass DFMs im Gegensatz zum eigentlichen Korpus *nicht-positional* sind). Immer dann, wenn wir uns für die Beziehung von Wörtern zu Texten (und umgekehrt) interessieren, berechnen wir eine DFM.
 
-```{r einfache DFM erstellen}
+```{r Einfache DFM erstellen}
 meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
 meine.dfm
 ```
 
-Wichtig: Hier wird implizit der uns schon vertraute Befehl [tokens()](https://docs.quanteda.io/reference/tokens.html) angewandt, um bestimmte Features zu entfernen. Vieles funktioniert bei DFMs analog zur Erstellung eines Korpus. So zählen die Funktionen [ndoc()](https://docs.quanteda.io/reference/ndoc.html) und [nfeat()](https://docs.quanteda.io/reference/ndoc.html) Dokumente und Features (Wörter).
+Wichtig: Hier wird implizit der uns schon vertraute Befehl [tokens()](https://docs.quanteda.io/reference/tokens.html) angewandt, um bestimmte Features zu entfernen (oder ggf. auch zurückzubehalten). Vieles funktioniert bei DFMs analog zur Erstellung eines Korpus. So zählen die Funktionen [ndoc()](https://docs.quanteda.io/reference/ndoc.html) und [nfeat()](https://docs.quanteda.io/reference/ndoc.html) Dokumente und Features (Wörter).
 
 ```{r Dokumente und Features zählen}
 ndoc(meine.dfm)
@@ -193,7 +195,7 @@ head(meine.dfm, n = 12, nf = 10) # Features/Texte als Matrix
 
 Gleich an den ersten Blick fällt auf, das die Wörter 'sherlock' und 'holmes' in allen Romanen vorkommen, also sehr wenig distinktiv sind, weshalb wir sie unter Umständen zu den Stoppwörtern für dieses Korpus hinzufügen sollten. 
 
-Die Funktion [topfeatures()](https://docs.quanteda.io/reference/topfeatures.html) zählt Features in der gesamten DFM aus. Die Funktion [textstat_frequency()](https://docs.quanteda.io/reference/textstat_frequency.html) liefert zusätzlich noch den Rang (rank), die Anzahl der Dokumente, in denen das Feature vorkommt (docfreq) sowie Metadaten, nach denen bei der Zählung gefiltert wurde.
+Die Funktion [topfeatures()](https://docs.quanteda.io/reference/topfeatures.html) zählt Features in der gesamten DFM aus. Die Funktion [textstat_frequency()](https://docs.quanteda.io/reference/textstat_frequency.html) liefert zusätzlich noch den Rang (rank), die Anzahl der Dokumente, in denen das Feature vorkommt (docfreq) sowie Metadaten, nach denen bei der Zählung gefiltert wurde (grundsätzlich ist textstat_frequncy gegenüber topfeatures zu bevorzugen).
 
 ```{r Worthäufigkeiten berechnen}
 topfeatures(meine.dfm) # Features nach Frequenz
@@ -273,3 +275,10 @@ textplot_wordcloud(meine.dfm.tfidf[1:4,], color = brewer.pal(4, "Set1"), compari
 ```
 
 
+### Weiterführende Lektüre
+
+Grundsätzlich muss in diesen Kapitel zwischen den geschildertern grundlegenden Verfahren aus der Computerlinguistik und Informatik einerseits und den konkreten Funktionsumfang von quanteda unterschieden werden.
+
+Techniken wie die Tokenisierung von Korpora, die Normalisierung von Wortfrequenzen, und die Erstellung und Gewichtung von DFMs (oder klassisch "document feature matrices") ist buchstäblicher Kern der Computerlinguistik, daher sollte es nicht verwundern, dass hier auflagenstarke Standardwerke existieren, etwa Manning und Schütze ().  
+
+Hauptquelle zu quanteda ist die Projekwebsite, die einerseits eine Reihe von Tutorials zu einzelnen Einsatzbereichen enthält (etwa Sentimentanalyse...), denen die hier aufgeführten Beispiele z.T. sehr ähnlich sind, zum anderen aber auch eine Funktionsregerenz, welche die einzeln Befehle systematisch gruppiert und erklärt. Neben der quanteda hithub_Seite, über die man die aktuelle Emtwivklerversion des Pakets neziehen kann, ist vor allem das quanteda-Forum zu empfehlen, wo konkrete Fragen vom Programmiererteam beantwortet werden.
