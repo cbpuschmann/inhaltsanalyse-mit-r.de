@@ -6,7 +6,7 @@ output: html_notebook
 ---
 
 <!---
-* Zeit-SML: Titel durch Volltexte ersetzen?
+* Verwendung eines sehr einfachen synthethischen Datensatzes
 * MdB-SML: Split in Traings- und Testset?
 * 
 -->

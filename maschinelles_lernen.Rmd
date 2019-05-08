@@ -8,7 +8,7 @@ output: html_notebook
 <!---
 * Zeit-SML: Titel durch Volltexte ersetzen?
 * MdB-SML: Split in Traings- und Testset?
-* ...
+* Scaling Models: textmodel_affinity mit Twitterdaten und Unterscheidung Trumo v. Clinton
 -->
 
 \
