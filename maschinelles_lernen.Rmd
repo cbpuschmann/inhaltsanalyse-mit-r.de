@@ -9,7 +9,7 @@ output: html_notebook
 Todos
 * Zeit-SML: Titel durch Volltexte ersetzen?
 * MdB-SML: Split in Traings- und Testset?
-* ...
+* Scaling Models: textmodel_affinity mit Twitterdaten und Unterscheidung Trumo v. Clinton
 -->
 
 Das [überwachte maschinelles Lernen](https://de.wikipedia.org/wiki/%C3%9Cberwachtes_Lernen) beinhaltet solche Verfahren, mit denen sich verlässliche Regeln aus manuell kategorisierten Inhaltsdaten ableiten lassen, mit deren Hilfe anschließend auch unannotierte Daten ausgewertet können. Konkret wird zunächst eine konventionelle händische Inhaltsanalyse durchgeführt, innerhalb derer menschliche Kodierer auf Grundlage eines Codebuchs ein Sample von Texten einer oder mehreren Kategorien zuordnen (kodieren). Anschließend werden die Features dieses Texte ausgewertet -- häufig sind das alle verwendeten Wörter, es können aber auch nur bestimmte Begriffe, N-Gramme, oder komplexere Muster, wie bspw. unterschiedliche Satztypen zugrunde gelegt werden.
