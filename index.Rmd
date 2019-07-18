@@ -1,7 +1,7 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Inhalt"
+subtitle: Inhalt
 output: html_notebook
 ---
 
@@ -10,12 +10,6 @@ output: html_notebook
 * literatur hinzufügen
 * korpus-beschreibung hinzufügen (enron, schweizer vorlagen)
 -->
-
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentliche Ansätze der automatisierten Inhaltsanalyse mit R anhand von zahlreichen Beispielen vorgestellt werden. Dabei werden sog. R-Notebooks verwendet, die eine Kombination aus Erläuterungen und R-Code enthalten, welcher gemeinsam mit den hier abrufbaren Korpora und weiteren Ressourcen ausgeführt und beliebig angepasst werden kann. Die aktuellste (Entwicklungs-)Fassung der R-Notebooks findet sich auf [GitHub](https://github.com/cbpuschmann/inhaltsanalyse-mit-r.de), eine zusätzliche Leseversion ist auch auf [rpubs.com](https://rpubs.com/cbpuschmann/AIR1) abrufbar.
 
@@ -37,7 +31,7 @@ Diese Einführung gliedert sich in neun inhaltliche Kapitel, in denen wesentlich
 
 ### Downloads
 
-Sämtliche in dieser Einführung verwendeten R-Notebooks, Korpora und Lexika und können [hier](inhaltsanalyse_mit_r.zip) heruntergeladen werden. Ebenfalls herunterladbar ist [eine PDF-Version](inhaltsanalyse_mit_r.pdf) dieser Website.
+**Sämtliche in dieser Einführung verwendeten R-Notebooks, Korpora und Lexika und können [hier](inhaltsanalyse_mit_r.zip) heruntergeladen werden.** Ebenfalls herunterladbar ist [eine PDF-Version](inhaltsanalyse_mit_r.pdf) dieser Website.
 
 
 ### R-Pakete

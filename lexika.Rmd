@@ -1,15 +1,16 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Lexika"
+subtitle: Spezialisierte Lexika
 output: html_notebook
 ---
 
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
+<!---
+Todos
+* Zeit-SML: Titel durch Volltexte ersetzen?
+* MdB-SML: Split in Traings- und Testset?
+* ...
+-->
 
 Wie bereits angekündigt, schließt sich dieses Kapitel deshalb nahtlos and das vorausgehende Kapitel 3 zur Sentimentanalyse an, weil wir im Prinzip nichts neues dazulernen müssen, jedenfalls nicht, was die Funktionalität von quanteda angeht. Mit der Funktion [dictionary](https://docs.quanteda.io/reference/dictionary.html) und dem Wissen darüber, wie wir ein Lexikon auf eine DFM anwenden, schlagen wir gewissenmaßen zwei Fliegen mit einer Klappe, denn die Logik hinter den Themen– oder Politikfeld–Lexika, die in diesem Kapitel zur Anwendung kommen, gleicht der Logik von Sentiment-Lexika. Der wichtigste Unterschied besteht darin, dass die in diesem Kapitel behandelten Lexika i.d.R. eine ganze Reihe von Kategorien kennen, nicht nur die Typen *positiv* und *negativ*.
 
@@ -30,11 +31,11 @@ Wir starten mit dem EU–Speech–Korpus, an dem wir gleich mehrere politische L
 
 Wieder werden zunächst die notwendigen Bibliotheken geladen. 
 
-```{r}
-if(!require("quanteda")) install.packages("quanteda")
-if(!require("readtext")) install.packages("readtext")
-if(!require("tidyverse")) install.packages("tidyverse")
-if(!require("lubridate")) install.packages("lubridate")
+```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
+if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("readtext")) {install.packages("readtext"); library("readtext")}
+if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
+if(!require("lubridate")) {install.packages("lubridate"); library("lubridate")}
 theme_set(theme_bw())
 ```
 

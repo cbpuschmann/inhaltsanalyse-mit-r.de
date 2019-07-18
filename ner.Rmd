@@ -1,20 +1,16 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Tagging, Parsing und Entitätenerkennung"
+subtitle: Tagging, Parsing und Entitätenerkennung
 output: html_notebook
 ---
 
 <!---
+Todos
 * deepl-übersetzung hinzufügen
-* 
+* ...
+* ...
 -->
-
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Zu Anfang dieser Einführung habe ich die Techniken, um die es in diesem Kapitel geht, als weniger relevant für die sozialwissenschaftliche Forschung beschrieben, was damit zusammenhängt, dass ihr Nutzen für Sozialwissenschaftler üblicherweise eher indirekt ist, während den in diesem Abschnitt behandelten Verfahren in der Computerlinguistik in der Regel eine zentrale Rolle zukommt. Diese Charakterisierung sollte aber nicht den Eindruck erwecken, *Tagging* (die Bestimmung von Wortklassen), *Parsing* (die Bestimmung von Satz–Konstituenten) und *Entitätenerkennung* (oder engl. "named entity recognition") hätten in dieser Einführung keinen Platz. Im Gegenteil, diese Methoden können maßgeblich zur Verbesserung von Resultaten aus den vorausgehenden Kapiteln beitragen, wie die folgenden Beispiele hoffentlich überzeugend belegen. Ein basales Verständnis von Sprache ist für sozialwissenschaftliche Inhaltsanalysen auch deshalb hilfreich, weil man sich bspw. nicht blind auf komplexe Verfahren wie Themenmodelle verlassen muss, wenn man eine Vorstellung davon hat, welche linguistischen Features besonders relevant dafür sind, welche Themen in einem Text eine Rolle spielen und welche sprachlichen Merkmale diese Themen aufweisen. Auch sind etwa syntaktische Informationen ausgesprochen wertvoll, wenn man Muster erkennen will, die sich mithilfe des "Bag of words"-Ansatzes nicht adäquat abbilden lassen. 
 

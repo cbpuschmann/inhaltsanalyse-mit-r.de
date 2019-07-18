@@ -1,20 +1,16 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Texte und Wörter als Netzwerke"
+subtitle: Texte und Wörter als Netzwerke
 output: html_notebook
 ---
 
 <!---
+Todos
 * Begriffs-Netzwerk MdBs mit Partei als Farbe
 * mehr Beispiele (Enron-Korpus)
+* ...
 -->
-
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Die Beziehung von Texten und Wörtern zueinander lässt sich neben den bisher vorgestellen Techniken auch noch mit einem weiteren Ansatz untersuchen. Die Netzwerkanalyse stellt eine sehr wichtige Methode der Sozialwissenschaften dar, die grundsätzlich für die Untersuchung von Akteursbeziehungen von großer Relevanz ist. Sie ist aber darüber hinaus auch durchaus für die automatisierte Inhaltsanalyse von Bedeutung, zum einen, weil sich mit ihr etwa abbilden lässt, welche Akteure zusammen in einem Text genannte werden, aber auch dann, wenn beispielsweise ermittelt werden soll, wer ähnliche Begriffe verwendet.
 

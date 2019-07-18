@@ -1,20 +1,16 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Themenmodelle"
+subtitle: Themenmodelle
 output: html_notebook
 ---
 
 <!---
-* 
-* 
+Todos
+* ...
+* ...
+* ...
 -->
-
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (engl. *topic modeling*) handelt es sich um ein im Vergleich mit dem in den vorausgehenden Kapiteln präsentierten Lexikon-Ansatz sehr viel jüngeres und deutlich anspruchsvolleres Verfahren, wenn es um die Anforderungen an Rechenleistung und Speicher Ihres Computers geht. Themenmodelle sind mathemathisch komplex und vollständig induktiv, d.h. das Modell setzt keinerlei Kenntnis des Inhalts voraus, was aber nicht bedeutet, dass solche Kenntnisse für die Validierung des Outputs nicht entscheidend sind. Die Beziehung von Themen zu Wörtern und Dokumenten wird in einem Themenmodell vollständig automatisiert hergestellt. Die bekannteste Implementation heißt [Latent Dirichlet Allocation](https://de.wikipedia.org/wiki/Latent_Dirichlet_Allocation) (kurz LDA) und wurde von den Computerlinguisten David Blei, Andrew Ng und Michael Jordan entwickelt. Während ich vorausgehende, einfachere Verfahren lediglich kurz beschrieben habe, ist es bei der Themenanalyse notwendig, sich eingehender mit den algoritihmischen Grundlagen des Ansatzes zu beschäftigen, wenn man diesen wirklich verstehen will. Für die Demonstration von Themenmodellen -- und weitgehend auch für deren kompetente Anwendung -- reicht es allerdings aus, wenn man diese ausprobiert und (und das ist sehr wichtig!) die Qualität der erzielten Ergebnisse systematisch überprüft, das Modell also umfassend validiert. Dies geschieht anhand einer Reihe von Verfahren, welche die Passung des Models etwa in Abhängigkeit zu Variablen wie der gewählten Themenzahl bewerten. Während auch die vorausgehenden Ansätze häufig Ergebnisse produzieren, die sorgfältig überprüft werden müssen, sind Topic Model-Ergebnisse besonders schwer vorhersagbar, weil sich die induktiven Wortverteilungsmuster, auf denen Themenmodelle basieren mitunter stark vom menschlichen Verständnis eines Themas unterscheiden.
 

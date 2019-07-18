@@ -1,7 +1,16 @@
 ---
-title: "R Notebook"
+title: "Automatisierte Inhaltsanalyse mit R"
+author: "Cornelius Puschmann"
+subtitle: Datenimport
 output: html_notebook
 ---
+
+<!---
+Todos
+* ...
+* ...
+* ...
+-->
 
 Der Import von Daten gehört nach meiner Erfahrung zu den wichtigsten Themen, wenn es um studentische Projekte unter Nutzung der automatisierten Inhaltsanalyse geht. Aber auch bei großen Forschungvorhaben sind die Verfügbarkeit, Vorverarbeitung und Speicherung von Textdaten grundsätzlich bedeutende Aspekte eines Projekts, die sorgfältig geplant werden sollten. Daher mag es verwundern, dass ein Kapitel, welches Werkzeuge und Techniken für den Import von Textinhalten nach R vorstellt, nicht gleich zu Beginn dieser Einführung steht, sondern erst ganz am Schluss. Grund für diesen Umstand ist die vielfache Erfahrung, dass die erfolgreiche Datenbeschaffung und der Import von Daten oft (zu) viel Zeit in Anspruch nehmen, worunter die Analyse spürbar leidet. Gerade in der Lehre ist dies aus offensichtlichen Gründen ein Problem –– nicht die intellektuell eher langweilige aber immer wichtige Vorverarbeitung von Texten sollte im Mittelpunkt eines solchen Überblicks stehen, sondern die eigentliche Analyse. Aus diesem Grund gebe ich in dieser Einführung bewusst bereinigte Daten vor, auch wenn dies gewisse Einschränkungen bezüglich der Vielfalt mit sich bringt 
 

@@ -1,21 +1,16 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Wort- und Textmetriken"
+subtitle: Wort- und Textmetriken
 output: html_notebook
 ---
 
 <!---
+Todos
 * Zeit-SML: Titel durch Volltexte ersetzen?
 * MdB-SML: Split in Traings- und Testset?
 * 
 -->
-
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 In diesem zweiten Kapitel steht nun die Analyse vor Wörtern und Texten im Mittelpunkt. Auf den ersten Blick erscheinen die Metriken, die hier vorgestellt werden, möglicherweise nicht als besonders relevant für sozialwissenschaftliche Fragestellung. Das liegt zum einen daran, das wir uns an dieser Stelle noch nicht mit abstrakten Konzepten wie Themen oder Sentiment beschäftigen, die in den folgenden Kapitel im Mittelpunkt stehen werden, sondern mit Aspekten wie der Frequenz von Begriffen und der Ähnlichkeit von Texten, die augenscheinlich vielleicht der Linguistik näher sind. Wort- und Textmetriken sind aber aus zwei Gründen von Bedeutung: erstens bilden sie die Grundlage der höherstufigen Verfahren, egal ob Lexikon-, Themen- oder Sentimentanalyse, und zu anderen lassen sich auch schon mit ihnen interessante sozialwissenschaftliche Fragestellungen bearbeiten.
 
@@ -187,7 +182,7 @@ Eine weitere Klasse von Text-Metriken, die sich für ein Dokument aufgrund seine
 Die Kalkulation zahlreicher Lesbarkeitsindizes erfolgt in quanteda mit [textstat_readability()](https://docs.quanteda.io/reference/textstat_readability.html), Auch hier wird das Ergebnis in einer Excel-kompatible CSV-Datei gespeichert.
 
 ```{r Lesbarkeitsindizes berechnen}
-lesbarkeit <- textstat_readability(korpus)
+lesbarkeit <- textstat_readability(korpus, measure = "all")
 lesbarkeit
 #write_delim(lesbarkeit, path = "lesbarkeit.csv", delim = ";") # Datei ist Excel-kompatibel
 ```

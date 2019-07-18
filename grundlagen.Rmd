@@ -1,23 +1,18 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Grundlagen"
+subtitle: Grundlagen
 output: html_notebook
 ---
 
 <!---
+Todos
 * Zeit-SML: Titel durch Volltexte ersetzen?
 * MdB-SML: Split in Traings- und Testset?
 * 
 -->
 
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
-
-Dieses erste Kapitel liefert einen Überblick über zahlreiche Grundfunktionen des Pakets [quanteda](https://quanteda.io/), die gleichzeitig die Basis der automatisierten Inhaltsanalyse mit [R](https://www.r-project.org/) bilden. Über quanteda hinaus werden im Verlauf dieser neunteiligen Einführung noch eine Reihe weiterer R-Bibliotheken verwendet, etwa für das [überwachte maschinelle Lernen](5_maschinelles_lernen.html) (Kapitel 5) und das Berechnen von [Themenmodellen](6_themenmodelle.html) (Kapitel 6). In praktisch jeder Einheit relevant sind dabei die Pakete des [tidyverse](https://www.tidyverse.org/) (vor allem ggplot, dplyr und stringr), durch die zahlreiche Funktionen wie Plotten, Textverarbeitung und Datenmanagement gegenüber den R-Basisfunktionen stark verbessert werden. Pakete für einzelne Teilbereiche, die erst später eine Rolle spielen werden, sind u.a. [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://www.structuraltopicmodel.com/) (Themenmodelle), [RTextTools](http://www.rtexttools.com/) (überwachtes maschinelles Lernen), und [spacyr](https://github.com/quanteda/spacyr) (POS-Tagging und Named-Entity-Erkennung).
+Dieses erste Kapitel liefert einen Überblick über zahlreiche Grundfunktionen des Pakets [quanteda](https://quanteda.io/), die gleichzeitig die Basis der automatisierten Inhaltsanalyse mit [R](https://www.r-project.org/) bilden. Über quanteda hinaus werden im Verlauf dieser neunteiligen Einführung noch eine Reihe weiterer R-Bibliotheken verwendet, etwa für das [überwachte maschinelle Lernen](maschinelles_lernen.html) (Kapitel 5) und das Berechnen von [Themenmodellen](themenmodelle.html) (Kapitel 6). In praktisch jeder Einheit relevant sind dabei die Pakete des [tidyverse](https://www.tidyverse.org/) (vor allem ggplot, dplyr und stringr), durch die zahlreiche Funktionen wie Plotten, Textverarbeitung und Datenmanagement gegenüber den R-Basisfunktionen stark verbessert werden. Pakete für einzelne Teilbereiche, die erst später eine Rolle spielen werden, sind u.a. [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://www.structuraltopicmodel.com/) (Themenmodelle), [RTextTools](http://www.rtexttools.com/) (überwachtes maschinelles Lernen), und [spacyr](https://github.com/quanteda/spacyr) (POS-Tagging und Named-Entity-Erkennung).
 
 Die Basis der Analyse in diesem ersten Kapitel sind die beliebten Geschichten von Sherlock Holmes. Das Sherlock Holmes-Korpus besteht aus zwölf Erzählungen, die in dem 1892 erschienenem Band *The Adventures of Sherlock Holmes* zusammengefasst sind, und die man gemeinfrei unter anderem durch das [Internet Archive](https://archive.org/) herunterladen kann. Die für diese Einführung verwendete Fassung wurde zunächst dem Internet Archive entnommen und dann in zwölf Einzeldateien aufgeteilt. Natürlich können die vorgestellten Methoden auf die anderen hier behandelten Korpora angewandt werden -- das Beispiel dient nur dazu, sich langsam an quanteda und die Grundlagen der computergestützen Inhaltsanalyse zu gewöhnen.
 

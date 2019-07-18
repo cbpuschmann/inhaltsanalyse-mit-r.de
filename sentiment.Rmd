@@ -1,21 +1,16 @@
 ---
 title: "Automatisierte Inhaltsanalyse mit R"
 author: "Cornelius Puschmann"
-subtitle: "Sentiment"
+subtitle: Sentimentanalyse
 output: html_notebook
 ---
 
 <!---
+Todos
 * Trump-Clinton: Null-Linie plotten
 * Finanzkrise: Barplot durch Treemap ersetzen
 * ...
 -->
-
-\
-\
-\
-
-[inhaltsanalyse-mit-r.de](http://inhaltsanalyse-mit-r.de/)
 
 Wie auch einige andere hier behandelte Verfahren hat die [Sentimentanalyse](https://de.wikipedia.org/wiki/Sentimentanalyse) ihre Wurzeln in der Computerlinguistik und Informatik, wird aber seit einigen Jahren auch zunehmend in den Sozialwissenschaften angewandt, um ganz unterschiedliche Texte automatisch zu klassifizieren, etwa Parlamentsdebatten, Freitextantworten in Befragungen, oder Social Media-Diskurse. Ziel der Sentimentanalyse ist die Bestimmung der Polarität eines Textes, womit gemeint ist, ob die darin zum Ausdruck gebrachten Emotionen eher positiv oder negativ sind. Dies geschieht häufig durch Wortlisten und über das Auszählen von Begriffen, die zuvor den Kategorien *positiv* oder *negativ* zugeordnet wurden. In vielen Verfahren wird das Resultat anachließend skaliert, oder es werden andere Schritte angewandt, um fehlerhafte Klassifizierungen zu vermeiden. Diese treten vor allem dann auf, wenn Negation oder Ironie verwendet werden, aber auch, wenn der Gegenstand der positiven oder negativen Ausdrücke wechselt oder unklar ist. Unsprünglich wurde die Sentimentanalyse auf Produktbewertungen auf E-Commerence-Plattformen wie Amazon.com getestet, wo diese Probleme eine relativ geringe Rolle spielen. Bei Pressetexten oder Diskursen in den sozialen Medien hingegen, ist oft schwerer zu bewerten, auf was sich eine Sentimentbewertung bezieht, oder welches Sentimenniveau etwa als ‘normal’ betrachtet werden sollte. So kommen beispielsweise in Pressetexten generell wenig Emotionen zum Ausdruck, und die negativen Begriffe überwiegen häufig, ohne dass dies notwendigerweise auf einen schlechten Zustand der Welt zurückzuführen wäre. Schließlich sollte man sich vor Augen führen, dass die Sentimentanalyse ein heuristisches Verfahren ist, dass immer auch fehlerhafte Einzelklassifikationen produziert, was aber idealerweise nicht zu stark ins Gewicht fällt, wenn man etwas Veränderungen im Sentimentverlauf über die Zeit untersucht.
 
