@@ -13,9 +13,9 @@ Todos
 * 
 -->
 
-Dieses erste Kapitel liefert einen Überblick über zahlreiche Grundfunktionen des Pakets [quanteda](https://quanteda.io/), die gleichzeitig die Basis der automatisierten Inhaltsanalyse mit [R](https://www.r-project.org/) bilden. Über quanteda hinaus werden im Verlauf dieser neunteiligen Einführung noch eine Reihe weiterer R-Bibliotheken verwendet, etwa für das [überwachte maschinelle Lernen](maschinelles_lernen.html) (Kapitel 5) und das Berechnen von [Themenmodellen](themenmodelle.html) (Kapitel 6). In praktisch jeder Einheit relevant sind dabei die Pakete des [tidyverse](https://www.tidyverse.org/) (vor allem ggplot, dplyr und stringr), durch die zahlreiche Funktionen wie Plotten, Textverarbeitung und Datenmanagement gegenüber den R-Basisfunktionen stark verbessert werden. Pakete für einzelne Teilbereiche, die erst später eine Rolle spielen werden, sind u.a. [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://www.structuraltopicmodel.com/) (Themenmodelle), [RTextTools](http://www.rtexttools.com/) (überwachtes maschinelles Lernen), und [spacyr](https://github.com/quanteda/spacyr) (POS-Tagging und Named-Entity-Erkennung).
+Dieses erste Kapitel liefert einen Überblick über zahlreiche Grundfunktionen des Pakets [Quanteda](https://quanteda.io/), die gleichzeitig die Basis der automatisierten Inhaltsanalyse mit [R](https://www.r-project.org/) bilden. Über Quanteda hinaus werden im Verlauf dieser neunteiligen Einführung noch eine Reihe weiterer R-Bibliotheken verwendet, etwa für das [überwachte maschinelle Lernen](maschinelles_lernen.html) (Kapitel 5) und das Berechnen von [Themenmodellen](themenmodelle.html) (Kapitel 6). In praktisch jeder Einheit relevant sind dabei die Pakete des [tidyverse](https://www.tidyverse.org/) (vor allem ggplot, dplyr und stringr), durch die zahlreiche Funktionen wie Plotten, Textverarbeitung und Datenmanagement gegenüber den R-Basisfunktionen stark verbessert werden. Pakete für einzelne Teilbereiche, die erst später eine Rolle spielen werden, sind u.a. [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://www.structuraltopicmodel.com/) (Themenmodelle), [RTextTools](http://www.rtexttools.com/) und [keras](https://keras.rstudio.com/) (überwachtes maschinelles Lernen), [spacyr](https://github.com/quanteda/spacyr) und [udpipe](https://cran.r-project.org/package=udpipe) (POS-Tagging und Named-Entity-Erkennung) sowie [googlenlp](https://cran.r-project.org/package=googlenlp) bzw. [googleLanguageR](https://cran.r-project.org/package=googleLanguageR) (weitere Annotations- und Übersetzungfunktionen).
 
-Die Basis der Analyse in diesem ersten Kapitel sind die beliebten Geschichten von Sherlock Holmes. Das Sherlock Holmes-Korpus besteht aus zwölf Erzählungen, die in dem 1892 erschienenem Band *The Adventures of Sherlock Holmes* zusammengefasst sind, und die man gemeinfrei unter anderem durch das [Internet Archive](https://archive.org/) herunterladen kann. Die für diese Einführung verwendete Fassung wurde zunächst dem Internet Archive entnommen und dann in zwölf Einzeldateien aufgeteilt. Natürlich können die vorgestellten Methoden auf die anderen hier behandelten Korpora angewandt werden -- das Beispiel dient nur dazu, sich langsam an quanteda und die Grundlagen der computergestützen Inhaltsanalyse zu gewöhnen.
+Die Basis der Analyse in diesem ersten Kapitel bildet einerseits eine Sammlung einfacher Beispielsätze, anhand derer sich die Grundfunktionen von Quanteda gut erläutern lassen, und andererseits die beliebten Detektivgeschichten von Sherlock Holmes. Das Sherlock Holmes-Korpus besteht aus zwölf Erzählungen, die in dem 1892 erschienenem Band *The Adventures of Sherlock Holmes* zusammengefasst sind, und die man gemeinfrei unter anderem durch das [Internet Archive](https://archive.org/) herunterladen kann. Die für diese Einführung verwendete Fassung wurde zunächst dem Internet Archive entnommen und dann in zwölf Einzeldateien aufgeteilt. Natürlich können die vorgestellten Methoden auf die anderen hier behandelten Korpora angewandt werden -- das Beispiel dient nur dazu, sich langsam an quanteda und die Grundlagen der computergestützen Inhaltsanalyse zu gewöhnen.
 
 **Sämtliche in dieser Einführung verwendeter Codebeispiele, Korpora und Lexika können [hier](inhaltsanalyse_mit_r.zip) heruntergeladen werden.**
 
@@ -33,44 +33,103 @@ theme_set(theme_bw())
 ```
 
 
-#### Einlesen der Daten und Anlegen eines Korpus
+#### Erste Gehversuche mit Quanteda
 
-Nachdem alle notwendigen Pakete geladen wurden, können wir nun die Sherlock Holmes-Romane einlesen und daraus ein quanteda-Korpus erstellen. Für das Einlesen der Plaintext-Dateien wird die Funktion [readtext](https://www.rdocumentation.org/packages/readtext) aus dem gleichnamigen Paket verwendet, durch die sich eine Reihe von Dateiformaten erfolgreich importieren lassen (u.a. TXT, PDF und Word). Grundsätzlich sich Plaintext–Daten (i.d.R. mit der Endung ".txt") und Daten in Tabellenform (etwa im Format CSV oder auch als Excel–Datei) für readtext ohne größere Probleme lesbar, allerdings muss man beim Einlesen erklären, wie genau die einzelnen Datensätze von einander getrennt sind (bei Plaintext–Dateien wo nicht 1 Datei == 1 Text, was etwa bei Exporten aus Lexis Nexis der Fall sein kann), bzw. welche Felder die Primär– und welche Metadaten beinhalten (bei Tabellen). Eine gute Einführung zum Paket readtext findet sich [hier](https://cran.r-project.org/web/packages/readtext/vignettes/readtext_vignette.html).
+Wenn alle notwendigen Pakete erfolgreich geladen wurden, können wir einen ersten Gehversuch mit Quanteda unternehmen. Typischerweise wird ein Korpus (also eine Sammlung von Texten und zugehörigen Metadaten) erstellt, indem Dateien von der Festplatte oder aus dem Internet eingelesen werden, die dann den Korpusinhalt bilden. Im folgenden ersten Schritt halten wir es noch etwas einfacher und lesen stattdessen lediglich drei Beispielsätze ein.
 
-In diesem Fall entspricht jede Datei einem Text, wodurch der Import sehr umkompliziert ausfällt. Wir entfernen die Endung ".txt" aus dem Dokumentnamen, um diese später in Plot–Beschriftungen verwenden zu können. Schließlich wird die Variable *korpus* aufgerufen, was uns die wichtigen Eckdaten Dokumentanzahl und Docvars (Metadaten zu den Texten im Korpus) zurückliefert. 
+```{r Beispielsätze erstellen}
+beispielsaetze <- c("Ein Hund kam in die Küche",
+                    "In der Küche gibt es noch Kaffee",
+                    "Im Kaffee fehlt noch die Milch")
+```
 
-```{r Daten einlesen und Korpus anlegen}
-daten.sherlock <- readtext("daten/sherlock/romane/[0-9]*.txt") # Dateiname beginnt mit Zahl und endet mit .txt
-daten.sherlock$doc_id <- str_sub(daten.sherlock$doc_id, start = 4, end = -5) # Dateiendung weglassen
-korpus <- corpus(daten.sherlock, docid_field = "doc_id") # Korpus anlegen
-docvars(korpus, "Textnummer") <- sprintf("%02d", 1:ndoc(korpus)) # Variable Textnummer generieren
+Das Objekt *beispielsaetze* enthält aus Sicht von Quanteda drei Texte, aus denen sich mit der gleichnamigen Funktion problemlos ein Objekt vom Typ [corpus](https://quanteda.io/reference/corpus.html) erstellen lässt.
+
+```{r Einen sehr einfachen Korpus erstellen}
+beispielkorpus <- corpus(beispielsaetze)
+beispielkorpus
+```
+
+Die Meldung bestätigt uns genau das -- wir haben erfolgreich einen Korpus aus drei Texten erstellt. Derzeit enthält unser Korpus noch keinerlei Metadaten, also Angaben zu den im Korpus enthaltenen Texten. In der Terminologie von Quanteda werden Metadaten auch als Dokument-Variablen (*docvars*) bezeichnet. 
+
+Die in einem Korpus enthaltenen Texte lassen sich jedenzeit mit dem Befehl [texts](https://quanteda.io/reference/texts.html) ausgeben.
+
+```{r Texte aus einem Korpus ausgeben}
+texts(beispielkorpus)
+```
+
+Nun fügen wir unserem Korpus mit Hilfe des Befehls [docvars](http://docs.quanteda.io/reference/docvars.html) eine Dokument-Variable hinzu.
+
+```{r Dokument-Variablen anlegen}
+docvars(beispielkorpus, "Text_Autor") <- c("Paul", "Marie", "Paul")
+```
+
+Wieso ist die Erstellung eines Korpus und das Anlegen von Dokument-Variablen sinnvoll? Eine Zusammenfassung unseres Beispielkorpus gibt einen ersten Aufschluss. 
+
+```{r Eine Korpus-Zusammenfassung erstellen}
+summary(beispielkorpus)
+```
+
+Die Zusammenfassung zeigt die im Korpus enthaltenden Texte, die jeweils einen einmaligen Bezeichner erhalten (text1, text2, text3). Weiterhin gibt sie Aufschluss über die Anzahl der Tokens (laufende Wörter), die Anzahl der Types (einmalige Wörter), und die Anzahl der Sätze pro Text. Schließlich wird noch die gerade von uns eingeführte Dokument-Variable *Text_Autor* widergegeben. 
+
+Auch wenn das zunächst nicht weiter wichtig erscheinen mag: Die Möglichkeit, eine große Anzahl von Texten aus unterschiedlichen Quellen zu einem Korpus-Objekt zusammenzufassen und dieses anschließend mit Metadaten zu versehen, ist ein ganz  entscheidender Vorteil von Quanteda. Wir werden folgend mit deutlich größeren Korpora arbeiten, die alle nach diesem Prinzip erstellt wurden. 
+
+#### Einlesen der Daten und Anlegen des Sherlock Holmes-Korpus
+
+Nachdem wir einen ersten Einblick in die Erstellung eines sehr simplen Quanteda-Korpus erhalten haben, können wir nun die Sherlock Holmes-Romane einlesen und daraus ebenfalls einen Korpus erstellen, nun aber in einer realistischen Größe. 
+
+Für das Einlesen der Plaintext-Dateien wird die Funktion [readtext](https://www.rdocumentation.org/packages/readtext) aus dem gleichnamigen Paket verwendet, durch die sich eine Reihe von Dateiformaten erfolgreich importieren lassen (u.a. TXT, PDF und Word). Grundsätzlich sich Plaintext–Daten (i.d.R. mit der Endung ".txt") und Daten in Tabellenform (etwa im Format CSV oder auch als Excel–Datei) für readtext ohne größere Probleme lesbar, allerdings muss man beim Einlesen erklären, wie genau die einzelnen Datensätze von einander getrennt sind (bei Plaintext–Dateien wo nicht 1 Datei == 1 Text, was etwa bei Exporten aus Lexis Nexis der Fall sein kann), bzw. welche Felder die Primär– und welche Metadaten beinhalten (bei Tabellen). Eine gute Einführung zum Paket readtext findet sich [hier](https://cran.r-project.org/web/packages/readtext/vignettes/readtext_vignette.html).
+
+```{r Textdaten einlesen}
+daten.sherlock <- readtext("daten/sherlock/romane/*.txt") 
+daten.sherlock$doc_id <- str_sub(daten.sherlock$doc_id, start = 4, end = -5)
+```
+
+In diesem Fall entspricht jede Datei einem Text (nicht wie zuvor, einen einzigen Satz), wodurch der Import sehr umkompliziert ausfällt. Zunächst laden wir nur Dateien mit der Endung ".txt" aus dem Verzeichnis daten/sherlock/romane. Dann ziehen wir die Namen der Romane aus den Dateinamen, um diese später in Plot–Beschriftungen verwenden zu können.
+
+```{r Das Sherlock Holmes-Korpus anlegen}
+korpus <- corpus(daten.sherlock, docid_field = "doc_id") 
+docvars(korpus, "Textnummer") <- 1:12
 korpus
 ```
 
-In den folgenden Abschnitten werden häufig bereits vorbereitete Korpora geladen, d.h. der Befehl *corpus* wird hier nicht mehr explizit ausgeführt. Er ist aber im Vorfeld ausgeführt worden, um aus Textdatein auf der Festplatte oder Twitter-Daten in einem R-Data Frame ein quanteda-Korpus zu erstellen. 
+Nun generieren wir wieder mit dem Befehl [corpus](https://quanteda.io/reference/corpus.html) ein Quanteda-Korpus-Objekt. Im Gegensatz zu unserem Beispielkorpus bilden in diesem Fall die mittels [readtext](https://www.rdocumentation.org/packages/readtext) zuvor eingelesenen Datein die Grundlage. Die Funktion [corpus](https://quanteda.io/reference/corpus.html) versteht mehrere Datenformate, also Character-Vektoren (unser erstes Beispiel) ebenso wie Data Frames (wie mittels readtext erstellt) oder Objekte aus dem Paket [tm](https://cran.r-project.org/package=tm). Zweitens wird eine Dokument-Variable *Textnummer* generiert, die wir ebenfalls später noch gebrauchen können. Zum Schluss wird die Variable *korpus* aufgerufen, was uns die wichtigen Eckdaten zum Korpus sowie Metadaten zu den enthaltenden Texten zurückliefert.
 
-Die Funktionen [ndoc](http://docs.quanteda.io/reference/ndoc.html), [ntoken](http://docs.quanteda.io/reference/ntoken.html), [ntype](http://docs.quanteda.io/reference/ntoken.html) und [nsentence](http://docs.quanteda.io/reference/nsentence.html) geben die Anzahl der Dokumente, Tokens, Types und Sätze aus. Diese Statistiken können bequem gemeinsam mit Metadaten auf Dokumentebene durch die Funktion [summary](https://www.rdocumentation.org/packages/quanteda/versions/1.3.0/topics/summary.corpus) erstellt werden. Bei den meisten Korpora, die hier verwendet werden, liegt ein solcher Data Frame mit Statistiken zu jedem Text bereits bei. Notwendig ist dies allerdings nicht. Will man auf Korpus–Metadaten zurückgreifen oder diese verändern, kann man dies jederzeit über den Befehl [docvars](http://docs.quanteda.io/reference/docvars.html) tun.
+In den folgenden Abschnitten werden häufig bereits vorbereitete Korpora geladen, d.h. der Befehl [corpus](https://quanteda.io/reference/corpus.html) wird hier nicht mehr explizit ausgeführt. Er ist aber im Vorfeld ausgeführt worden, um aus Textdatein auf der Festplatte oder Twitter-Daten in einem R-Data Frame einen Quanteda-Korpus zu erstellen. 
+
+Die Funktionen [ndoc](http://docs.quanteda.io/reference/ndoc.html), [ntoken](http://docs.quanteda.io/reference/ntoken.html), [ntype](http://docs.quanteda.io/reference/ntoken.html) und [nsentence](http://docs.quanteda.io/reference/nsentence.html) geben die Anzahl der Dokumente, Tokens, Types und Sätze aus. Diese Statistiken können bequem gemeinsam mit Metadaten auf Dokumentebene durch die Funktion [summary](https://www.rdocumentation.org/packages/quanteda/versions/1.5.0/topics/summary.corpus) erstellt werden. Bei den meisten Korpora, die hier verwendet werden, liegt ein solcher Data Frame mit Statistiken zu jedem Text bereits bei. Notwendig ist dies allerdings nicht. Will man auf Korpus–Metadaten zurückgreifen oder diese verändern, kann man dies jederzeit über den Befehl [docvars](http://docs.quanteda.io/reference/docvars.html) tun.
 
 ```{r Korpusstatistiken berechnen}
-korpus.stats <- summary(korpus, n = 1000000)
-korpus.stats$Text <- reorder(korpus.stats$Text, 1:ndoc(korpus), order = T)
+korpus.stats <- summary(korpus)
+korpus.stats$Text <- reorder(korpus.stats$Text, 1:12, order = T)
 korpus.stats
 ```
 
-Das Funktionsargument n = 1000000 wird hier nur deshalb verwendet, weil die Funktion *summary* ansonsten nur maximal 100 Texte zusammenfasst. In diesem Fall reicht das zwar aus, aber bei größeren Datensätzen ist das eher unpraktisch. Technisch gesehen heißt diese Funktion *summary.corpus* und ist eine an Korpus-Objekte angepasste Variante der Basisfunktion *summary*, die auch sonst in R verwendet wird. Der Befehl [reorder](https://www.rdocumentation.org/packages/stats/versions/3.3/topics/reorder.default) wird verwendet, um die Texte nach ihrer Reihenfolge in *The Adentures of Sherlock Holmes* zu sortieren, statt alphabetisch nach Titel.
-
-
-#### Basisstatistiken zu einem Korpus berechnen
+Manchmal ist es bei der Erstellung von Korpus-Zusammenfassungen sinnvoll, das optionale Funktionsargument n = 1000000 zu verwenden, weil die Funktion [summary](https://www.rdocumentation.org/packages/quanteda/versions/1.5.0/topics/summary.corpus) ansonsten nur maximal 100 Texte zusammenfasst. In diesem Fall reicht das zwar aus, aber bei größeren Datensätzen ist das eher unpraktisch. Technisch gesehen heißt diese Funktion [summary.corpus](https://www.rdocumentation.org/packages/quanteda/versions/1.5.0/topics/summary.corpus) und ist eine an Korpus-Objekte angepasste Variante der Basisfunktion [summary](https://www.rdocumentation.org/packages/base/versions/3.6.1/topics/summary), die auch sonst in R verwendet wird. Der Befehl [reorder](https://www.rdocumentation.org/packages/stats/versions/3.6.1/topics/reorder.default) wird verwendet, um die Texte auch in Plots nach ihrer Reihenfolge in *The Adentures of Sherlock Holmes* zu sortieren, statt alphabetisch nach Titel.
 
 Der Inhalt der Variable *korpus.stats* kann natürlich auch geplottet werden, um einen anschaulichen Eindruck von der Korpusbeschaffenheit zu geben. Die folgenden Zeilen liefern die Anzahl der Tokens (laufende Wörter), die Anzahl der Types (einmalige Wörter), und Sätze pro Roman zurück (vgl. dazu [diese Einführung](https://www.bubenhofer.com/korpuslinguistik/kurs/index.php?id=erstellung_korpora.html)). Schließlich wird noch das Verhältnis von Typen zu Tokens (oder die sog. [Typ-Token-Relation](https://de.wikipedia.org/wiki/Type-Token-Relation)) geplottet. 
 
-Grundlage solcher Plots sind praktisch immer Data Frame-Objekte (also Tabellen), die Informationen über Korpora, Texte, Wörter, Themen usw. enthalten, welche sich visuell darstellen lassen. Im Rest dieser Einführung gehe ich nicht im Detail darauf ein, wie die jeweiligen Plots genau konstruiert werden, allerdings lassen sich die meisten Daten auch (etwas weniger ansprechend) mit der R-internen Funktion [plot()](https://www.rdocumentation.org/packages/graphics/versions/3.5.0/topics/plot) darstellen. Eine hilfreiche deutschsprachige Einführung in das Plotten mit ggplot2 findet sich [hier](http://md.psych.bio.uni-goettingen.de/mv/unit/ggplot2/ggplot2.html). Viele der hier vorgestellten Plots stammen zudem direkt aus quanteda (beginnend mit textplot_).
+Grundlage solcher Plots sind praktisch immer Data Frame-Objekte (also Tabellen), die Informationen über Korpora, Texte, Wörter, Themen usw. enthalten, welche sich visuell darstellen lassen. Im Rest dieser Einführung gehe ich nicht im Detail darauf ein, wie die jeweiligen Plots genau konstruiert werden, allerdings lassen sich die meisten Daten auch (etwas weniger ansprechend) mit der R-internen Funktion [plot](https://www.rdocumentation.org/packages/graphics/versions/3.5.0/topics/plot) darstellen. Eine hilfreiche deutschsprachige Einführung in das Plotten mit ggplot2 findet sich [hier](http://md.psych.bio.uni-goettingen.de/mv/unit/ggplot2/ggplot2.html). Viele der hier vorgestellten Plots stammen zudem direkt aus quanteda (beginnend mit textplot_).
 
-```{r Tokens, Types, Sätze und TTR pro Roman plotten}
-ggplot(korpus.stats, aes(Text, Tokens, group = 1)) + geom_line() + geom_point() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Tokens pro Roman")
-ggplot(korpus.stats, aes(Text, Types, group = 1)) + geom_line() + geom_point() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Types pro Roman")
-ggplot(korpus.stats, aes(Text, Sentences, group = 1)) + geom_line() + geom_point() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Sätze pro Roman")
-ggplot(korpus.stats, aes(Tokens, Types, group = 1, label = Textnummer)) + geom_smooth(method = "lm", se = FALSE) + geom_text(check_overlap = T) + ggtitle("Typ-Token-Relation pro Roman")
+```{r Tokens/Types/Sätze und TTR pro Roman plotten}
+ggplot(korpus.stats, aes(Text, Tokens, group = 1)) + 
+  geom_line() + 
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  ggtitle("Tokens pro Roman")
+ggplot(korpus.stats, aes(Text, Types, group = 1)) + 
+  geom_line() + geom_point() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  ggtitle("Types pro Roman")
+ggplot(korpus.stats, aes(Text, Sentences, group = 1)) + 
+  geom_line() + 
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  ggtitle("Sätze pro Roman")
+ggplot(korpus.stats, aes(Tokens, Types, group = 1, label = Textnummer)) +
+  geom_smooth(method = "lm", se = FALSE) + 
+  geom_text(check_overlap = T) + 
+  ggtitle("Typ-Token-Relation pro Roman")
 ```
 
 Diese Grafiken sind zunächst einmal nicht umwerfend informativ. Sie belegen lediglich, dass die Erzählungen ‘A Case of Identity’ und (in geringerem Maße) ‘The Five Orangen Pips’ deutlich kürzer sind als die anderen Texte, was sich auf allen drei Ebenen (Tokens, Types, Sätze) niederschlägt. Etwas interessanter wird es allerdings bei der Typ-Token-Relation: während drei Romane (mit den Nummern 3, 11 und 12) jeweils einen eher unterdurchschnittlichen TTR aufweisen, liegen weitere vier oberhalb der linearen Relation (1, 5, 6  und 8), während die verbleibenden sechs ziemlich genau dem Durchschnitt entsprechen. Über den TTR lassen sich Rückschlüssen über die Informationsdichte ziehen -- dazu später noch mehr. 
@@ -78,42 +137,50 @@ Diese Grafiken sind zunächst einmal nicht umwerfend informativ. Sie belegen led
 
 #### Mit Korpora arbeiten
 
-Korpora lassen sich in quanteda sehr leicht samplen, umformen und mit zusätzlichen Metadaten versehen. Metadaten können wiederum genutzt werden, um das Korpus nach bestimmten Kriterien zu filtern. Der folgenden Aufruf zeit die erste 1.000 Wörter des ersten Romans.
+Korpora lassen sich in quanteda sehr leicht samplen, umformen und mit zusätzlichen Metadaten versehen. Metadaten können wiederum genutzt werden, um das Korpus nach bestimmten Kriterien zu filtern. Der folgenden Aufruf zeit die ersten 1.000 Wörter des ersten Romans.
 
-```{r Substring extrahieren}
-str_sub(korpus[1], start = 1, end = 1000) # Anfang des ersten Romans wiedergeben
+```{r Substrings extrahieren}
+str_sub(korpus[1], start = 1, end = 1000)
 ```
 
-Jeder Text lässt sich also anhand seiner Indizierung aufrufen und auch ändern (etwa korpus[1] für den ersten Text). Gleiches funktioniert auch über die Funktion [texts](http://docs.quanteda.io/reference/texts.html) –– der Weg über die den Index ist lediglich die Kurzform von texts(korpus)[1]. 
+Jeder Text lässt sich also auch direkt anhand seiner Indizierung aufrufen (etwa korpus[1] für den ersten Text), neben dem Aufruf über die Funktion [texts](http://docs.quanteda.io/reference/texts.html). Texte könne auf diesem Weg auch ersetzt werden, ganz so, wie man die Elemente eines Vektors oder Data Frames überschreiben kann.
 
 Mittels [corpus_reshape](http://docs.quanteda.io/reference/corpus_reshape.html) lässt sich ein Korpus so umformen, dass jeder Satz ein eigenes Dokument ergibt. Alternative Argumente sind "paragraphs" und "documents" (so lässt sich ein Satz-Korpus wieder in seinen Anfangszustand zurückversetzen). Die Erstellung von Satz-Korpora ist für die Sentimentanalyse und das überwachte maschinelle Lernen von Interesse. 
 
 Die Beschriftung des Beispiels besteht hier aus der Variable *docname* und einer angehängten Zahl (eine 1 für den ersten Satz). 
 
-```{r Korpus zu Sätzen umformen}
+```{r Ein Korpus umformen}
 korpus.saetze <- corpus_reshape(korpus, to = "sentences")
 korpus.saetze[1]
 ```
 
-Mit [corpus_sample()](http://docs.quanteda.io/reference/corpus_sample.html) kann weiterhin ein zufälliges Sample aus einem Korpus gezogen werden. Wir wenden die Funktion hier auf das Satz-Korpus an. 
+Mit [corpus_sample](http://docs.quanteda.io/reference/corpus_sample.html) kann weiterhin ein zufälliges Sample aus einem Korpus gezogen werden. Wir wenden die Funktion hier auf das Satz-Korpus an. 
 
-```{r Zufallsample ziehen}
+```{r Ein Zufallsample ziehen}
 zufallssatz <- corpus_sample(korpus.saetze, size = 1)
 zufallssatz[1]
 ```
 
-Anhand von [corpus_subset](http://docs.quanteda.io/reference/corpus_subset.html) kann ein Korpus schließlich nach Metadaten gefiltert werden. Hier geschieht dies mittels der neu erstellten binären Variable *LangerSatz*, die dann TRUE ist, wenn ein Satz >= 25 Tokens enthält). So lässt sich ein Teilkorpus zu bilden, in dem nur längere Sätze enthalten sind. Das Beispiel soll lediglich verdeutlichen, dass mithilfe der von quanteda bereitgestellten Funktionen zahlreiche Schritte für die Bereinigung von Korpora möglich sind. 
+Anhand von [corpus_subset](http://docs.quanteda.io/reference/corpus_subset.html) kann ein Korpus schließlich nach Metadaten gefiltert werden.
+
+Um dies tun zu können, erstellen wir im nächsten Schritt eine binäre  Dokument-Variable mit dem Namen *LangerSatz*, die dann TRUE ist, wenn ein Satz >= 25 Tokens enthält. So lässt sich mit [corpus_subset](http://docs.quanteda.io/reference/corpus_subset.html) ein Teilkorpus zu bilden, in dem nur längere Sätze enthalten sind. Das Beispiel soll verdeutlichen, dass mithilfe der von Quanteda bereitgestellten Funktionen zahlreiche Schritte für die Bereinigung von Korpora möglich sind. 
 
 ```{r Neue Docvars hinzufügen}
-docvars(korpus.saetze, "Zeichenanzahl") <- ntoken(korpus.saetze)
 docvars(korpus.saetze, "LangerSatz") <- ntoken(korpus.saetze)>=25
 korpus.saetze_lang <- corpus_subset(korpus.saetze, LangerSatz == TRUE)
 korpus.saetze_lang[1:3]
 ```
 
-Die Möglichkeit, mit bestehenden (bspw. Autor, Quelle, Rubrik, Zeitstempel) und eigens erstellten Metadaten-Variablen (bspw. Thema, Sentiment) zu arbeiten gehört zu den größten Stärken von quanteda. Folgend filtern oder gruppieren wir häufig auf der Grundlage von Metadaten. 
+Die Möglichkeit, mit bestehenden (bspw. Autor, Quelle, Rubrik, Zeitstempel) und eigens erstellten Dokument-Variablen (bspw. Thema, Sentiment) zu arbeiten, gehört wie schon erwähnt zu den größten Stärken von Quanteda, weil diese Angaben zu jedem Zeitpunkt in der Analyse zur Verfügung stehen. Folgend filtern oder gruppieren wir Korpora häufig auf der Grundlage von Metadaten. 
 
-Schließlich lassen sich Korpora mithilfe von [corpus_segment()](http://docs.quanteda.io/reference/corpus_segment.html) auch nach bestimmten Kriterien aufspalten.
+Schließlich lassen sich Korpora mit Hilfe von [corpus_segment](http://docs.quanteda.io/reference/corpus_segment.html) auch nach bestimmten Kriterien aufspalten und mittels [corpus_trim](https://quanteda.io/reference/corpus_trim.html) nach festen Bedingungen reduzieren, um etwa sehr kurze Texte auszuschließen. Im folgenden Beispiel wird eine ganze Kette von Operationen (Segmentierung, Trimmen, Zufallssample ziehen) so durchgeführt. Dabei werden auch erstmals die für das [tidyverse](https://www.tidyverse.org/) typischen [*pipes*](https://style.tidyverse.org/pipes.html) verwendet. Bei pipes handelt es sich um eine Art spezielle Art der R-Syntax, die das schrittweise Umformen von Daten stark erleichtert. Im Verlauf dieser Einführung werden pipes stark genutzt, vor allem, um Ergebnisse für die Darstellung mittels [ggplot](https://ggplot2.tidyverse.org/) vorzubereiten.
+
+```{r Korpora segmentieren und trimmen}
+zufallsabsatz <- corpus_segment(korpus, "  ") %>% 
+  corpus_trim(what = "documents", min_ntoken = 3) %>% 
+  corpus_sample(size = 1)
+zufallsabsatz[1]
+```
 
 
 #### Tokenisierung 
@@ -121,37 +188,37 @@ Schließlich lassen sich Korpora mithilfe von [corpus_segment()](http://docs.qua
 Unter Tokensierung versteht man die Aufspaltung eines Textes in laufende Wörter oder sog. N-Gramme, also Sequenzen mehrerer Wörter in Folge. Die Funktion [tokens](https://docs.quanteda.io/reference/tokens.html) realisiert die Tokenisierung eines Korpus in quanteda. Zusätzlich versteht *tokens* auch unzählige Argumente für die Entfernung bestimmter Features.
 
 ```{r Einfache Tokenisierung}
-meine.tokens <- tokens(korpus)
-head(meine.tokens$`A Scandal in Bohemia`)
+meine.tokens <- tokens(korpus, verbose = TRUE)
+head(as.list(meine.tokens)$`A Scandal in Bohemia`)
 ```
 
-Mittels der Funktion tokens lässt sich der Text über das Argument *ngrams* auch gleich in N-Gramme (Mehrwortsequenzen) aufspalten. Im folgenden Beispiel werden erst Bigramme vom Anfang des ersten Textes angezeigt, und dann alle Sequenzen von einem, zwei oder drei Begriffen extrahiert (durch die Anwendung von [head](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/head) sehen wir nur Trigramme, es sind aber auch kürzere Sequenzen vorhanden). 
+Mittels der Funktion [tokens](https://docs.quanteda.io/reference/tokens.html) lässt sich der Text über das Argument *ngrams* auch gleich in N-Gramme (Mehrwortsequenzen) aufspalten. Im folgenden Beispiel werden erst Bigramme vom Anfang des ersten Textes angezeigt, und dann alle Sequenzen von einem, zwei oder drei Begriffen extrahiert (durch die Anwendung von [head](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/head) sehen wir nur Trigramme, es sind aber auch kürzere Sequenzen vorhanden). 
 
 ```{r N-Gramme extrahieren}
 meine.tokens <- tokens(korpus, ngrams = 2)
-head(meine.tokens$`A Scandal in Bohemia`)
+head(as.list(meine.tokens)$`A Scandal in Bohemia`)
 
 meine.tokens <- tokens(korpus, ngrams = 1:3)
-head(meine.tokens$`A Scandal in Bohemia`)
+head(as.list(meine.tokens)$`A Scandal in Bohemia`)
 ```
 
 Hilfreich ist auch die Möglichkeit, bei der Tokenisierung bestimmte Begriffe zu entfernen oder zurückzubehalten. 
 
 ```{r Tokens entfernen oder behalten}
 meine.tokens <- tokens(korpus)
-begriffe.behalten <- tokens_select(meine.tokens, c("holmes", "watson")) # Platzhalter mit padding = TRUE
-head(begriffe.behalten$`A Scandal in Bohemia`)
-begriffe.entfernen <- tokens_remove(meine.tokens, c("Sherlock", "in", "is", "the"))
-head(begriffe.entfernen$`A Scandal in Bohemia`)
+begriffe.behalten <- tokens_select(meine.tokens, c("holmes", "watson")) 
+head(as.list(begriffe.behalten)$`A Scandal in Bohemia`)
+begriffe.entfernen <- tokens_remove(meine.tokens, c("sherlock", "in", "is", "the", "a"))
+head(as.list(begriffe.entfernen)$`A Scandal in Bohemia`)
 ```
 
 Wie bereits angedeutet akzeptiert die Funktion *tokens* eine Reihe von Argumenten, mit denen ganze Klassen von Zeichenketten (Zahlen, Interpunktion, Symbole usw.) gezielt ausgeschlossen oder zurückbehalten werden können. Folgend werden zunächst Zahlen, Interpunktion und Symbole entfernt, dann mittels [tokens_tolower](https://docs.quanteda.io/reference/tokens_tolower.html) alle Wörter in Kleinschreibung umgewandelt und dann dann noch die Wörter "sherlock" und "holmes", sowie eine Reihe englischer [Stoppwörter](https://de.wikipedia.org/wiki/Stoppwort) entfernt. 
 
-```{r weitere Argumente}
+```{r Tokenisierung mit weiteren Argumente}
 meine.tokens <- tokens(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE)
 meine.tokens <- tokens_tolower(meine.tokens)
 meine.tokens <- tokens_remove(meine.tokens, c(stopwords("english"), "sherlock", "holmes"))
-head(meine.tokens$`A Scandal in Bohemia`)
+head(as.list(meine.tokens)$`A Scandal in Bohemia`)
 ```
 
 Das Resultat ist der Art von Daten, mit denen man bei Verfahren wie der Anwendung von Lexika (Kapitel 2-3), dem überwachten maschinellen Lernen (Kapitel 4) und der Berechnung von Themenmodellen (Kapitel 5), häufig arbeitet sehr ähnlich. Durch die Stoppwortentfernung und andere Schritte gehen syntaktische Informationen verloren, d.h. man kann nicht mehr nachvollziehen, wer was mit wem tut, oder wie der Text insgesamt argumentativ oder erzählerisch aufgebaut ist. Diese Informationen sind allerdings im "[Bag-of-Words-Ansatz](https://en.wikipedia.org/wiki/Bag-of-words_model)", der in der automatisierten Inhaltsanalyse nahezu immer verwendet wird, nicht unbedingt relevant.
@@ -163,49 +230,75 @@ Die in diesem Abschnitt beschriebenen Schritte sind zwar im Einzelfall nützlich
 
 Wir kommen nun zu einer zentralen Datenstruktur von quanteda, die im Gegensatz zu den zuvor vorgestellten Funktionen praktisch in jedem Projekt vorkommt: die Document Feature-Matrize (DFM). Üblicherweise wird direkt nachdem ein Korpus angelegt wurde eine DFM berechnet, zuweilen auch mehrere. Eine DFM ist eine Tabelle, deren Zeilen Texte und deren Spalten Wortfrequenzen enhalten. Dabei gehen Informationen darüber, wo in einem Text ein Wort vorkommt verloren (man spricht auch vom '[Bag-of-Words-Ansatz](https://en.wikipedia.org/wiki/Bag-of-words_model)' und davon, dass DFMs im Gegensatz zum eigentlichen Korpus *nicht-positional* sind). Immer dann, wenn wir uns für die Beziehung von Wörtern zu Texten (und umgekehrt) interessieren, berechnen wir eine DFM.
 
-```{r Einfache DFM erstellen}
+Im DFMs zu verstehen hilft es, noch einmal zu unserem künstlichen Beispielkorpus vom Anfang zurückzukehren. Eine DFM wird *surprise, surprise* mit Hilfe der Funktion [dfm](https://quanteda.io/reference/dfm.html) erstellt. Grundlage sollte immer ein Quanteda-Korpus-Objekt sein, auch wenn theoretisch auch Tokens-Objekte akzeptiert werden. Das Beispiel zeigt, was mit den Texten im Korpus geschieht, wenn diese in eine DFM überführt werden. 
+
+```{r Eine Einfache DFM erstellen}
+beispielsaetze <- c("Ein Hund kam in die Küche",
+                    "In der Küche gibt es noch Kaffee",
+                    "Im Kaffee fehlt noch die Milch")
+beispielkorpus <- corpus(beispielsaetze)
+beispieldfm <- dfm(beispielkorpus)
+beispieldfm
+```
+
+Die Funktion liefert uns eine Tabelle (oder genauer: eine Matrix), in der die Zeilen die im Korpus enthaltenen Dokumente und die Spalten die im Korpus enthaltenen Wörter widergeben. Die Zahlen in den Zellen geben die Worthhäufigkeit an -- in unserem simplen Beispiel kommt jedes Wort pro Text nur maximal einmal vor, das ist aber in einem richtigen Korpus durchweg anders. Die Anordung der Spalten folgt zwar dem Vorkommen der Wörter im Korpus, allerdings taucht jedes Feature nur einmal auf, da es sich ja um Summenangaben handelt. Bei der sog. *Sparsity* ("54.8% sparse") handelt es sich um den Prozentsatz der Zellen, in denen eine Null steht -- dazu später noch etwas mehr.  
+
+Wieso heißt es bei Quanteda D*F*M, wird also von *Features* statt von Wörtern oder Termen gesprochen? Weil die Features auch Zahlen, Satzzeichen oder Emjois Features sein können.
+
+Was hat sich gegenüber dem Korpus (in dem wir ja auch schon die Typ- und Tokenanzahl pro Text berechnen konnten) überhaupt verändert? Eine DFM ist nicht-positional, d.h. die Information darüber, wo im Text ein Wort vorkommt, ist im Gegensatz zum Korpus nicht mehr vorhanden. Dafür haben DFMs jedoch einen entscheinden Vorteil: Sie erlauben es uns, die Dokumente (anhand eines Dokumentenvektors) und die Features (anhand eines Featurevektors) miteinander zu vergleichen. Im nächsten Kapitel werden wir uns diesem Umstand zunutze machen, um Dokumente und Wörter miteinander zu vergleichen.
+
+Wir wenden das, was wir gerade anhand des Beispielkorpus getestet haben, nun auf das Sherlock Holmes-Korpus an. Dabei nutzen wir realistischere Einstellungen für die Tokenisierung, entfernen also Zahlen, Interpunktion, Symbole und Stoppwörter. 
+
+```{r Eine DFM für das Sherlock Holmes-Korpus erstellen}
 meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
 meine.dfm
 ```
 
-Wichtig: Hier wird implizit der uns schon vertraute Befehl [tokens()](https://docs.quanteda.io/reference/tokens.html) angewandt, um bestimmte Features zu entfernen (oder ggf. auch zurückzubehalten). Vieles funktioniert bei DFMs analog zur Erstellung eines Korpus. So zählen die Funktionen [ndoc()](https://docs.quanteda.io/reference/ndoc.html) und [nfeat()](https://docs.quanteda.io/reference/ndoc.html) Dokumente und Features (Wörter).
+Wer sich fragt, wo diese Argumente für [dfm](https://quanteda.io/reference/dfm.html) eigentlich herkommen: Hier wird implizit der uns schon vertraute Befehl [tokens](https://docs.quanteda.io/reference/tokens.html) angewandt, um bestimmte Features zu entfernen (oder ggf. auch zurückzubehalten). Ergebnis ist eine deutlich größere Matrix als zuvor, die auch eine deutlich höhere Sparsity aufweist. Folgend tokenisieren wir praktisch nie, ohne auch gleich eine DFM zu berechnen.  
+
+Vieles funktioniert bei DFMs analog zur Erstellung eines Korpus. So zählen die Funktionen [ndoc](https://docs.quanteda.io/reference/ndoc.html) und [nfeat](https://docs.quanteda.io/reference/ndoc.html) Dokumente und Features (Wörter).
 
 ```{r Dokumente und Features zählen}
 ndoc(meine.dfm)
 nfeat(meine.dfm)
 ```
 
-Mittels der Funktionen [docnames()](https://docs.quanteda.io/reference/docnames.html) und 
-[featnames()](https://docs.quanteda.io/reference/featnames.html) lassen sich die Namen der Dokumente und Features ausgeben.
+Mittels der Funktionen [docnames](https://docs.quanteda.io/reference/docnames.html) und 
+[featnames](https://docs.quanteda.io/reference/featnames.html) lassen sich die Namen der Dokumente und Features ausgeben.
 
 ```{r Dokumente und Features anzeigen}
-head(docnames(meine.dfm)) # In der DFM enthaltene Dokumente 
-head(featnames(meine.dfm), 50) # Features in chronologischer Reihenfolge
+head(docnames(meine.dfm)) 
+head(featnames(meine.dfm))
 ```
 
-Die tabellarische Ansicht illustriert den Inhalt der DFM als Text-Wort-Matrix am besten. Die sparsity ("Spärlichkeit") einer DFM beschreibt dabei den Anteil der leeren Zellen, also Wörter, die nur in sehr wenigen Texten vorkommen. Wie sich leicht ableiten lässt, werden DFMs sehr schnell sehr groß. Zum Glück macht sich quanteda eine Reihe von für den Nutzer unsichtbaren Funktionen aus anderen Paketen zunutze, um diesem Problem zu begegnen. 
+Die tabellarische Ansicht illustriert den Inhalt der DFM als Text-Wort-Matrix am besten. Wie bereits angedeutet, beschreibt die *Sparsity* ("Spärlichkeit") einer DFM dabei den Anteil der leeren Zellen, also Wörter, die nur in sehr wenigen Texten vorkommen. Wie sich leicht ableiten lässt, werden DFMs sehr schnell sehr groß. Zum Glück macht sich Quanteda eine Reihe von für den Nutzer unsichtbaren Funktionen aus anderen Paketen zunutze, um diesem Problem zu begegnen. 
 
 ```{r Features/Texte als Matrix}
-head(meine.dfm, n = 12, nf = 10) # Features/Texte als Matrix
+head(meine.dfm, n = 12, nf = 5)
 ```
 
 Gleich an den ersten Blick fällt auf, das die Wörter 'sherlock' und 'holmes' in allen Romanen vorkommen, also sehr wenig distinktiv sind, weshalb wir sie unter Umständen zu den Stoppwörtern für dieses Korpus hinzufügen sollten. 
 
-Die Funktion [topfeatures()](https://docs.quanteda.io/reference/topfeatures.html) zählt Features in der gesamten DFM aus. Die Funktion [textstat_frequency()](https://docs.quanteda.io/reference/textstat_frequency.html) liefert zusätzlich noch den Rang (rank), die Anzahl der Dokumente, in denen das Feature vorkommt (docfreq) sowie Metadaten, nach denen bei der Zählung gefiltert wurde (grundsätzlich ist textstat_frequncy gegenüber topfeatures zu bevorzugen).
+Die Funktion [topfeatures](https://docs.quanteda.io/reference/topfeatures.html) zählt Features in der gesamten DFM aus. 
 
-```{r Worthäufigkeiten berechnen}
-topfeatures(meine.dfm) # Features nach Frequenz
-worthaeufigkeiten <- textstat_frequency(meine.dfm) # Worthäufigkeiten
+```{r Einfache Worthäufigkeiten berechnen}
+topfeatures(meine.dfm)
+```
+
+Die Funktion [textstat_frequency](https://docs.quanteda.io/reference/textstat_frequency.html) liefert zusätzlich zu dieser Angabe noch den Rang (rank), die Anzahl der Dokumente, in denen das Feature vorkommt (docfreq) sowie Metadaten, nach denen bei der Zählung gefiltert wurde. Grundsätzlich ist textstat_frequncy gegenüber topfeatures zu bevorzugen.
+
+```{r Detaillierte Worthäufigkeiten berechnen}
+worthaeufigkeiten <- textstat_frequency(meine.dfm)
 head(worthaeufigkeiten)
 ```
 
 
 #### Mit DFMs arbeiten
 
-DFMs lassen sich mit [dfm_sort](https://docs.quanteda.io/reference/dfm_sort.html) leicht nach Dokument- und Feature-Frequenzen sortieren.
+DFMs lassen sich mit [dfm_sort](https://docs.quanteda.io/reference/dfm_sort.html) leicht nach Dokument- und Feature-Frequenzen sortieren. Das ist in der Praxis unter anderem dann hilfreich, wenn man einen besseren Einblick in den Inhalt einer großen DFM bekommen möchte. Hier lassen wir uns zwölf Dokumente (n = 12) und (nur) fünf Features (nf = 5) ausgeben und sortieren dabei absteigend nach der Feature-Frequenz.
 
 ```{r DFMs sortieren}
-head(dfm_sort(meine.dfm, decreasing = TRUE, margin = "both"), n = 12, nf = 10) 
+head(dfm_sort(meine.dfm, decreasing = TRUE, margin = "features"), n = 12, nf = 5) 
 ```
 
 Weiterhin lassen sich bestimmte Features einer DFM gezielt mittels [dfm_select](https://docs.quanteda.io/reference/dfm_select.html) auswählen.
@@ -214,38 +307,47 @@ Weiterhin lassen sich bestimmte Features einer DFM gezielt mittels [dfm_select](
 dfm_select(meine.dfm, pattern = "lov*")
 ```
 
-Die Funktion [dfm_wordstem()](https://docs.quanteda.io/reference/dfm_wordstem.html) reduziert Wörter auf ihre Stammform. Diese Funktion existiert in quanteda derzeit nur für Englisch und ist auch dort nur begrenzt zuverlässig, was die folgende Ausgabe gut illustriert ('holm' ist kein Wortstamm). 
+Die Funktion [dfm_wordstem](https://docs.quanteda.io/reference/dfm_wordstem.html) reduziert Wörter auf ihre Stammform. Diese Funktion existiert in quanteda derzeit nur für Englisch und ist auch dort nur begrenzt zuverlässig, was die folgende Ausgabe gut illustriert ('holm' ist natürlich kein Wortstamm). 
 
 ```{r Wortstammreduktion}
 meine.dfm.stemmed <- dfm_wordstem(meine.dfm)
 topfeatures(meine.dfm.stemmed)
 ```
 
-Ebenso wie bei Wortfrequenzen in Korpora ist die Gewichtung einer DFM nach relativen Wortfrequenzen und Verfahren wie [TF-IDF](https://de.wikipedia.org/wiki/Tf-idf-Ma%C3%9F) oftmals sinnvoll. Die Gewichtung einer DFM funktioniert immer aufgrund der Wort-Text-Relation, weshalb topfeatures() in Kombination mit [dfm_weight()](https://docs.quanteda.io/reference/dfm_weight.html) merkwürdige Resultate produziert. Relative Frequenzen und TF-IDF sind nur kontrastiv innerhalb der Text in einem Korpus sinnvoll (hier für 'A Scandal in Bohemia'), da für das gesamte Korpus relative Frequenz == absolute Frequenz
+Ebenso wie bei Wortfrequenzen in Korpora ist die Gewichtung einer DFM nach relativen Wortfrequenzen und Verfahren wie [TF-IDF](https://de.wikipedia.org/wiki/Tf-idf-Ma%C3%9F) oftmals sinnvoll. Praktischerweise beherrscht die Quanteda-Funktion [dfm_weight](https://docs.quanteda.io/reference/dfm_weight.html) eine ganze Reihe von Gewichtungsansätzen um relative Wortfrequenzen zu berechnen. 
 
-```{r DFMs gewichten}
-meine.dfm.proportional <- dfm_weight(meine.dfm, scheme = "prop")
-topfeatures(meine.dfm) # absolute Frequenzen für das gesamte Korpus
-topfeatures(meine.dfm.proportional) # ...ergibt wenig Sinn
-topfeatures(meine.dfm.proportional[1,]) # ...ergibt mehr Sinn
+Zunächst schauen wir uns noch einmal die absoluten Wortfrequenzen für das gesamte Korpus an.
+
+```{r Absolute Wortfrequenzen für das Gesamtkorpus}
+topfeatures(meine.dfm)
 ```
 
-Im zweiten Beispiel sehen wir etwa, dass 'A Scandal in Bohemia' einen leicht höheren Anteil von Nennungen der Wortes 'holmes' hat, als dies im Gesamtkorpus der Fall ist. Dazu später noch etwas mehr.  
+Dann verwenden wir [dfm_weight](https://docs.quanteda.io/reference/dfm_weight.html) um diese proportional zur Gesamtwortanzahl des Romans zu gewichten. 
 
-Die Gewichtungsansätze Propmax und TF-IDF liefern relevante Wortmetriken, zum Beispiel für die Bestimmung von Stoppwörtern. Propmax skaliert die Worthäufigkeit relativ zum frequentesten Wort (hier 'holmes'). Funktional ähneln sich TF-IDF und der später vorgestellte Keyness-Ansatz -- beide finden besonders distinktive Terme.
+```{r Relative Wortfrequenzen für das Gesamtkorpus}
+meine.dfm.proportional <- dfm_weight(meine.dfm, scheme = "prop")
+topfeatures(meine.dfm.proportional)
+```
 
-```{r Propmax-Gewichtung und TF-IDF}
+Das ist aber noch nicht alles. Die Gewichtung einer DFM basiert bei bestimmten Gewichtungsmechanismen (propmax, augmented, logave sowie TF-IDF) auf der Wort-Dokument-Relation, weshalb topfeatures() in Kombination mit diesen Gewichtungen merkwürdige Resultate produziert.
+
+Die Gewichtungsansätze Propmax und TF-IDF liefern relevante Wortmetriken, zum Beispiel für die Bestimmung von Stoppwörtern. Propmax skaliert die Worthäufigkeit relativ zum frequentesten Wort (hier 'holmes' in 'A Scandal in Bohemia'). 
+
+```{r Gewichtung eine DFM nach Propmax }
 meine.dfm.propmax <- dfm_weight(meine.dfm, scheme = "propmax")
 topfeatures(meine.dfm.propmax[1,])
-
-meine.dfm.tfidf <- dfm_tfidf(meine.dfm)
-topfeatures(meine.dfm.tfidf)
 ```
 
-Schließlich lässt sich mit [dfm_trim()](https://docs.quanteda.io/reference/dfm_trim.html) noch eine reduzierten Dokument-Feature-Matrix erstellen. Das ist dann sinnvoll, wenn man davon ausgeht, dass beispielsweise nur solche Begriffe eine Rolle spielen, die mindestes X mal im Gesamtkorpus vorkommen. Auch eine Mindestzahl oder ein Maximum an Dokumenten, in denen ein Begriff vorkommen muss oder darf, kann bestimmt werden. Schließlich lassen sich beide Filteroptionen auch proportional anwenden (vgl. Beispiel).
+Funktional ähneln sich TF-IDF und der später vorgestellte Keyness-Ansatz -- beide finden besonders distinktive Terme. Beim Vergleich von Propmax und TF-IDF wird deutlich, dass die wörter 'holmes' und 'said' zwar besonders häufig in 'A Scandal in Bohemia' vorkommen, aber nicht unbedingt besonders distinktiv sind, weil sie logischerweise im gesamten Korpus frequent sind, während etwa das Wort 'photograph' sowohl oft vorkommt, als auch für diesen Roman kennzeichnend ist.
 
-Features, die mindestens in 11 Romanen vorkommen
-Features im 95. Häufigkeitsperzentil (=Top 5% aller Features)
+```{r Gewichtung einer DFM nach TF-IDF}
+meine.dfm.tfidf <- dfm_tfidf(meine.dfm)
+topfeatures(meine.dfm.tfidf[1,])
+```
+
+Schließlich lässt sich mit [dfm_trim](https://docs.quanteda.io/reference/dfm_trim.html) noch eine reduzierten Dokument-Feature-Matrix erstellen. Das ist dann sinnvoll, wenn man davon ausgeht, dass beispielsweise nur solche Begriffe eine Rolle spielen, die mindestes X mal im Gesamtkorpus vorkommen. Auch eine Mindestzahl oder ein Maximum an Dokumenten, in denen ein Begriff vorkommen muss oder darf, kann bestimmt werden. Schließlich lassen sich beide Filteroptionen auch proportional anwenden (vgl. Beispiel).
+
+Die erste 'getrimmte' DFM enthält lediglich solche Features, die mindestens in 11 Romanen vorkommen, die zweite hingegen solche Features im 95. Häufigkeitsperzentil (=Top 5% aller Features).
 
 ```{r DFMs trimmen}
 meine.dfm.trim <- dfm_trim(meine.dfm, min_docfreq = 11)
@@ -258,16 +360,16 @@ head(meine.dfm.trim, n = 12, nf = 10)
 
 #### DFMs visualisieren
 
-DFMs lassen sich u.a. auch als Wortwolke der häufigsten Begriffe darstellen. 
+DFMs lassen sich schließlich auch grafisch darstellen, etwa als Wortwolke der häufigsten Begriffe.
 
 ```{r Wortwolke nach Häufigkeit}
-textplot_wordcloud(meine.dfm, max_words = 100, scale = c(5,1))
+textplot_wordcloud(meine.dfm, min_size = 1, max_size = 5, max_words = 100)
 ```
 
-Interessanter als die Darstellung des Gesamtkorpus ist auch hier der Vergleich. Das folgende Plot zeigt die distinktivsten Begriffe nach TF-IDF für vier Romane, wobei die Farbe den jeweiligen Roman kennzeichnet. Dass im Plot die Wortgröße nicht die absolute Frequenz anzeigt, sondern den TF-IDF-Wert, macht ein solches Plot für den unmittelbaren Vergleich nützlich.
+Interessanter als die Darstellung des Gesamtkorpus ist auch hier der Vergleich. Das folgende Plot zeigt die distinktivsten Begriffe für vier Romane, wobei die Farbe den jeweiligen Roman kennzeichnet. Dass im Plot die Wortgröße nicht die absolute Frequenz anzeigt, sondern die jeweils distinktivsten Begriffe, macht ein solches Plot für den unmittelbaren Vergleich nützlich.
 
-```{r Wortwolke nach TF-IDF je Roman}
-textplot_wordcloud(meine.dfm.tfidf[1:4,], color = brewer.pal(4, "Set1"), comparison = T)
+```{r Vergleichende Wortwolke für vier Romane}
+textplot_wordcloud(meine.dfm[1:4,], color = brewer.pal(4, "Set1"), min_size = 0.2, max_size = 4, max_words = 50, comparison = TRUE)
 ```
 
 
@@ -278,3 +380,5 @@ Grundsätzlich muss in diesen Kapitel zwischen den geschildertern grundlegenden 
 Techniken wie die Tokenisierung von Korpora, die Normalisierung von Wortfrequenzen, und die Erstellung und Gewichtung von DFMs (oder klassisch "document feature matrices") ist buchstäblicher Kern der Computerlinguistik, daher sollte es nicht verwundern, dass hier auflagenstarke Standardwerke existieren, etwa Manning und Schütze ().  
 
 Hauptquelle zu quanteda ist die Projekwebsite, die einerseits eine Reihe von Tutorials zu einzelnen Einsatzbereichen enthält (etwa Sentimentanalyse...), denen die hier aufgeführten Beispiele z.T. sehr ähnlich sind, zum anderen aber auch eine Funktionsregerenz, welche die einzeln Befehle systematisch gruppiert und erklärt. Neben der quanteda hithub_Seite, über die man die aktuelle Emtwivklerversion des Pakets neziehen kann, ist vor allem das quanteda-Forum zu empfehlen, wo konkrete Fragen vom Programmiererteam beantwortet werden.
+
+
