@@ -12,7 +12,7 @@ Todos
 * ...
 -->
 
-Der Import von Daten gehört nach meiner Erfahrung zu den wichtigsten Themen, wenn es um studentische Projekte unter Nutzung der automatisierten Inhaltsanalyse geht. Aber auch bei großen Forschungvorhaben sind die Verfügbarkeit, Vorverarbeitung und Speicherung von Textdaten grundsätzlich bedeutende Aspekte eines Projekts, die sorgfältig geplant werden sollten. Daher mag es verwundern, dass ein Kapitel, welches Werkzeuge und Techniken für den Import von Textinhalten nach R vorstellt, nicht gleich zu Beginn dieser Einführung steht, sondern erst ganz am Schluss. Grund für diesen Umstand ist die vielfache Erfahrung, dass die erfolgreiche Datenbeschaffung und der Import von Daten oft (zu) viel Zeit in Anspruch nehmen, worunter die Analyse spürbar leidet. Gerade in der Lehre ist dies aus offensichtlichen Gründen ein Problem –– nicht die intellektuell eher langweilige aber immer wichtige Erhebung, Speicherung und Vorverarbeitung von Texten sollte im Mittelpunkt eines solchen Überblicks stehen, sondern die eigentliche Analyse. Aus diesem Grund gebe ich in dieser Einführung bewusst bereits bereinigte Datensätze vor, auch wenn dies gewisse Einschränkungen bezüglich der Vielfalt mit sich bringt 
+Der Import von Daten gehört nach meiner Erfahrung zu den wichtigsten Themen, wenn es um studentische Projekte unter Nutzung der automatisierten Inhaltsanalyse geht. Aber auch bei großen Forschungvorhaben sind die Verfügbarkeit, Vorverarbeitung und Speicherung von Textdaten grundsätzlich bedeutende Aspekte eines Projekts, die sorgfältig geplant werden sollten. Daher mag es verwundern, dass ein Kapitel, welches Werkzeuge und Techniken für den Import von Textinhalten nach R vorstellt, nicht gleich zu Beginn dieser Einführung steht, sondern erst ganz am Schluss. Grund für diesen Umstand ist die vielfache Erfahrung, dass die erfolgreiche Datenbeschaffung und der Import von Daten oft (zu) viel Zeit in Anspruch nehmen, worunter die Analyse spürbar leidet. Gerade in der Lehre ist dies aus offensichtlichen Gründen ein Problem –– nicht die intellektuell eher langweilige aber immer wichtige Erhebung, Speicherung und Vorverarbeitung von Texten sollte im Mittelpunkt eines solchen Überblicks stehen, sondern die Bearbeitung sozialwissenschaftlicher Fragestellungen. Aus diesem Grund gebe ich in dieser Einführung bewusst bereits bereinigte Datensätze vor, auch wenn dies gewisse Einschränkungen bezüglich der Vielfalt mit sich bringt 
 
 Ein weiterer Gesichtspunkt, der bei der Erstellung neuer Korpora mitunter vergessen wird, liegt in der stetig wachsenden Zahl exzellenter Datensätze auf Plattformen wie [GESIS Datorium](https://datorium.gesis.org/), dem [Harvard Dataverse](https://dataverse.harvard.edu/) und [Zenodo](https://zenodo.org/) begründet, die man häufig nachnutzen kann, und die sich über Werkzeuge wie die [Google Datensatzsuche](https://toolbox.google.com/datasetsearch) oder [Mendeley Data](https://data.mendeley.com) leicht auffinden lassen. Das ist auch dann interessant, wenn Rohdaten zwar theoretisch abrufbar sind, aber erst aufwändig vorverarbeitet werden müssen, bevor sich aus ihnen ein Korpus mit gut strukturierten Metadaten erstellen lässt (ein Beispiel hierfür sind etwa Dokumente öffentlicher Institutionen im PDF-Format). Korpora wie das hier verwendete Bundestagskorpus auf Grundlage von offenesparlament.de lassen sich nur mit ausgesprochen hohem Aufwand selbst aus den Originaldokumenten in einen geordneten Data Frame überführen. Da ist es intelligenter, standardisierte und gut dokumentierte Ressourcen zu verwenden (sofern diese vorliegen), als das sprichwörtliche Rad neu zu erfinden. Muss man doch selbst bereinigen und anreichern, sollte man dann aber auch unbedingt über eine Veröffentlichung der Daten auf einer der genannten Plattformen nachdenken -- gemäß den Prinzipien von Open Data und dem Motto '[pay it forward](https://en.wikipedia.org/wiki/Pay_it_forward)'. 
 
@@ -20,20 +20,22 @@ Ntürlich gibt es sehr viele Vorhaben, für die man eigens Daten erheben muss �
 
 Für die folgenden Dienste stelle ich in diesem Abschnitt Importfunktionen und -strategien vor:
 
-* LexisNexis
-* Factiva
-* COSMAS
-* arXiv
-* Web of Science
-* MediaCloud
 * Twitter
 * Facebook
 * YouTube
 * Reddit
 * Wikipedia
 * Web
+* LexisNexis
+* Factiva
+* COSMAS
+* MediaCloud
+* arXiv
+* Web of Science
 
-Dabei sind die Ansätze wie beschrieben sehr heterogen: von eigenes entwickeltem Code für das Einlesen von Textdaten (COSMAS, Web of Science) über Module existierender R-Bibliotheken (Lexis Nexis, Factiva), welche diese Aufgabe übernehmen, bis hin zu Daten-APIs, die über entsprechende Bibliotheken bereits strukturierte Daten liefern (arXiv, MediaCloud, Twitter, Facebook, YouTube). 
+Wie schnell ersichtlich wird, handelt es sich um Social Media–APIs, Nachrichtendatenbanken sowie Dienste, die wissenschaftliche Texte vorhalten. Es fehlen u.a. Parlamentskorpora und andere öffentliche Texte, was damit zusammenhängt, dass diese über Angebote Google Dataset Search relaltiv gut gefunden werden können, sofern sie maschinenlesbar abgelegt sind.
+
+Die Ansätze sind wie beschrieben sehr heterogen: von eigenes entwickeltem Code für das Einlesen von Textdaten (COSMAS, Web of Science) über Module existierender R-Bibliotheken (Lexis Nexis, Factiva), welche diese Aufgabe übernehmen, bis hin zu Daten-APIs, die über entsprechende Bibliotheken bereits strukturierte Daten liefern (arXiv, MediaCloud, Twitter, Facebook, YouTube). 
 
 Auch hier beginnen wir damit, die notwendigen Bibliotheken zu installieren bzw. zu laden.
 
