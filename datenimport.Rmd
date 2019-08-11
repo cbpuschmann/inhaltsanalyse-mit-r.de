@@ -48,6 +48,20 @@ if(!require("tm.plugin.factiva")) {install.packages("tm.plugin.factiva"); librar
 theme_set(theme_bw())
 ```
 
+### Twitter
+
+Der Kurznachrichtendienst Twitter ist zweifelsfrei eine der populärsten Social Media-Datenquellen in der sozialwissenschaftlichen Forschung. Sprichwörtliche Berge von Studien türmen sich auf, wenn man in einer einschlägigen wissenschaftlichen Suchmaschine wie etwa Google Scholar oder Microsoft Academic [nach Beiträgen zu Twitter sucht](https://academic.microsoft.com/search?q=twitter). Kaum ein Thema, von der Vorhersage von Wahlergebnissen hin zum Katastrophenschutz wird nich anhand von Twitter-Daten untersucht. Dies ist umso erstaunlicher, als dass Twitter im Vergleich zu anderen Plattformen eher klein und in Bezug auf die Repräsentativität seiner Nutzer eingeschränkte nützliche Plattform im Vergleich zu Facebook oder YouTube ist. Was Twitter jedoch in besonderem Maße kennzeichnet ist die Offenheit seiner Daten. Während andere Social Media-Plattformen zunehmend restriktiv agieren, sind Daten aus Twitter weitgehend frei verfügbar. Daten aus der Twitter API können vergleichsweise bequem mittels zahlreicher nutzerfreundlicher Bibliotheken für Python und R extrahiert und ausgewertet werden.
+
+Für R ist in besonderem Maße das Paket [rtweet](https://rtweet.info) relevant, mit dem sich besonders leicht Twitter–Daten extrahieren lassen.
+
+
+### Facebook
+
+Mit rund XXX Mio Nutzern ist Facebook die größte Social Networking Site weltweit. Wie auch Twitter besitzt Facebook eine API, über die sich Daten aus der Plattform abrufen lassen, allerdings hat sich hier als Reaktion auf den Cambridge Analytica–Skandal die Lage mit Blick auf diesen Datenzugang dramatisch verändert. Konnte mal noch 2015 problemlos Postings und Kommentare aus öffentlichen Facebookseiten mit  Libraries wie etwa [Rfacebook](https://cran.r-project.org/package=Rfacebook) abrufen.
+
+
+
+
 
 ### LexisNexis
 
