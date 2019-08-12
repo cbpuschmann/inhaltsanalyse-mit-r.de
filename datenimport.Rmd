@@ -57,8 +57,12 @@ Für R ist in besonderem Maße das Paket [rtweet](https://rtweet.info) relevant,
 
 ### Facebook
 
-Mit rund XXX Mio Nutzern ist Facebook die größte Social Networking Site weltweit. Wie auch Twitter besitzt Facebook eine API, über die sich Daten aus der Plattform abrufen lassen, allerdings hat sich hier als Reaktion auf den Cambridge Analytica–Skandal die Lage mit Blick auf diesen Datenzugang dramatisch verändert. Konnte mal noch 2015 problemlos Postings und Kommentare aus öffentlichen Facebookseiten mit  Libraries wie etwa [Rfacebook](https://cran.r-project.org/package=Rfacebook) abrufen.
+Mit rund XXX Mio Nutzern ist Facebook die größte Social Networking Site weltweit. Wie auch Twitter besitzt Facebook eine API, über die sich Daten aus der Plattform abrufen lassen, allerdings hat sich hier als Reaktion auf den Cambridge Analytica–Skandal die Lage mit Blick auf diesen Datenzugang dramatisch verändert. Konnte mal noch 2015 problemlos Postings und Kommentare aus öffentlichen Facebookseiten mit  Libraries wie etwa [Rfacebook](https://cran.r-project.org/package=Rfacebook) abrufen, ist dies heute nur noch in absoluten Ausnahmefällen möglich.
 
+
+### YouTube 
+
+Im Vergleich zu Twitter und Facebook kann man bei YouTube in Bezug auf die kommunikationswissenschaftliche Forschung davon sprechen, dass die Plattform in Relation zu ihrer Größe und Bedeutung insgesamt stark unterschätzt wird, bzw. unterforscht ist. Natürlich nutzen Sozialwissenschaftler auch Daten aus YouTube, aber das geschieht in geringerem Umfang als bei Twitter oder Facebook, und als man das gemeinhin erwarten würde.
 
 
 
