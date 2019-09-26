@@ -12,7 +12,7 @@ Todos
 * ...
 -->
 
-Die Beziehung von Texten und Wörtern zueinander lässt sich neben den bisher vorgestellen Techniken auch noch mit einem weiteren Ansatz untersuchen. Die Netzwerkanalyse stellt eine sehr wichtige Methode der Sozialwissenschaften dar, die grundsätzlich für die Untersuchung von Akteursbeziehungen von großer Relevanz ist. Sie ist aber darüber hinaus auch durchaus für die automatisierte Inhaltsanalyse von Bedeutung, zum einen, weil sich mit ihr etwa abbilden lässt, welche Akteure zusammen in einem Text genannte werden, aber auch dann, wenn beispielsweise ermittelt werden soll, wer ähnliche Begriffe verwendet.
+Die Beziehung von Texten und Wörtern zueinander lässt sich neben den bisher vorgestellen Techniken auch noch mit einem weiteren Ansatz untersuchen. Die Netzwerkanalyse stellt eine sehr wichtige Methode der Sozialwissenschaften dar, die grundsätzlich für die Untersuchung von Akteursbeziehungen von großer Relevanz ist. Sie ist aber darüber hinaus auch durchaus für die automatisierte Inhaltsanalyse von Bedeutung, weil sich eine Reihe von Beziehungen als Netzwerk abbilden lassen. Das betrifft einerseits Zusammenhänge zwischen Wörtern untereinander und zwischen Wörtern und Texten, aber auch zwischen syntaktischen Einheiten, die etwa bestimmte Argumentationsmuster kennzeichnen.
 
 Bereits im zweiten Kapitel wurde eine der wichtigsten Komponenten von quanteda eingeführt: die DFM. In diesem Kapitel wenden wir uns nun dem Pendant der DFM für die Untersuchung der Übereinstimmung von Wörtern zu, der Feature Co-occurance Matrix (FCM). Eine FCM enthält in ihren Zeilen und Spalten jeweils alle Wörter, die im Korpus vorkommen.
 
