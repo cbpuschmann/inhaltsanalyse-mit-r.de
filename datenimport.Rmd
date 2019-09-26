@@ -43,6 +43,9 @@ if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("tm")) {install.packages("tm"); library("tm")}
 if(!require("tm.plugin.lexisnexis")) {install.packages("tm.plugin.lexisnexis"); library("tm.plugin.lexisnexis")}
 if(!require("tm.plugin.factiva")) {install.packages("tm.plugin.factiva"); library("tm.plugin.factiva")}
+
+if(!require("aRxiv")) {install.packages("aRxiv"); library("aRxiv")}
+
 theme_set(theme_bw())
 ```
 
@@ -103,17 +106,35 @@ Der folgende Code-Abschnitt lädt aus einem eigens für diese Einführung erstel
 
 ```{r COSMAS-Daten importieren und parsen}
 source("verschiedenes/inhaltsanalyse_import_cosmas.R", local = T)
-meine.cosmas.daten <- import_cosmas(path = "daten/cosmas/finanzkrise", pattern = "finanzkrise_.*.TXT", verbose = F)
+daten.cosmas <- import_cosmas(path = "daten/cosmas/finanzkrise", pattern = "finanzkrise_.*.TXT", verbose = F)
 ```
 
 Die Korpuserstellung funktioniert ähnlich wie bei Nexis und Factiva. Allerdings ist der Input hier ein Data Frame, daher müssen wir explizit machem, welche Variable die Dokument-ID und welche den Text enthält. Alle weiteren Spalten des Data Frames enthalten implizit docvars. 
 
 ```{r COSMAS-Daten in quanteda-Korpus umwandeln und speichern}
-korpus.cosmas <- corpus(daten.df, docid_field = "id", text_field = "text") 
-korpus.cosmas.stats <- summary(korpus, n = 1000000)
+korpus.cosmas <- corpus(daten.cosmas, docid_field = "id", text_field = "text") 
+korpus.cosmas.stats <- summary(korpus.cosmas, n = 1000000)
 head(korpus.cosmas.stats)
 #save(korpus.cosmas, korpus.cosmas.stats, file = "cosmas.korpus.RData")
 ```
+
+
+### arXiv
+
+Nich nur Pressetexte lassen sich mit R abrufen, einlesen und in Korpora überführen. Auch wissenschaftliche Quellen bieten sich für die Auswertung an, um etwa Fragen zur Entwicklung von Forschungsfeldern, zur Interdisziplinarität oder zu Entwicklung von Wissenschaftsbiographien anhand von Inhaltsdaten zu bearbeiten. 
+
+Das [arXiv](https://arxiv.org/) (gesprochen wie "archive") ist das weltweite größte [Pre-Print-Repositorium](https://de.wikipedia.org/wiki/Dokumentenserver), mit mehr als 1,5 Mio. Arbeitspapieren, vor allem aus den Bereichen Physik, Mathematik und Informatik. Da alle Papiere Open Access-Veröffentlichungen sind, lassen sich über die arXiv-API nahezu unbeschränkt Daten ausdem Repositorium herunterladen, wobei man darauf achten sollte, die kostenlos angebotenen Serverressourcen nicht zu überlasten, indem man in kurzer Folge zigtausende Anfragen stellt.
+
+Das R-Paket [aRxiv](https://github.com/ropensci/aRxiv), welches Teil der großartigen Initiative  [ropensci](https://ropensci.org/) ist, innerhalb derer Pakete zusammengestellt werden, die besonders für (natur)wissenschaftliche Forschung interessant sind, erleichtert den Zugriff auf Daten aus arXiv ungemein, wie das folgenden Beispiel belegt. Darin stellen wir einen Korpus aus Abstracts zusammen, welche den Begriff 'social media' enthalten. 
+
+```{r Daten aus arXiv importieren}
+daten.arxiv <- arxiv_search('abs:"social media"', limit = 2000)
+korpus.arxiv <- corpus(daten.arxiv, docid_field = "id", text_field = "abstract")
+korpus.arxiv.stats <- summary(korpus.arxiv, n = 1000000)
+head(korpus.arxiv.stats)
+```
+
+Details dazu, wie Anfragen konstruiert werden, findet man im [Handbuch zum R-Paket aRxiv](https://cran.r-project.org/package=aRxiv) sowie im der [Dokumentation der arXiv API](https://arxiv.org/help/api/user-manual#query_details).
 
 
 

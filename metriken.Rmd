@@ -21,22 +21,23 @@ Einige Beispiele:
 * Welche anderen Begriffe sind mit einem gesellschaftlichen Schlüsselbegriff ('Klima', 'Migration', 'Gerechtigkeit', 'Digitalisierung') verknüpft und wie verändern sich diese über die Zeit?
 * Wie ähnlich sind sich Online-Kommentare zu unterschiedlichen Themen?
 
-Diese und ähnliche Fragen werden in den folgenden Kapiteln aufgegriffen -- zunächst werden aber die Funktionen vorgestellt, welche die Arbeit mit Wörtern und Texten in quanteda ermöglichen. 
+Diese und ähnliche Fragen werden in den folgenden Kapiteln aufgegriffen -- zunächst werden aber die Funktionen vorgestellt, welche die Arbeit mit Wörtern und Texten in Quanteda ermöglichen. Dazu ziehen wir neben den bereits bewährten Sherlock Holmes-Daten auch zwei weitere Korpora heran.
 
 #### Installation und Laden der benötigten R-Bibliotheken, Laden des Korpus, Berechnen einer DFM
 
-Zunächst werden wieder die notwendigen Bibliotheken geladen. 
-
+Zunächst werden wieder die notwendigen Bibliotheken geladen. Das Paket [scales](https://cran.r-project.org/package=scales) kommt hier neu dazu, um unkompliziert Variablen reskalieren zu können.
 
 ```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
+if(!require("scales")) {install.packages("scales"); library("scales")}
+if(!require("ggdendro")) {install.packages("ggdendro"); library("ggdendro")}
 theme_set(theme_bw())
 ```
 
-Nun wird in einem zweiten Schritt das Sherlock-Korpus geladen, welches wir bereits im ersten Kapitel mittels [readtext()](https://readtext.quanteda.io/reference/readtext.html) aus dem Rohtext erstellt und als RData-Datei gespeichert haben. In der RData-Datei ist nebem dem Korpus selbst auch eine mit summary() erstellter Data Frame enthalten, welcher die Korpus-Metadaten enthält. Zum einen sparen wir uns so das anlegen eines Korpus, zum anderen ist das RData-Format komprimiert, was sich bei Textdaten durchaus bemerkbar macht.
+Nun wird in einem zweiten Schritt das Sherlock-Korpus geladen, welches wir bereits im ersten Kapitel mittels [readtext](https://readtext.quanteda.io/reference/readtext.html) aus dem Rohtext erstellt und als RData-Datei gespeichert haben. In der RData-Datei ist nebem dem Korpus selbst auch eine mit [summary](https://www.rdocumentation.org/packages/quanteda/versions/1.5.0/topics/summary.corpus) erstellter Data Frame enthalten, welcher die Korpus-Metadaten enthält. Zum einen sparen wir uns so das Anlegen eines Korpus, zum anderen ist das RData-Format komprimiert, was sich bei Textdaten durchaus bei der Dateigröße bemerkbar macht.
 
-Als nächstes berechnen wir dann auf Grundlage des Korpus-Objekts wieder eine DFM (vgl. [Kapitel 1](1_grundlagen.html)), da wir diese später noch benötigen. 
+Als nächstes berechnen wir dann auf Grundlage des Quanteda-Korpus-Objekts wieder eine DFM (vgl. [Kapitel 1](1_grundlagen.html)), da wir diese später noch benötigen. 
 
 ```{r Lades des Sherlock Holmes-Korpus und Berechnen einer DFM}
 load("daten/sherlock/sherlock.korpus.RData")
@@ -46,13 +47,20 @@ meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symb
 
 #### Korkordanzen erstellen
 
-Zu den einfachsten Funktionen von quanteda gehört die Möglichkeit, [Konkordanzen](https://de.wikipedia.org/wiki/Konkordanz_(Textwissenschaft)) (auch KWIC genannt) zu erstellen, also die Textstelle eines Suchterms sowie dessen umgebenden Satzekontext zu extrahieren. Konkordanzen lassen sich in quanteda für einzelen Wörter, aber auch für Phrasen erzeugen. Oftmals ist der Export einer Konkodanz (etwa als CSV-Datei, die mit Excel geöffnet werden kann) neben der Darstellung innerhalb von R besonders nützlich. Dies geschieht hier mit der Funktion [write_delim()](https://readr.tidyverse.org/reference/write_delim.html).
+Zu den einfachsten Funktionen von Quanteda gehört die Möglichkeit, [Konkordanzen](https://de.wikipedia.org/wiki/Konkordanz_(Textwissenschaft)) (auch KWIC genannt) zu erstellen, also die Textstelle eines Suchterms sowie dessen umgebenden Satzekontext zu extrahieren. Strenggenommen gehört diese Funktion nicht in den Bereich der Wort- und Textmetriken, wir behandeln sich aber hier, und nicht im ohnehin sehr umfangreichen ersten Kapitel, da wie auch bei den Wortmetriken bei Konkordanzen der Umgang mit Wörtern und ihr Kontext im Mittelpunkt steht.
+
+Konkordanzen lassen sich in Quanteda für einzelen Wörter, aber auch für ganze Phrasen erzeugen. Oftmals ist der Export einer Konkodanz (etwa als CSV-Datei, die mit Excel geöffnet werden kann) neben der Darstellung innerhalb von R besonders nützlich. Dies geschieht hier mit der Funktion [write_delim()](https://readr.tidyverse.org/reference/write_delim.html).
 
 *Anmerkung: Die Konkordanz kann mit dem kleinen Pfeil rechts oben gescrollt werden.*
 
-```{r Konkordanz erstellen}
-konkordanz <- kwic(korpus, "data")
+```{r Einfache Konkordanz erstellen}
+konkordanz <- kwic(korpus, "happy")
 konkordanz
+```
+
+Konkordanzen bestehen aus den Metadaten (Textname und Position), dem linken Kontext, dem Suchterm, sowie dem rechten Kontext. Die erste Konkordanz enthält alle Vorkommnisse des Begriffs 'data' im Korpus. 
+
+```{r Komplexere Konkordanzen erstellen}
 konkordanz <- kwic(korpus, phrase("John|Mary [A-Z]+"), valuetype = "regex", case_insensitive = FALSE)
 konkordanz
 konkordanz <- kwic(korpus, c("log*", "emot*"), window = 10, case_insensitive = FALSE)
@@ -60,28 +68,46 @@ konkordanz
 write_delim(konkordanz, path = "konkordanz.csv", delim = ";") # Datei ist Excel-kompatibel
 ```
 
-Die Konkordanzen bestehen aus den Metadaten (Textname und Position), dem linken Kontext, dem Suchterm, sowie dem rechten Kontext. Die erste Konkordanz enthält alle Vorkommnisse des Begriffs 'data', die zweite alle Vorkommnisse der Namen 'John' und 'Mary' gefolgt von einem weiteren Wort in Großschreibung (i.d.R. der Nachname). Die dritte Konkordanz enthält schließlich die Wortfragmente 'log' und 'emot', also Wörter wie 'logical' und 'emotional', aber auch die Pluralform 'emotions'. Strenggenommen handelt es sich hierbei nicht um Wortstämme, weil die Flexionsform bei unregelmäßigen Wörtern ganz vom Lemma abweicht (vgl. 'go' und 'went'). In den meisten sozialwissenschaftlichen Anwendungsszenarien ist es aber bereits ausreichend, durch die Verwendung von Platzhaltern (*) verschieden Wortvarianten zu identifizieren. Hier bringt quanteda eine Reihe nützlicher Eigenschaften mit, die in der Dokumentation von [kwic()](http://docs.quanteda.io/reference/kwic.html) genau beschrieben werden. 
+Die zweite Konkordanz enthält Vorkommnisse der Namen 'John' und 'Mary' gefolgt von einem weiteren Wort in Großschreibung (i.d.R. der Nachname). Die dritte Konkordanz enthält schließlich die Wortfragmente 'log' und 'emot', also Wörter wie 'logical' und 'emotional', aber auch die Pluralform 'emotions'. Strenggenommen handelt es sich hierbei nicht um Wortstämme, weil die Flexionsform bei unregelmäßigen Wörtern ganz vom Lemma abweicht (vgl. 'go' und 'went'). In den meisten sozialwissenschaftlichen Anwendungsszenarien ist es aber bereits ausreichend, durch die Verwendung von Platzhaltern (*) verschieden Wortvarianten zu identifizieren. Hier bringt Quanteda eine Reihe nützlicher Eigenschaften mit, die in der Dokumentation von [kwic()](http://docs.quanteda.io/reference/kwic.html) genau beschrieben werden. 
 
 Als nächstes berechnen wir die Häufigkeit und Dispersion von Tokens pro Erzählung, welche die Begriffe 'dark' und 'light' enthalten. 
 
-```{r Häufigkeit von Tokens anhand von KWIC}
-term1 <- kwic(korpus, "dark", valuetype = "regex", case_insensitive = FALSE) %>% group_by(docname) %>% summarise(Treffer = n()) %>% mutate(Prozentanteil = Treffer/(korpus.stats$Tokens/100), Suchterm = "dark") %>% arrange(desc(Prozentanteil))
-term2 <- kwic(korpus, "light", valuetype = "regex", case_insensitive = FALSE) %>% group_by(docname) %>% summarise(Treffer = n()) %>% mutate(Prozentanteil = Treffer/(korpus.stats$Tokens/100), Suchterm = "light") %>% arrange(desc(Prozentanteil))
+```{r Häufigkeit von Tokens bestimmen anhand von KWIC}
+term1 <- kwic(korpus, "dark", valuetype = "regex", case_insensitive = FALSE) %>% 
+  group_by(docname) %>% 
+  summarise(Treffer = n()) %>% 
+  mutate(Prozentanteil = Treffer/(korpus.stats$Tokens/100), Suchterm = "dark") %>% 
+  arrange(desc(Prozentanteil))
+term2 <- kwic(korpus, "light", valuetype = "regex", case_insensitive = FALSE) %>% 
+  group_by(docname) %>% 
+  summarise(Treffer = n()) %>% 
+  mutate(Prozentanteil = Treffer/(korpus.stats$Tokens/100), Suchterm = "light") %>% 
+  arrange(desc(Prozentanteil))
 term1
 term2
 ```
 
-Wieder wenden wir zunächst die Funktion kwic() an, allerdings hier in Kombination mit mehreren Funktionen aus dem Paket dplyr (tidyverse). Diese Funktionen haben nichts mit quanteda zu tun, sondern sind für die Umformung jeglicher Daten in R nützlich (wer mehr wissen möchte, sollte sich [dieses Buch](http://r4ds.had.co.nz/) anschauen). Während zuvor einfach die resultierende Konkordanz ausgegeben wurde, wird das Ergebnis jetzt mit Hilfe der Funktionen [group_by()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/group_by), [summarise()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/summarise), [mutate()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/mutate) und [arrange()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/arrange) weiter verarbeitet. Dabei machen wir uns die Tatsache zunutze, dass in einem KWIC-Ergebnis bereits alle Informationen vorliegen, um die absolute und relative Frequenz eines Begriffs (hier 'light' und 'dark') in einer Reihe von Dokumenten zu berechnen. Den Prozentanteil haben wir dabei einfach mittels Dreisatz abgeleitet (mit *Treffer/(korpus.stats$Tokens/100)*).
+Wieder wenden wir zunächst die Funktion kwic() an, allerdings hier in Kombination mit mehreren Funktionen aus dem Paket dplyr (tidyverse). Diese Funktionen haben nichts mit Quanteda zu tun, sondern sind für die Umformung jeglicher Daten in R nützlich (wer mehr wissen möchte, sollte sich [dieses Buch](http://r4ds.had.co.nz/) anschauen). Während zuvor einfach die resultierende Konkordanz ausgegeben wurde, wird das Ergebnis jetzt mit Hilfe der Funktionen [group_by()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/group_by), [summarise()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/summarise), [mutate()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/mutate) und [arrange()](https://www.rdocumentation.org/packages/dplyr/versions/0.7.6/topics/arrange) weiter verarbeitet. Dabei machen wir uns die Tatsache zunutze, dass in einem KWIC-Ergebnis bereits alle Informationen vorliegen, um die absolute und relative Frequenz eines Begriffs (hier 'light' und 'dark') in einer Reihe von Dokumenten zu berechnen. Den Prozentanteil haben wir dabei einfach mittels Dreisatz abgeleitet (mit *Treffer/(korpus.stats$Tokens/100)*).
 
-Wortfrequenzen lassen sich allerdings wesentlich einfacher durch die quanteda-eigenen Funktion [textstat_frequency()](https://docs.quanteda.io/reference/textstat_frequency.html) umsetzen, die wir folgend auch konsequent nutzen werden -- auch dazu gleich noch etwas mehr. 
+Wortfrequenzen lassen sich allerdings wesentlich einfacher durch die Quanteda-eigenen Funktion [textstat_frequency](https://quanteda.io/reference/textstat_frequency.html) umsetzen, die wir folgend auch konsequent nutzen werden -- auch dazu gleich noch etwas mehr. 
 
 Zunächst plotten wie die absolute und relativen Häufigkeit der beiden Begriffe.
 
 ```{r Absolute und relative Häufigkeit plotten}
 terme.kombiniert <- bind_rows(term1, term2)
 terme.kombiniert$docname <- factor(terme.kombiniert$docname, levels = levels(korpus.stats$Text))
-ggplot(terme.kombiniert, aes(docname, Treffer, group = Suchterm, col = Suchterm)) + geom_line(size = 1) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Häufigkeit der Suchbegriffe \"dark\" und \"light\" pro Roman (absolut)") + xlab("Roman") + ylab("Wörter (gesamt)")
-ggplot(terme.kombiniert, aes(docname, Prozentanteil, group = Suchterm, col = Suchterm)) + geom_line(size = 1) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + ggtitle("Häufigkeit der Suchbegriffe \"dark\" und \"light\" pro Roman (relativ)") + xlab("Roman") + ylab("Wörter (%)")
+ggplot(terme.kombiniert, aes(docname, Treffer, group = Suchterm, col = Suchterm)) + 
+  geom_line(size = 1) + 
+  scale_colour_brewer(palette = "Set1") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+  ggtitle("Häufigkeit der Suchbegriffe \"dark\" und \"light\" pro Roman (absolut)") + 
+  xlab("Roman") + ylab("Wörter (gesamt)")
+ggplot(terme.kombiniert, aes(docname, Prozentanteil, group = Suchterm, col = Suchterm)) + 
+  geom_line(size = 1) + 
+  scale_colour_brewer(palette = "Set1") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+  ggtitle("Häufigkeit der Suchbegriffe \"dark\" und \"light\" pro Roman (relativ)") + 
+  xlab("Roman") + ylab("Wörter (%)")
 ```
 
 Wir sehen zwei unterschiedliche Berechnungen: das erste Plot zeigt die absolute Häufigkeit der beiden Begriffe, das zweite hingegen den relativen Prozenzanteil des Begriffs an der Gesamtwortzahl des jeweiligen Romans. Wieso sind die beiden Plots nahezu identisch? Dies hat mit der im Vergleich relativ ähnlichen Wortanzahl der Romane untereinander zu tun (zwischen 8,500 und 12,000 Tokens). Sind zwei Teilkorpora von sehr unterschiedlicher Größe, ist eine Normalisierung der Wortfrequenzen extrem wichtig, da sonst die Ergebnisse massiv verzerrt werden. Auch so ergeben sich durchaus Unterschiede, wenn man etwa den Anteil von 'The Adventure of the Speckled Band' und 'The Adventure of the Copper Beeches' vergleicht. Während die Anszahl der absoluten Treffer auf 'light' in beiden Romanen identisch ist, fällt der relative Anteil bei 'Speckled Band' im Vergleich ab. 
@@ -89,20 +115,72 @@ Wir sehen zwei unterschiedliche Berechnungen: das erste Plot zeigt die absolute 
 Was tun, wenn man sich weniger für die Häufigkeit als für die Position der Suchterme interessiert? Dazu kann das Plotten der Begiffsdispersion als 'xray-plot' nützlich sein, wozu die Funktion [textplot_xray](https://docs.quanteda.io/reference/textplot_xray.html) existiert. Die X-Achse stellt hierbei die Position innerhalb des Textes dar, an dem der Suchbegriff vorkommt. 
 
 ```{r Lexikalische Dispersion plotten}
-textplot_xray(kwic(korpus, "dark", valuetype = "regex", case_insensitive = FALSE)) + ggtitle("Lexikalische Dispersion von \"dark\" in Sherlock Holmes")
-textplot_xray(kwic(korpus, "light", valuetype = "regex", case_insensitive = FALSE)) + ggtitle("Lexikalische Dispersion von \"light\" in Sherlock Holmes")
+textplot_xray(kwic(korpus, "dark", valuetype = "regex", case_insensitive = FALSE)) + 
+  ggtitle("Lexikalische Dispersion von \"dark\" in Sherlock Holmes")
+textplot_xray(kwic(korpus, "light", valuetype = "regex", case_insensitive = FALSE)) + 
+  ggtitle("Lexikalische Dispersion von \"light\" in Sherlock Holmes")
 ```
 
 
+#### Wortfrequenzen
+
+Im erste Kapitel wurde bereits kurz erläutert, wie mittels [topfeatures](https://quanteda.io/reference/topfeatures.html) Wortfreuqnzen in einem Korpus oder einer DFM ermittelt werden können, und vorherigen Abschnitt haben wir dies durch den etwas hemdsärmerligen Einsatz von [kwic](https://quanteda.io/reference/kwic.html) realisiert. Die Funktion [textstat_frequency](https://quanteda.io/reference/textstat_frequency.html) liefert im Vergleich wesentlich präzisere und detailliertere Ergebisse als diese beiden Optionen. Zusätzlich zur absoluten Wortfrequenz erhält man nächlich noch den Rang (rank), die Anzahl der Dokumente, in denen das Feature vorkommt (docfreq) sowie Metadaten, nach denen bei der Zählung gefiltert wurde (group). Grundsätzlich ist [textstat_frequency](https://quanteda.io/reference/textstat_frequency.html) gegenüber [topfeatures](https://quanteda.io/reference/topfeatures.html) zu bevorzugen.
+
+```{r Detaillierte Worthäufigkeiten berechnen}
+worthaeufigkeiten <- textstat_frequency(meine.dfm)
+head(worthaeufigkeiten)
+```
+
+Um zu demonstrieren, wo die Stärken von [textstat_frequency](https://quanteda.io/reference/textstat_frequency.html) liegen, wenden wir uns erstmalig vom erprobten Sherlock Holmes-Korpus ab und laden einen neuen Datensatz, nämlich das schon ein wenig angejährte Poliblogs-Korpus. Dabei handelt es sich um eine Sammlung politischer Blogeinträge aus dem [U.S.-Wahlkampf 2008](https://de.wikipedia.org/wiki/Pr%C3%A4sidentschaftswahl_in_den_Vereinigten_Staaten_2008), in dem John McCain gegen Barack Obama unterlag. Obwohl sich politisch seitdem vieles verändert und Blogs gegenüber Social Media-Plattformen wie Facebook und Twitter klar an Stellenwert verloren haben, ist das Beispiel immer noch interessant.
+
+Zunächst werfen wir einen ersten Blick auf das Korpus und die beigefügten Metadaten. 
+
+```{r Laden des Poliblogs-Korpus}
+load("daten/blogs/poliblogs2008.RData")
+as.data.frame(poliblogs.stats)
+```
+
+Nachdem wir das bereits vorbereitete Korpus inspiziert haben, konstruieren wir zunächst eine DFM unter Entfernung von für uns wenig relevanten Features und kalkulieren dann mittels  [textstat_frequency](https://quanteda.io/reference/textstat_frequency.html) eine Frequenztabelle. Dabei nutzen wir das 'groups'-Argument von  [textstat_frequency](https://quanteda.io/reference/textstat_frequency.html) aus, um gezielt getrennte Frequenzen für linke und rechte Blogs, statt für alle Dokumente im Korpus zu berechnen. 
+
+```{r Berechnen einer DFM für das Poliblogs-Korpus}
+poliblogs.dfm <- dfm(poliblogs.korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = c(stopwords("english"), "can", "may", "said", "one", "just", "now", "new", "even", "like", "get", "also", "first", "last", "much", "well"))
+poliblogs.freqs <- textstat_frequency(poliblogs.dfm, groups = "rating") %>% arrange(rank, group)
+head(poliblogs.freqs, 100)
+```
+
+Nun können wir die frequente Begriffe in den rund 13.000 konservativen und linken U.S.-Blogeinträgen plotten. Dabei zeigt das erste Plot die populärsten Begriffe in konservativen Blogs und das zweite Plot die populärsten Begriffe in linken Blogs, wobei die Frequenz bei jedem Begriff für die jeweils andere 'Seite' auch gleich mitangezeigt wird. 
+
+```{r Frequente Begriffe in konservativen und linken U.S.-Blogs plotten}
+freqs.con <- filter(poliblogs.freqs, group == "Conservative") %>% select(feature, frequency)
+freqs.lib <- filter(poliblogs.freqs, group == "Liberal") %>% select(feature, frequency)
+freqs <- left_join(freqs.con, freqs.lib, by = "feature") %>% head(25) %>% arrange(frequency.x) %>% mutate(feature = factor(feature, feature))
+ggplot(freqs) +
+  geom_segment( aes(x=feature, xend=feature, y=frequency.x, yend=frequency.y), color="grey") +
+  geom_point( aes(x=feature, y=frequency.x), color = "red", size = 3 ) +
+  geom_point( aes(x=feature, y=frequency.y), color = "lightblue", size = 3 ) +
+  ggtitle("Häufige Begriffe in konservativen und linken U.S.-Blogs im Wahlkampf 2008") + 
+  xlab("") + ylab("Wortfrequenz") + 
+  coord_flip()
+freqs <- left_join(freqs.con, freqs.lib, by = "feature") %>% head(25) %>% arrange(frequency.y) %>% mutate(feature = factor(feature, feature))
+ggplot(freqs) +
+  geom_segment( aes(x=feature, xend=feature, y=frequency.y, yend=frequency.x), color="grey") +
+  geom_point( aes(x=feature, y=frequency.y), color = "blue", size = 3 ) +
+  geom_point( aes(x=feature, y=frequency.x), color = "lightcoral", size = 3 ) +
+  ggtitle("Häufige Begriffe in linken und konservativen U.S.-Blogs im Wahlkampf 2008") + 
+  xlab("") + ylab("Wortfrequenz") + 
+  coord_flip()
+```
+
+Wie sich schnell erkennen lässt, kann dieses Ergebnis durch eine systematischere Stopwortentfernung sowie die Gewichtung der DFM noch weiter optimiert werden. Wir kommen auf diese Möglichkeiten später noch zurück, wenden uns aber nun einem anderen Vefahren zu -- der Ermittlung von Kollokationen. 
+
 #### Kollokationen 
 
-Wir gehen nun zu den sogenannten Textstatistken über. Dabei handelt es sich um Funktionen anhand derer sich Wörter und Texte mit Blick auf ihre Ähnlichkeit mit oder Distanz zu anderen Wörtern oder Texte analysieren lassen. Eine wichtige Funktion in diesem Zusammenhang ist die Extraktion von [Kollokationen](https://de.wikipedia.org/wiki/Kollokation). Die Kollokate eines Begriffs sind solche Begriffe, die häufig gemeinsam mit dem Term vorkommen. Der Prozess ist dabei induktiv.
+Wir gehen nun zu den sogenannten Textstatistiken über. Dabei handelt es sich um Funktionen anhand derer sich Wörter und Texte mit Blick auf ihre Ähnlichkeit mit oder Distanz zu anderen Wörtern oder Texte analysieren lassen. Eine wichtige Funktion in diesem Zusammenhang ist die Extraktion von [Kollokationen](https://de.wikipedia.org/wiki/Kollokation). Die Kollokate eines Begriffs sind solche Begriffe, die häufig gemeinsam mit dem Term vorkommen. Der Prozess ist dabei induktiv.
 
-Folgend wenden wir die Funktion [textstat_collocations()](https://docs.quanteda.io/reference/textstat_collocations.html) an, die häufige Kollokate im Sherlock Holmes-Korpus ermittelt. Anhand von write_delim wird das Ergebnis dann noch als Excel-kompatible CSV-Datei gespeichert.
+Folgend wenden wir die Funktion [textstat_collocations](https://quanteda.io/reference/textstat_collocations.html) an, die häufige Kollokate im Sherlock Holmes-Korpus ermittelt. Anhand von write_delim wird das Ergebnis dann noch als Excel-kompatible CSV-Datei gespeichert.
 
-```{r Kollokationen extrahieren}
-meine.tokens <- tokens(korpus)
-kollokationen <- textstat_collocations(meine.tokens, min_count = 10)
+```{r Kollokationen im Sherlock Holmes-Korpus extrahieren}
+kollokationen <- textstat_collocations(korpus, min_count = 10)
 arrange(kollokationen, desc(count))
 arrange(kollokationen, desc(lambda))
 write_delim(kollokationen, path = "kollokationen.csv", delim = ";") # Datei ist Excel-kompatibel
@@ -112,80 +190,234 @@ In den beiden Tabellen zeigt uns *collocation* das Kollokat und *count* dessen a
 
 Die beiden Tabellen illustrieren diesen Unterschied. Während die erste nach der absoluten Häufigkeit sortiert ist, so dass gängige Kollokate wie 'of the' oder 'it is' ganz vorne liegen, ist die zweite absteigend nach Lambda sortiert, so dass eine Reihe von Eigennamen wie 'hosmer angel' oder 'briony lodge' die Liste anführen. Praktisch betrachtet ist es meist sinnvoller, Eigennamen als Phrasen zu betrachten, statt als einzelne Begriffe, deren gemeinsames Auftreten wirklich etwas über den Text verrät. Echte Kollokate sind hingegen 'no doubt' oder 'young lady'. 
 
+Welche Ergebnisse erhalten wir, wenn wir [textstat_collocations](https://quanteda.io/reference/textstat_collocations.html) auf das Poliblogs-Korpus anwenden? Statt die Funktion auf das gesamt Korpus anzuwenden, filtern wie zunächst nach der konservativen Blogs und ziehen dann ein Zufallsample von 1.000 Beiträgen. Dies beschleunigt die Berechnung der Kollokationen sehr stark, die sonst bei diesem relativ großen Datensatz mitunter sehr lange dauern kann. 
 
-#### Wort- und Textähnlichkeit und -Distanz
+```{r Kollokationen im Poliblogs-Korpus extrahieren}
+kollokationen <- corpus_subset(poliblogs.korpus, rating == "Conservative") %>% corpus_sample(size = 1000) %>% textstat_collocations(min_count = 15)
+arrange(kollokationen, desc(lambda))
+```
 
-Wie sich im ersten Kapitel bereits angedeutet hat, lassen sich auf Grundlage einer DFM zahlreiche Metriken berechnen, welche die Nähe und Distanz von Wörtern und Dokumenten zu einander relektieren. Dies geschieht mit [textstat_simil()](https://docs.quanteda.io/reference/textstat_frequency.html). Zunächst konstruieren wir dazu eine DFM, in der jeder Satz einem Dokument entspricht. Dies wird deshalb notwendig, weil sich Wortähnlichkeiten bei einer geringen Dokumentanzahl nicht besonders zuverlässig berechnen lassen, da Ähnlichkeit als Kookurenz innerhalb des gleichen Dokuments operationalisiert wird. Dann Berechnen wir die Wortähnlichkeit zum Begriff 'love' mittels [Kosinusdistanz](https://de.wikipedia.org/wiki/Kosinus-%C3%84hnlichkeit). Andere verfügbare Metriken sind 'correlation', 'jaccard', 'eJaccard', 'dice', 'eDice', 'simple matching', 'hamann' und 'faith', welche Wortähnlichkeit jeweils unterschiedlich operationalisieren. 
+Wie man gleich erkennt, enthält die Liste auch hier zahlreiche Personen-, Organisations- und Ortsnamen, die sehr gut erkannt werden, aber auch Ausdrücke wie 'hell yeah' oder 'hat tip'. 
+
+#### Wortähnlichkeit und -Distanz
+
+Wie sich im ersten Kapitel bereits angedeutet hat, lassen sich auf Grundlage einer DFM zahlreiche Metriken berechnen, welche die Nähe und Distanz von Wörtern und Dokumenten zu einander relektieren. Dies geschieht mit [textstat_simil](https://docs.quanteda.io/reference/textstat_frequency.html). Zunächst konstruieren wir dazu eine DFM, in der jeder Satz einem Dokument entspricht. Dies wird deshalb notwendig, weil sich Wortähnlichkeiten bei einer geringen Dokumentanzahl nicht besonders zuverlässig berechnen lassen, da Ähnlichkeit als Kookurenz innerhalb des gleichen Dokuments operationalisiert wird. Dann Berechnen wir die Wortähnlichkeit zum Begriff 'love' mittels [Kosinusdistanz](https://de.wikipedia.org/wiki/Kosinus-%C3%84hnlichkeit). Andere verfügbare Metriken sind 'correlation', 'jaccard', 'eJaccard', 'dice', 'eDice', 'simple matching', 'hamann' und 'faith', welche Wortähnlichkeit jeweils unterschiedlich operationalisieren. 
 
 ```{r Wortähnlichkeiten in einem Satzkorpus berechnen}
 korpus.saetze <- corpus_reshape(korpus, to = "sentences")
 meine.dfm.saetze <- dfm(korpus.saetze, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
 meine.dfm.saetze <- dfm_trim(meine.dfm.saetze, min_docfreq = 5)
-aehnlichkeit.woerter <- textstat_simil(meine.dfm.saetze, "love", margin = "features", method = "cosine")
+aehnlichkeit.woerter <- textstat_simil(meine.dfm.saetze, meine.dfm.saetze[,"love"], margin = "features", method = "cosine")
 head(aehnlichkeit.woerter[order(aehnlichkeit.woerter[,1], decreasing = T),], 10)
 ```
 
 Analog zur Ähnlichkeit funktionert auch die Berechnung von Wortdistanzen mit der Funktion [textstat_dist()](https://docs.quanteda.io/reference/textstat_frequency.html). Auch hier haben wir wieder eine große Anzahl von Distanzmaßen zur Auswahl ('euclidean', 'chisquared', 'chisquared2', 'hamming', 'kullback'. 'manhattan', 'maximum', 'canberra', 'minkowski').
 
 ```{r Wortdistanzen in einem Satzkorpus berechnen}
-distanz.woerter <- textstat_dist(meine.dfm.saetze, "love", margin = "features", method = "euclidean")
+distanz.woerter <- textstat_dist(meine.dfm.saetze, meine.dfm.saetze[,"love"], margin = "features", method = "euclidean")
 head(distanz.woerter[order(distanz.woerter[,1], decreasing = T),], 10)
 ```
 
-Was sagt das Ergebnis aus? Vor allem das (wenig überraschend) Wörter wie 'upon' und 'said' sehr weit von 'love' entfernt sind -- allerdings nicht in dem Sinne, dass sie das logische Gegenteil von 'love' darstellen würden (in der Linguistik spricht man von [Antonymie](https://de.wikipedia.org/wiki/Antonym)). Das liegt daran, dass diese Begriffe im Korpus nahezu gleich verteilt sind, also überall vorkommen. Mit dem Verfahren der [Wortvektoren](https://en.wikipedia.org/wiki/Word_embedding) (welches wir hier nicht behandeln) und sehr großen Datenbeständen lassen sich allerdings auch solche und andere semantisch Beziehungen indentifizieren. Die Filterung, die wir zuvor an der DFM vorgenommen haben, schließt Begriffe aus, die vielleicht nie gemeinsam mit 'love' vorkommen, und insofern noch distanzierter wären, allerdings gibt es derer auch sehr viele. Zusammenfassend kann man sagen, dass textstatistische Nähe- und Distanzmaße immer ausreichend viele Daten benötigen, um ein zuverlässiges Resultat liefern zu können, und dass der Suchterm selbst ausreichend oft vorkommen muss. 
+Was sagt das Ergebnis aus? Vor allem das (wenig überraschend) Wörter wie 'upon' und 'said' sehr weit von 'love' entfernt sind -- allerdings nicht in dem Sinne, dass sie das logische Gegenteil von 'love' darstellen würden (in der Linguistik spricht man von [Antonymie](https://de.wikipedia.org/wiki/Antonym)). Das liegt daran, dass diese Begriffe im Korpus nahezu gleich verteilt sind, also überall vorkommen. Mit dem Verfahren der [Wortvektoren](https://en.wikipedia.org/wiki/Word_embedding) (welches wir hier nicht behandeln) und sehr großen Datenbeständen lassen sich allerdings auch solche und andere semantisch Beziehungen indentifizieren. Die Filterung, die wir zuvor an der DFM vorgenommen haben, schließt Begriffe aus, die vielleicht nie gemeinsam mit 'love' vorkommen, und insofern noch distanzierter wären, allerdings gibt es derer auch sehr viele. Zusammenfassend kann man sagen, dass textstatistische Nähe- und Distanzmaße immer ausreichend viele Daten benötigen, um ein zuverlässiges Resultat liefern zu können, und dass der Suchterm selbst ausreichend oft vorkommen muss.
 
-Wer die Dokumentation von textstat_simil() und textstat_dist() anschaut, wird feststellen, dass es dort den etwas kryptischen Hinweis auf das Argument 'margin' gibt. Dieses hat zwei mögliche erinstellungen: 'documents' oder 'features'. Stellt man hier 'documents' ein, werden die besprochenen Metriken nicht auf Wörter, sondern auf Texte angewandt. Folgend plotten wir die Textnähe via Kosinusähnlichkeit (hier ausgehend vom ersten Roman, 'A Case of Identity').
+Wieder wenden wir uns dem Poliblogs-Korpus für ein etwas lebensnaheres Beispiel zu und vergleichen die Ähnlichkeit anderer Begriffe zum Zielterm 'taxes' in konservativen und linken Blogs.
 
-```{r Ähnlichkeit von Texten zu einander plotten}
-aehnlichkeit.texte <- data.frame(Text = factor(korpus.stats$Text, levels = rev(korpus.stats$Text)), as.matrix(textstat_simil(meine.dfm, selection = 3, margin = "documents", method = "cosine")))
-ggplot(aehnlichkeit.texte, aes(A.Case.of.Identity, Text)) + geom_point(size = 2.5) + ggtitle("Text-Kosinusähnlichkeit (hier für 'A Case of Identity')") + xlab("Kosinunsähnlichkeit")
+```{r Wortähnlichkeiten in konservativen und linken U.S.-Blogs berechnen und plotten}
+aehnlichkeit.con <- poliblogs.korpus %>% 
+  corpus_subset(rating == "Conservative") %>% 
+  dfm(remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english")) %>% 
+  dfm_trim(min_termfreq = 10) %>% 
+  textstat_simil(y = .[,"taxes"], margin = "features", method = "cosine")
+aehnlichkeit.lib <- poliblogs.korpus %>% 
+  corpus_subset(rating == "Liberal") %>% 
+  dfm(remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english")) %>% 
+  dfm_trim(min_termfreq = 10) %>% 
+  textstat_simil(y = .[,"taxes"], margin = "features", method = "cosine")
+aehnlichkeit.con.df <- data.frame(Begriff = aehnlichkeit.con@Dimnames[[1]], Kosinus = aehnlichkeit.con@x, stringsAsFactors = F) %>% 
+  filter(!Begriff %in% c("tax", "taxes")) %>% 
+  arrange(desc(Kosinus)) %>% 
+  mutate(Rang = row_number()) %>% 
+  filter(Rang <= 15)
+aehnlichkeit.lib.df <- data.frame(Begriff = aehnlichkeit.lib@Dimnames[[1]], Kosinus = aehnlichkeit.lib@x, stringsAsFactors = F) %>% 
+  filter(!Begriff %in% c("tax", "taxes")) %>% 
+  arrange(desc(Kosinus)) %>% 
+  mutate(Rang = row_number()) %>% 
+  filter(Rang <= 15)
+ggplot(aehnlichkeit.con.df, aes(reorder(Begriff, Rang), Kosinus)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab("") + ylab("") + 
+  ggtitle("Begriffe mit hoher Kosinusnähe zum Zielterm \'taxes\' in konservativen U.S.-Blogs")
+ggplot(aehnlichkeit.lib.df, aes(reorder(Begriff, Rang), Kosinus)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab("") + ylab("") + 
+  ggtitle("Begriffe mit hoher Kosinusnähe zum Zielterm \'taxes\' in linken U.S.-Blogs")
+```
+
+
+
+
+#### Textähnlichkeit und -Distanz
+
+Wer die Dokumentation von [textstat_simil](https://quanteda.io/reference/textstat_simil.html) und [textstat_dist](https://quanteda.io/reference/textstat_dist.html) anschaut, wird feststellen, dass es dort den etwas kryptischen Hinweis auf das Argument 'margin' gibt. Dieses hat zwei mögliche erinstellungen: 'documents' oder 'features'. Stellt man hier 'documents' ein, werden die besprochenen Metriken nicht auf Wörter, sondern auf Texte angewandt. Folgend plotten wir die Textnähe via Kosinusähnlichkeit (hier ausgehend vom ersten Roman, 'A Case of Identity').
+
+```{r Ähnlichkeit eines bestimmten Textes zu anderen Texten plotten}
+aehnlichkeit.texte <- data.frame(Text = factor(korpus.stats$Text, levels = rev(korpus.stats$Text)), as.matrix(textstat_simil(meine.dfm, meine.dfm["A Case of Identity"], margin = "documents", method = "cosine")))
+ggplot(aehnlichkeit.texte, aes(A.Case.of.Identity, Text)) + 
+  geom_point(size = 2.5) + 
+  ggtitle("Text-Kosinusähnlichkeit (hier für 'A Case of Identity')") + 
+  xlab("Kosinunsähnlichkeit") + ylab("")
 ```
 
 Wie wir sehen, ist die Ähnlichkeit der Romane 'The Red-headed League' und 'The Adventure of the Copper Beeches' etwas größer, als dies bei den anderen Erzählungen der Fall ist.
 
+Während diese sehr schlichte Art der Darstellung sinnvoll ist, um gezielt Unterschiede eines ganz bestimmten Dokuments mit anderen Dokumenten zu untersuchen, gibt es Situationen, in denen wir Ähnlichkeiten und Unterschiede zwischen Dokumenten innerhalb eines Korpuses ganz grundsätzlich in den Blick nehmen wollen. Dazu dient das folgende Plot. Nachdem wir die Distanzmatrix in einen Data Frame umgewandelt haben, den wir mit ggplot darstellen können, führen wir eine neuen Variable *Ähnlichkeit* ein, die wir zugleich re-skalieren, um den Kontrast zwischen Texten möchlichst deutlich zu machen. Das Ergebnis lässt sich dann in einer sog. Heatmap darstellen, in der Ähnlichkeit rot und Unterschiede blau dargestellt werden. 
+
+```{r Ähnlichkeit aller Texte zu einander plotten }
+aehnlichkeit.texte <- textstat_simil(meine.dfm, margin = "documents", method = "cosine") %>%
+  as.data.frame() %>% 
+  mutate(Ähnlichkeit = rescale(cosine, to = c(-1,1)))
+aehnlichkeit.texte$document2 <- factor(aehnlichkeit.texte$document2, levels=rev(levels(aehnlichkeit.texte$document2)))
+ggplot(aehnlichkeit.texte, aes(document1, document2)) + 
+  geom_tile(aes(fill = Ähnlichkeit)) + 
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  ggtitle("Text-Kosinusähnlichkeit (skaliert) in zwölf Romanen") + 
+  xlab("") + ylab("")
+```
+
+So sehen wir etwa neben dem Befund zu 'A Case of Identity' auch, dass sich the 'The Adventure of the Noble Bachelor' und 'The Five Orange Pips' besonders unähnlich sind, jedenfalls innerhalb des (vermutlich recht heterogenen) Sherlock Holmes-Korpus. Überhaupt scheint 'The Adventure of the Noble Bachelor' vergleichsweise stark aus dem Rahmen zu fallen. Man beachte, dass die Ähnlichkeit mit sich selbst hier bewusst ausgeklammert wurde -- bei der Umwandunglich der Distanzmatrix mit [as.data.frame](https://quanteda.io/reference/textstat_simil.html) kann diese aber auch beibehalten werden.
+
+Wie geeignet ist die Textähnlichkeit, um etwa ideologische Unterschiede vorherzusagen? Wieder nehmen wir das Poliblogs-Korpus in den Blick und plotten auch hier die Textähnlichkeit. Dabei verwenden wir nicht die Variable 'rating', die ja die Einordnung in 'Conservative' und 'Liberal' enthält, sondern stattdessen die Variable 'blog' die das jeweilige Blog durch ein Kürzel identifiziert. Auch verwenden wir eine andere Clustering-Technik (das sog. [hierarchische Clustering](https://de.wikipedia.org/wiki/Hierarchische_Clusteranalyse)) und plotten das Ergebnis als Dendrogram. Hier verzichten wir darauf, das Ähnlichkeitskosinus zu reskalieren, weshalb sich die Blogs recht ähnlich sehen. 
+
+```{r Ähnlichkeit einzelner Blogs zu einander plotten }
+aehnlichkeit.poliblogs <- dfm(poliblogs.korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"), groups = "blog") %>% 
+  dfm_trim(min_docfreq = 6) %>% 
+  textstat_simil(margin = "documents", method = "cosine") %>%
+  as.dist() %>% hclust(method = "ward.D2")
+ggdendrogram(aehnlichkeit.poliblogs, rotate = TRUE) +
+  theme(axis.text.x = element_text(size = 12)) + 
+  theme(axis.text.y = element_text(colour = c("blue", "blue", "red", "red", "red", "blue"), size = 12)) + 
+  ggtitle("Text-Kosinusähnlichkeit in sechs U.S.-Blogs")
+```
+
+Es lässt sich erkennen, dass die ideologische Richtung (rot = konservativ, blau = links) kein klares Muster beim Wortgebrauch produziert, wobei hier eine Reihe von Faktoren berücksichtigt werden müsste, bevor man von einer stichhaltigen Analyse sprechen könnte. Dazu gehört die Verwendung von N-Grammen genauso wie eine andere Filterung der DFM, die relevante Features zurückbehält und gleichzeitig nicht einer [Überanpassung](https://de.wikipedia.org/wiki/%C3%9Cberanpassung) zum Opfer fällt. 
 
 #### Keyness
 
-Bei der sog. Keyness handelt es sich um ein Maß für die Distinktivität eines Begriffs für einen bestimmten Text, also wie stark der Begriff den jeweiligen Text im Vergleich zum gesamten Korpus kennzeichnet. Während wir zuvor die Distanz von Wörtern und Texten zu einander untersucht haben, macht sich die Keyness die Verteilungshäufigkeit von Wörtern auf Texte zunutze, ohne deren Position zu berücksichtigen. Keyness funktioniert daher auch mit längeren Texten gut, solange diese sich ausreichend markant unterscheiden. Folgend berechnen wir zunächst die Keyness für vier Texte mit [textstat_keyness()](https://docs.quanteda.io/reference/textstat_keyness.html) und plotten wir diese Keyness-Statistiken dann für vier Erzählungen mit Hilfe von [textplot_keyness()](https://docs.quanteda.io/reference/textplot_keyness.html).
+Bei der *Keyness* handelt es sich um ein Maß für die Distinktivität von Begriffen für einen bestimmten Text, also wie stark einzelne Begriffe im jeweiligen Text im Vergleich zum gesamten Korpus über- (positive Werte) oder unterrepräsentiert sind (negative Werte). Während wir zuvor die Distanz von Wörtern und Texten zu einander untersucht haben, macht sich die Keyness die Verteilungshäufigkeit von Wörtern auf Texte zunutze, ohne deren Position zu berücksichtigen und verlangt dementsprechend eine DFM als Argument. In diesem Fall verwenden wir das Chi-Quadrat-Assoziationsmaß, es stehen aber auch weitere Metriken zur Auswahl, um die Wahrscheinlichkeit einer nicht-zufälligen Verteilung zu bemessen. Keyness funktioniert auch mit längeren Texten gut, solange diese sich ausreichend markant unterscheiden. Folgend berechnen wir zunächst die Keyness für vier Texte mit [textstat_keyness](https://docs.quanteda.io/reference/textstat_keyness.html) und plotten wir diese Keyness-Statistiken dann für vier Erzählungen mit Hilfe der zugehörigen Funktion [textplot_keyness](https://docs.quanteda.io/reference/textplot_keyness.html).
 
-```{r Keyness von Begriffen plotten}
-keyness <- textstat_keyness(meine.dfm, target = "A Scandal in Bohemia", measure = "lr")
+```{r Keyness von Begriffen mittels Chi-Quadrat-Assoziation plotten}
+keyness <- textstat_keyness(meine.dfm, target = "A Scandal in Bohemia")
 textplot_keyness(keyness)
-keyness <- textstat_keyness(meine.dfm, target = "A Case of Identity", measure = "lr")
+keyness <- textstat_keyness(meine.dfm, target = "A Case of Identity")
 textplot_keyness(keyness)
-keyness <- textstat_keyness(meine.dfm, target = "The Five Orange Pips", measure = "lr")
+keyness <- textstat_keyness(meine.dfm, target = "The Five Orange Pips")
 textplot_keyness(keyness)
-keyness <- textstat_keyness(meine.dfm, target = "The Adventure of the Noble Bachelor", measure = "lr")
+keyness <- textstat_keyness(meine.dfm, target = "The Adventure of the Noble Bachelor")
 textplot_keyness(keyness)
 ```
 
-Schaut man sich die vier Beispieltexte einmal genauer an, so wird schnell klar, dass die Begriffe mit einem hohen Keyness-Wert tatsächlich sehr distinktiv für den jeweiligen Text sind, also Begriffe wie 'majesty' und 'photograph' tatsächlich nur in 'A Scandal in Bohemia' eine Rolle spielen. Wenig distinktive Begriffe sind hingegen solche, die zwar in anderen Texten, nicht aber dem Zieltext vorkommen. Nützlich wird diese Funktion vor allem dann, wenn man Texte nach einen Kriterium wie Medium, Sprecher, Partei, Zeitpunkt oder manuell zugeordnete Inhaltskategorie gruppiert. 
+Schaut man sich die vier Beispieltexte einmal genauer an, so wird schnell klar, dass die Begriffe mit einem hohen Keyness-Wert tatsächlich sehr distinktiv für den jeweiligen Text sind, also Begriffe wie 'majesty' und 'photograph' tatsächlich nur in 'A Scandal in Bohemia' eine Rolle spielen. Wenig distinktive Begriffe sind hingegen solche, die zwar in anderen Texten, nicht aber dem Zieltext vorkommen. 
 
+Nützlich wird diese Funktion vor allem dann, wenn man Texte nach einen Kriterium wie Medium, Sprecher, Partei, Zeitpunkt oder manuell zugeordnete Inhaltskategorie gruppiert. Dies lässt sich ebenfalls wieder gut anhand des Poliblogs-Korpus illustrieren. Die ersten drei Plots beziehen sich hierbei auf konservative Blogs, die Plots 4-6 hingegen auf linke Blogs.
 
-#### Lexikalische Vielfalt
+```{r Keyness von Begriffen für das Poliblogs-Korpus plotten}
+aehnlichkeit.poliblogs <- dfm(poliblogs.korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"), groups = "blog") %>% 
+  dfm_select(min_nchar = 3) %>% 
+  dfm_trim(min_docfreq = 6)
+keyness <- textstat_keyness(aehnlichkeit.poliblogs, target = "at")
+textplot_keyness(keyness)
+keyness <- textstat_keyness(aehnlichkeit.poliblogs, target = "ha")
+textplot_keyness(keyness)
+keyness <- textstat_keyness(aehnlichkeit.poliblogs, target = "mm")
+textplot_keyness(keyness)
+keyness <- textstat_keyness(aehnlichkeit.poliblogs, target = "db")
+textplot_keyness(keyness)
+keyness <- textstat_keyness(aehnlichkeit.poliblogs, target = "tp")
+textplot_keyness(keyness)
+keyness <- textstat_keyness(aehnlichkeit.poliblogs, target = "tpm")
+textplot_keyness(keyness)
+```
 
-Unter Maßen lexikalischer Vielfalt versteht man Metriken, welche die Diversität eines Textes mit Blick auf den Wortgebrauch wiedergeben. Ein Beispiel ist die bereits in Kapitel 1 berechtete [Typ-Token-Relation](https://de.wikipedia.org/wiki/Type-Token-Relation). Diese beschreibt die Wortvielfalt und geben so auch Aufschluss über die Komplexität eines Textes. Wir berechnen folgend zahlreiche Metriken für die lexikalische Diversität der zwölf Romane mit mit der Funktion [textstat_lexdiv()](https://docs.quanteda.io/reference/textstat_lexdiv.html).
+Hier kann die vergleichende Dimension der Keyness-Metrik gut erkennen, die die Unterschiede zwischen den Blogs gut zur Geltung bringt. 
 
-```{r Lexikalische Vielfalt berechnen}
-lexdiversitaet <- textstat_lexdiv(meine.dfm)
+#### Entropie
+
+Was tun, wenn man etwas über den Informationsgehalt eines Textes relativ zum Gesamtkorpus wissen möchte (und davon ausgeht, dass neue Wörter gleichbedeutend mit neuen Informationen zu interpretieren sind)? Hier hilft uns die [Shannon-Entropie](https://de.wikipedia.org/wiki/Entropie_(Informationstheorie)) weiter, benannt nach [Claude E. Shannon](https://de.wikipedia.org/wiki/Claude_Shannon), dem Gründer der Informationstheorie. In Quanteda ist diese Metrik durch die Funktion [textstat_entropy](https://quanteda.io/reference/textstat_entropy.html) integriert, die wir folgend auf das Sherlock-Holmes-Satzkorpus anwenden. 
+
+```{r Entropie von Dokumenten im Sherlock Holmes-Satzkorpus}
+entropie <- textstat_entropy(meine.dfm.saetze, margin = "documents") %>% 
+  sort(decreasing = TRUE) %>% 
+  names() %>% 
+  head(3)
+korpus.saetze[entropie]
+```
+
+Die drei Beispiele verdeutlichen gut, was Entropie letztendlich misst. Alle drei Sätze sind lexikalisch sehr aussergewöhnlich, was sich zum Teil durch ihre Länge erklärt, aber auch etwas mit dem hohen Anteil ungewöhnlicher Begriffe zu tun hat, die sonst im Korpus kaum vorkommen.
+
+#### Indikatoren lexikalischer Vielfalt
+
+Unter Maßen lexikalischer Vielfalt versteht man Metriken, welche die Diversität eines Textes mit Blick auf den Wortgebrauch wiedergeben. Ein Beispiel ist die bereits in Kapitel 1 berechtete [Typ-Token-Relation](https://de.wikipedia.org/wiki/Type-Token-Relation). Diese beschreibt die Wortvielfalt und geben so auch Aufschluss über die Komplexität eines Textes. Wir berechnen zunächst eine ganze Reihe in Quanteda implementierter Metriken für die lexikalische Diversität der zwölf Sherlock Holmes-Romane mit der Funktion [textstat_lexdiv](https://quanteda.io/reference/textstat_lexdiv.html).
+
+```{r Lexikalische Vielfalt im Sherlock Holmes-Korpus berechnen}
+lexdiversitaet <- textstat_lexdiv(meine.dfm, measure = "all")
 lexdiversitaet
-#write_delim(lexdiversitaet, path = "lexdiversitaet.csv", delim = ";") # Datei ist Excel-kompatibel
 ```
 
 Bei einem oberflächliche Vergleich der Metriken fällt auf, dass sich die Texte nicht sehr stark unterscheiden, was ihre jeweilige lexikalische Vielfalt betrifft, ganz unabhängig davon, welche Metrik verwendet wird. Dies ist nicht unbedingt verwunderlich, da es sich um Texte des selben Genres und Autors handelt. Interessanter werden solche Metriken dann, wenn wir sehr unterschiedliche Genres oder Autoren vergleichen wollen, etwa die Programmen von Parteien, Texte aus unterschiedlichen Medien, oder Tweets von unterschiedlichen Nutzern. 
 
+Wieder vergleichen wir daher die Ergebnisse, die eine Anwendung dieser Verfahren auf das Poliblogs-Korpus produziert. Wir verwenden dabei eine einzelne Metrik aus dem Repertoire von  [textstat_lexdiv](https://quanteda.io/reference/textstat_lexdiv.html) und benutzen diese, um einen Vergleich der lexikalicshen Komplexität konservativer und linker Blogs im Zeitverlauf durchzuführen.
+
+```{r Lexikalische Vielfalt in konservativen und linken U.S.-Blogs über die Zeit}
+lexdiversitaet <- textstat_lexdiv(poliblogs.dfm, measure = "U")
+poliblogs.U <- left_join(lexdiversitaet, poliblogs.stats, by = c("document" = "Text")) %>% 
+  group_by(day, rating) %>% 
+  summarise(meanU = mean(U))
+ggplot(poliblogs.U, aes(day, meanU, color = rating)) +
+  geom_line() +
+  geom_smooth(method = loess, na.rm = TRUE) + 
+  scale_colour_brewer(name = "Typ", palette = "Set1") + 
+  ggtitle("Lexikalische Vielfalt in konservativen und linken U.S.-Blogs über die Zeit") + 
+  xlab("Tag") + ylab("U-Mittelwert")
+```
+
+Das Ergebnis zeigt, dass die konservativen Blogs im Mittel lexikalisch viefältiger sind, als dies bei den linken Blogs aus dem Korpus der Fall ist. Um diesen Befund einordnen zu können, muss man sich vor Augen führen, dass beispielsweise die Verwendung von Eigennamen oder Jargon ebenso wie die Textlänge einen positven Einfluss auf diese Metriken haben, ohne dass man damit unbedingt das eingefangen hat, was man sich unter Vielfalt oder Komplexität vorstellt.
 
 #### Lesbarkeitsindizes
 
 Eine weitere Klasse von Text-Metriken, die sich für ein Dokument aufgrund seiner Wortzusammensetzung berechnen lassen, sind die sog. [Lesbarkeitsindizes](https://de.m.wikipedia.org/wiki/Lesbarkeitsindex). Darunter versteht man Metriken, die anhand von textlichen Eigenschaften einen Zahlenwert berechnen, der die Leseschwierigkeit eines Dokumentes möglichst akkurat wiedergeben soll. Anwendung finden solche Indizes etwa im Bildungsbereich, wenn es um die Frage geht, welches Schwierigkeitsniveau eines Textes für Schüler angemessen ist, aber auch in der öffentlichen Verwaltung, wenn möglichst klare und zugängliche Sprache bspw. auf einer berhördlichen Website verwendet werden soll. 
 
-Die Kalkulation zahlreicher Lesbarkeitsindizes erfolgt in quanteda mit [textstat_readability()](https://docs.quanteda.io/reference/textstat_readability.html), Auch hier wird das Ergebnis in einer Excel-kompatible CSV-Datei gespeichert.
+Die Kalkulation zahlreicher Lesbarkeitsindizes erfolgt in Quanteda mit [textstat_readability](https://quanteda.io/reference/textstat_readability.html). Auch hier wenden wir die Funktion zunächst auf das Sherlock Holmes-Korpus an, um einen Eindruck davon bekommen, wie sich die Leseschwierigkeit von einem Roman zum nächsten unterscheidet.
 
-```{r Lesbarkeitsindizes berechnen}
+```{r Lesbarkeitsindizes im Sherlock Holmes-Korpus berechnen}
 lesbarkeit <- textstat_readability(korpus, measure = "all")
 lesbarkeit
-#write_delim(lesbarkeit, path = "lesbarkeit.csv", delim = ";") # Datei ist Excel-kompatibel
 ```
 
-Ein schönes Beispiel für den Nutzen solcher Metriken findet sich in der Dokumentation der Funktion textstat_readability(). Hatte die Antrittsrede von George Washington im Jahr 1789 noch einen Flesh-Kincaid-Index von 28, so betrug der Wert bei der Antrittsrede von Donald Trump in 2017 nur noch 9 (was allerdings dem Trend seit Mitte des 20. Jhd. entspricht). 
+Wie verhält es sich mit der Lesbarkeit der Blogsbeiträge aus dem Poliblogs-Korpus? Wieder vergleichen wir einerseits die sechs Blogs untereinander und andererseits die beiden ideologischen Richtungen (eher konservativ v. eher links). Im Gegensatz zu der Berechnung von Mittelwerten, die wir bei den Statistiken zur lexikalischen Vielfalt herangezogen haben, vergleichen wir hier direkt die Gesamtanzahl der Beiträge, um einen Eindruck der Werteverteilung zu erhalten. Zunächst berechnen wir dazu die Lesbarkeit nach der [Flesch-Kincaid-Metrik](https://de.wikipedia.org/wiki/Lesbarkeitsindex) und verbinden die Ergebnisse dann mit den zu dem Korpus gehörenden Metadaten aus dem Stats-Data-Frame. 
+
+```{r Lesbarkeitsindizes in konservativen und linken U.S.-Blog berechnen}
+lesbarkeit <- textstat_readability(poliblogs.korpus, measure = "Flesch.Kincaid")
+poliblogs.FK <- left_join(lesbarkeit, poliblogs.stats, by = c("document" = "Text"))
+```
+
+Dann plotten wir anschließend das Ergebnis als kombiniertes Box- und Scatterplot. 
+
+```{r Lesbarkeitsindizes in konservativen und linken U.S.-Blog plotten}
+ggplot(poliblogs.FK, aes(blog, Flesch.Kincaid)) + 
+  geom_boxplot(outlier.shape = NA) + 
+  scale_colour_brewer(name = "Typ", palette = "Set1") + 
+  scale_y_continuous(limits = quantile(poliblogs.FK$Flesch.Kincaid, c(0.01, 0.99))) + 
+  geom_jitter(aes(blog, Flesch.Kincaid, colour = rating), position = position_jitter(width = 0.4, height = 0), alpha = 0.2, size = 0.3, show.legend = F) + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+  xlab("") + ylab("Flesch-Kincaid-Index") + 
+  ggtitle("Leseleichtigkeit von Beiträgen in konservativen und linken U.S.-Blogs")
+```
+
+Zunächst einmal lässt sich unschwer erkennen, dass politische Blogbeiträge im Sinne der Flesch-Kincaid-Metrik anspruchsvolle Texte sind, die sich auf der schwierigsten Lesestufe bewegen. Allerdings sind die Texte in den konservativen Blogs -- von der Quelle 'mm' einmal abgesehen -- etwas einfacher gehalten, als dies in den linken Blogs der Fall ist. 
+
+Ein weiteres schönes Beispiel für den Nutzen solcher Metriken findet sich in der Dokumentation der Funktion [textstat_readability](https://quanteda.io/reference/textstat_readability.html). Hatte die Antrittsrede von George Washington im Jahr 1789 noch einen Flesh-Kincaid-Index von 28, so betrug der Wert bei der Antrittsrede von Donald Trump in 2017 nur noch 9 (was allerdings dem Trend seit Mitte des 20. Jhd. entspricht). 
+
 

@@ -279,17 +279,10 @@ head(meine.dfm, n = 12, nf = 5)
 
 Gleich an den ersten Blick fällt auf, das die Wörter 'sherlock' und 'holmes' in allen Romanen vorkommen, also sehr wenig distinktiv sind, weshalb wir sie unter Umständen zu den Stoppwörtern für dieses Korpus hinzufügen sollten. 
 
-Die Funktion [topfeatures](https://docs.quanteda.io/reference/topfeatures.html) zählt Features in der gesamten DFM aus. 
+Die Funktion [topfeatures](https://quanteda.io/reference/topfeatures.html), die wie bereits im Zusammenhang mit Korpora kennengelernt haben, zählt auch Features innerhalb einer DFM aus. 
 
 ```{r Einfache Worthäufigkeiten berechnen}
 topfeatures(meine.dfm)
-```
-
-Die Funktion [textstat_frequency](https://docs.quanteda.io/reference/textstat_frequency.html) liefert zusätzlich zu dieser Angabe noch den Rang (rank), die Anzahl der Dokumente, in denen das Feature vorkommt (docfreq) sowie Metadaten, nach denen bei der Zählung gefiltert wurde. Grundsätzlich ist textstat_frequncy gegenüber topfeatures zu bevorzugen.
-
-```{r Detaillierte Worthäufigkeiten berechnen}
-worthaeufigkeiten <- textstat_frequency(meine.dfm)
-head(worthaeufigkeiten)
 ```
 
 
