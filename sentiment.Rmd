@@ -14,7 +14,7 @@ Todos
 
 Wie auch einige andere hier behandelte Verfahren hat die [Sentimentanalyse](https://de.wikipedia.org/wiki/Sentimentanalyse) ihre Wurzeln in der Computerlinguistik und Informatik, wird aber seit einigen Jahren auch zunehmend in den Sozialwissenschaften angewandt, um ganz unterschiedliche Texte automatisch zu klassifizieren, etwa Parlamentsdebatten, Freitextantworten in Befragungen, oder Social Media-Diskurse. Ziel der Sentimentanalyse ist die Bestimmung der Polarität eines Textes, womit gemeint ist, ob die darin zum Ausdruck gebrachten Emotionen eher positiv oder negativ sind. Dies geschieht häufig durch Wortlisten und über das Auszählen von Begriffen, die zuvor den Kategorien *positiv* oder *negativ* zugeordnet wurden. In vielen Verfahren wird das Resultat anachließend skaliert, oder es werden andere Schritte angewandt, um fehlerhafte Klassifizierungen zu vermeiden. Diese treten vor allem dann auf, wenn Negation oder Ironie verwendet werden, aber auch, wenn der Gegenstand der positiven oder negativen Ausdrücke wechselt oder unklar ist. Unsprünglich wurde die Sentimentanalyse auf Produktbewertungen auf E-Commerence-Plattformen wie Amazon.com getestet, wo diese Probleme eine relativ geringe Rolle spielen. Bei Pressetexten oder Diskursen in den sozialen Medien hingegen, ist oft schwerer zu bewerten, auf was sich eine Sentimentbewertung bezieht, oder welches Sentimenniveau etwa als ‘normal’ betrachtet werden sollte. So kommen beispielsweise in Pressetexten generell wenig Emotionen zum Ausdruck, und die negativen Begriffe überwiegen häufig, ohne dass dies notwendigerweise auf einen schlechten Zustand der Welt zurückzuführen wäre. Schließlich sollte man sich vor Augen führen, dass die Sentimentanalyse ein heuristisches Verfahren ist, dass immer auch fehlerhafte Einzelklassifikationen produziert, was aber idealerweise nicht zu stark ins Gewicht fällt, wenn man etwas Veränderungen im Sentimentverlauf über die Zeit untersucht.
 
-Was die technische Umsetzung angeht, so gehören dieser Abschnitt und das nächste Kapitel 3b: Lexika insofern zusammen, als dass es sich bei beiden Ansätzen um ganz ähnliche Verfahren handelt. In beiden Fällen wird ein Lexikon ('sentiment/topic dictionary') verwendet, um eine Reihe von Einzelbegriffen in einer Kategorie zusammenzufassen. 
+Was die technische Umsetzung angeht, so gehören dieser Abschnitt und das nächste zu spezialisierten Lexika insofern zusammen, als dass es sich bei beiden Ansätzen um ganz ähnliche Verfahren handelt. In beiden Fällen wird ein Lexikon ('sentiment/topic dictionary') verwendet, um eine Reihe von Einzelbegriffen in einer Kategorie zusammenzufassen. 
 
 Wir verwenden in diesem Kapitel fünf unterschiedliche Sentimentlexika, davon drei in englischer Sprache und zwei für Deutsch:
 
@@ -259,6 +259,58 @@ ggplot(sentiment.trump.kombi, aes(Datum, Sentiment, colour = Lexikon, group = Le
 ```
 
 Wie wir sehen, stimmt die Tendenz der drei Lexika zwar klar überein, jedoch ergeben sich durchaus markanten Unterschiede. So sind AFINN und Bing Liu gegenüber NRC etwas positiver. Zum Teil unterscheidet sich auch die Intensität der Ausschläge in beide Polaritätsrichtungen. Ein Grund für die Variation ist die Länge der Wortlisten, da umfangreichere Listen eine besser Abdeckung der tatsächlich verwendeten Begriffe erreichen. Grundsätzlich unterscheiden sich die drei Lexika aber nicht signifikant und stimmen bspw. in ihrer Messung der Sentiment–Schwankung zwischen September und November 2016 klar überein.
+
+#### Sentiment in two subreddits using the Lexicoder Sentiment Dictionary (LSD2015) 
+
+Next, we turn to an example that comes from Reddit, rather than Twitter. As before, we being by loading and inspecting the data.
+
+```{r Load Reddit data and view stats}
+load("daten/reddit/reddit.RData")
+as.data.frame(reddit.stats)
+```
+
+The corpus contains approximately 20,000 comments posted to two subreddits, 'science' and 'syriancivilwar'. We proceed to calculate sentiment scores for these messages using the Lexicoder Sentiment Dictionary (LSD2015). We apply log. average weighting and truncate the result, in this way determining a polarity score per comment, rather than per word (note that there are different strategies for doing this). 
+
+```{r Fit a DFM, apply the LSD dictionary and determine polarity per comment}
+reddit.dfm <- dfm(reddit.corpus, dictionary = data_dictionary_LSD2015) %>% 
+  dfm_remove(c("neg_positive", "neg_negative"))
+reddit.sentiment <- dfm_weight(reddit.dfm, scheme = "logave") %>% 
+  convert("data.frame") %>%
+  mutate(positive = trunc(positive), negative = trunc(negative)) %>% 
+  mutate(neutral = positive == negative) %>% 
+  left_join(reddit.stats, by = c("document" = "Text"))
+sentiment <- ""
+sentiment[reddit.sentiment$positive==1] <- "positive"
+sentiment[reddit.sentiment$negative==1] <- "negative"
+sentiment[reddit.sentiment$neutral==T] <- "neutral"
+reddit.sentiment.share <- reddit.sentiment %>% 
+  select(document, structure, comm_date, subreddit, user) %>% 
+  data.frame(Sentiment = sentiment)
+reddit.sentiment.share
+```
+
+Next, we plot aggregate results per subreddit.  
+
+```{r Calculate shares and plot the result}
+reddit.sentiment.share <- data.frame(prop.table(table(reddit.sentiment.share$Sentiment, reddit.sentiment.share$subreddit), 2))
+colnames(reddit.sentiment.share) <- c("Sentiment", "Subreddit", "Share")
+ggplot(reddit.sentiment.share, aes(Subreddit, Share, colour = Sentiment, fill = Sentiment)) + 
+  geom_bar(stat="identity") + 
+  scale_colour_brewer(palette = "Set1") + 
+  scale_fill_brewer(palette = "Pastel1") + 
+  ggtitle("Sentiment shares in two subreddits") + 
+  xlab("") + ylab("Comments")
+```
+
+Some example posts (shown here, rather than the comments that we have used for the sentiment analysis) can be used to illustrate which threads contain comments with particular polarity in them. 
+
+```{r Example posts with positive, negative and neutral polarity}
+data.frame(reddit.sentiment, sentiment) %>% filter(sentiment == "positive") %>% sample_n(10) %>% select(sentiment, subreddit, title)
+data.frame(reddit.sentiment, sentiment) %>% filter(sentiment == "negative") %>% sample_n(10) %>% select(sentiment, subreddit, title)
+data.frame(reddit.sentiment, sentiment) %>% filter(sentiment == "neutral") %>% sample_n(10) %>% select(sentiment, subreddit, title)
+```
+
+
 
 ### Sentiment in Schweizer Tageszeitungen in der Berichterstattung zur Finanzkrise
 
