@@ -93,13 +93,17 @@ meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
 eu.poplib <- convert(meine.dfm.eu.prop, "data.frame") %>% 
   bind_cols(korpus.euspeech.stats) %>% 
   filter(length >= 1200, populism > 0 | liberalism > 0)
-ggplot(eu.poplib, aes(country, populism)) + geom_boxplot(outlier.size = 0) + geom_jitter(aes(country,populism), position = position_jitter(width = 0.4, height = 0), alpha = 0.1, size = 0.2, show.legend = F) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + xlab("") + ylab("Populismus-Anteil (%)") + ggtitle("Populismus-Anteil in Reden des EU-Speech-Korpus")
+ggplot(eu.poplib, aes(country, populism)) + 
+  geom_boxplot(outlier.size = 0) + 
+  geom_jitter(aes(country,populism), position = position_jitter(width = 0.4, height = 0), alpha = 0.1, size = 0.2, show.legend = F) + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+  xlab("") + ylab("Populismus-Anteil (%)") + 
+  ggtitle("Populismus-Anteil in Reden des EU-Speech-Korpus")
 ```
 
 Wie die Dichte der Punkte im Plot zeigt, ist der Anteil der Kommission am Korpus insgesamt groß, auch wenn das Populismus-Niveau (gemessen mit unserem primitiven Lexikon) insgesamt niedrig ist. Desweiteren erkennen wir eine größere Bandbreite bei den nationalen Regierungen (Griechenland vs. Deutschland) als bei den Behörden. 
 
 Hier sollte man Ausreißer (etwa bei der EU-Kommision) mit einem Populismus-Anteil von 100% nicht überschätzen. Zwar haben wir zuvor sehr kurze Reden ausgeschlossen (mit *length >= 1200*), aber es dürfte trotzdem solche Texte geben, die nur durch eine handvoll Treffer auf eine der beiden Kateogorien ein solches Ergebnis erreichen (dies gielt auch für einen Liberalismus–Anteil von 100%). Wie auch beim Sentiment gilt: Es handelt sich um heuristische Verfahren, und mit einem besseren Lexikon lässt sich die Genauigkeit leicht steigern.
-
 
 ### Anwendung der Lexika Policy Agendas und Laver-Garry auf das EU Speech–Korpus
 
@@ -134,7 +138,13 @@ eu.themen.pa <- convert(meine.dfm.eu.pa, "data.frame") %>%
   group_by(Land) %>% 
   mutate(Anteil = Anteil/sum(Anteil)) %>% 
   mutate(Thema = as_factor(Thema))
-ggplot(eu.themen.pa, aes(Land, Anteil, colour = Thema, fill = Thema)) + geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Themen im EU-Speech-Korpus auf Basis des Policy Agendas-Lexikons") + xlab("") + ylab("Themen-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(eu.themen.pa, aes(Land, Anteil, colour = Thema, fill = Thema)) + 
+  geom_bar(stat="identity") + 
+  scale_colour_brewer(palette = "Set1") + 
+  scale_fill_brewer(palette = "Pastel1") + 
+  ggtitle("Themen im EU-Speech-Korpus auf Basis des Policy Agendas-Lexikons") + 
+  xlab("") + ylab("Themen-Anteil (%)") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Die Anteilsverteilung dürfte in Teilen kaum überraschen. Die EZB und in einem etwas geringerem Umfang auch die Kommission beschäftigen sich viel mit Makroökonomie und Finanzen, Frankreich und Spanien mit dem Arbeitsmarkt, und Deutschland und die Niederlande viel mit Handel. Interessant sind die Themenfelder Verteididung (Niederlande, Frankreich, Großbritannien), Zuwanderung (Tschechien) und Bildung (Frankreich, Großbritannien). Die geringe Relevanz des Zuwanderungsthemas in Italien und Griechenland belegt vielleicht eine Diskrepanz zwischen öffentlicher Meinung und der Regierungsagenda –– jedenfalls im Zeitraum 2007–2015.
@@ -156,7 +166,12 @@ eu.themen.lg <- dfm_weight(meine.dfm.eu.lg, scheme = "prop") %>%
   select(Jahr, culture:other) %>% 
   gather(Thema, Prozent, culture:other) %>% 
   filter(!Thema %in% c("economy", "institutions", "values", "culture", "other"))
-ggplot(eu.themen.lg, aes(Jahr, Prozent, group = Thema, col = Thema)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + ggtitle("Themen im EU-Speech-Korpus auf Grundlage des Laver-Garry-Lexikons") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ylab("Themen-Anteil (%)")
+ggplot(eu.themen.lg, aes(Jahr, Prozent, group = Thema, col = Thema)) + 
+  geom_line(size = 1) + 
+  scale_colour_brewer(palette = "Set1") + 
+  ggtitle("Themen im EU-Speech-Korpus auf Grundlage des Laver-Garry-Lexikons") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab("") + ylab("Themen-Anteil (%)")
 ```
 
 Wieso haben wir so viele Kategorien ausgelassen? Die Themenfelder *economy* und *institutions* sind sehr stark ausgeprägt und verändern sich im Untersuchungszeitraum nicht allzu merklich, daher ist es hier interessanter, sich eher kleinere Themenfelder anzusehen. Auffällig ist u.a. ein Abfallen des Themenfeldes *ländlicher Raum*, ein sprunghafter Anstieg des Themas *innere Sicherheit* und ein Nachlassen der Relevanz des Themas *Umwelt*.
@@ -206,7 +221,13 @@ un.mft <- convert(meine.dfm.un.mft, "data.frame") %>%
   filter(Land %in% mft.laender) %>% 
   gather(HarmVirtue:MoralityGeneral, key = "MF_Typ", value = "Anteil") %>% 
   mutate(Land = factor(Land, levels = rev(mft.laender)))
-ggplot(un.mft, aes(Land, Anteil, fill = MF_Typ)) + geom_bar(stat="identity") + coord_flip() + scale_fill_manual(values = c("#E5F5E0", "#A1D99B", "#DEEBF7", "#9ECAE1", "#FEE0D2", "#FC9272", "#FEE6CE", "#FDAE6B", "#FFFFFF", "#EFEDF5", "#BCBDDC")) + ggtitle("Themen für zwölf Länder im UN-Korpus mit dem MFT–Lexikon") + xlab("") + ylab("Themen-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(un.mft, aes(Land, Anteil, fill = MF_Typ)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  scale_fill_manual(values = c("#E5F5E0", "#A1D99B", "#DEEBF7", "#9ECAE1", "#FEE0D2", "#FC9272", "#FEE6CE", "#FDAE6B", "#FFFFFF", "#EFEDF5", "#BCBDDC")) + 
+  ggtitle("Themen für zwölf Länder im UN-Korpus mit dem MFT–Lexikon") + 
+  xlab("") + ylab("Themen-Anteil (%)") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Durch das Ziehen eines Zufallssamples erhalten wir einen Überblick über unterschiedliche Typen von (politischen) Argumentationskulturen, die zwar für Experten nicht überraschend sein dürften, aber doch interessante Ähnlichkeiten aufzeigen.
@@ -223,7 +244,14 @@ un.maerz <- convert(meine.dfm.un.maerz, "data.frame") %>%
   select(Jahr, illiberalism, democracy, maintenance_of_power, reforms) %>% 
   gather(illiberalism:reforms, key = "Maerz_Typ", value = "Begriffe") %>% 
   mutate(Maerz_Typ = factor(Maerz_Typ, levels = c("illiberalism", "democracy", "maintenance_of_power", "reforms")))
-ggplot(un.maerz, aes(Jahr, Begriffe, group = Maerz_Typ, col = Maerz_Typ)) + geom_line(size = 1) + geom_point() + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "3 years", date_labels = "%Y") +  ggtitle("Politische Dimensionen im UN-Korpus nach dem Maerz-Lexikon") + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("") + ylab("Wörter")
+ggplot(un.maerz, aes(Jahr, Begriffe, group = Maerz_Typ, col = Maerz_Typ)) + 
+  geom_line(size = 1) + 
+  geom_point() + 
+  scale_colour_brewer(palette = "Set1") + 
+  scale_x_date(date_breaks = "3 years", date_labels = "%Y") + 
+  ggtitle("Politische Dimensionen im UN-Korpus nach dem Maerz-Lexikon") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab("") + ylab("Wörter")
 ```
 
 Wir gehen zwar auch auf diese Ergebnisse nicht genauer ein, aber sie belegen gut, wieso die Anwendung des passenden Lexikons einen echten Erkenntnisgewinn bringen kann, besonders wenn es darum geht, Kontraste zwischen Akteuren, Trends, oder Inflektionspunkte zeitlicher Entwicklungen herauszuarbeiten.
@@ -237,7 +265,13 @@ un.newsmap <- convert(meine.dfm.un.newsmap, "data.frame") %>%
   filter(Land %in% newsmap.laender) %>% 
   gather(africa:oceania, key = "NewsMap_Region", value = "Anteil") %>% 
   mutate(Land = factor(Land, levels = newsmap.laender))
-ggplot(un.newsmap, aes(Land, Anteil, colour = NewsMap_Region, fill = NewsMap_Region)) + geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Pastel1") + ggtitle("Angesprochener Weltregionen im UN-Korpus nach dem NewsMap-Lexikon") + xlab("") + ylab("Wörter") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(un.newsmap, aes(Land, Anteil, colour = NewsMap_Region, fill = NewsMap_Region)) + 
+  geom_bar(stat="identity") + 
+  scale_colour_brewer(palette = "Set1") + 
+  scale_fill_brewer(palette = "Pastel1") + 
+  ggtitle("Angesprochener Weltregionen im UN-Korpus nach dem NewsMap-Lexikon") + 
+  xlab("") + ylab("Wörter") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 
@@ -263,7 +297,13 @@ facebook.aktivitaet <- korpus.facebook.stats %>%
   mutate(Quelle = factor(source, levels = c("pegidaevdresden", "alternativefuerde", "FAZ", "SZ", "Welt", "Zeit"))) %>% 
   group_by(Datum = floor_date(created_time, "1 month"), Quelle) %>%
   summarise(Kommentare = n())
-ggplot(facebook.aktivitaet, aes(as.Date(Datum), Kommentare, group = Quelle, col = Quelle)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + ggtitle("Kommentare auf sechs Facebook-Seiten") + xlab("Monat") + ylab("") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(facebook.aktivitaet, aes(as.Date(Datum), Kommentare, group = Quelle, col = Quelle)) + 
+  geom_line(size = 1) + 
+  scale_colour_brewer(palette = "Set1") + 
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + 
+  ggtitle("Kommentare auf sechs Facebook-Seiten") + 
+  xlab("Monat") + ylab("") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Wie man sieht, beinhaltet das Facebook-Korpus Kommentare, die zwischen 2015 und 2016 auf insgesamt sechs Facebook-Seiten veröffentlicht wurden, davon vier zu großen deutschen Tageszeitungen gehörend, und zwei zu rechtspopulistischen Bewegungen und Partein.
@@ -288,10 +328,15 @@ liwc.anteile <- convert(meine.dfm.fb.liwc, "data.frame") %>%
   gather(key = Kategorie, value = Wörter, -Korpus) %>% 
   filter(!Kategorie %in% c("Article", "Down", "Eat", "Fillers", "Grooming", "Humans", "Money", "Motion", "Music", "Nonfluency", "Numbers", "Physical", "Preps", "Relig", "Sex", "Sleep", "Sports", "Time", "Up")) %>% 
   mutate(Korpus = factor(Korpus, levels = c("populism", "news")))
-ggplot(liwc.anteile, aes(Kategorie, Wörter, fill = Korpus)) + geom_bar(stat = "identity", position = position_dodge()) + scale_fill_brewer(palette = "Set1") + ggtitle("Anteile von LIWC-Kategorien in Facebook-Kommentaren") + xlab("LIWC-Kategorie") + theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
+ggplot(liwc.anteile, aes(Kategorie, Wörter, fill = Korpus)) + 
+  geom_bar(stat = "identity", position = position_dodge()) + 
+  scale_fill_brewer(palette = "Set1") + 
+  ggtitle("Anteile von LIWC-Kategorien in Facebook-Kommentaren") + 
+  xlab("LIWC-Kategorie") + 
+  theme(axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
 ```
 
-Die Ergbnisse sind möglicherweise überraschend. So ist der Diskurs auf den Nachrichtenseiten affektiver, als der auf den populistischen Seiten. Er enthält auch mehr soziale Begriffe und mehr Ansprache anderer. Es wird aber auch mehr über das "wir" gesprochen, über "andere" und "Aussenstehende", und es kommen häufiger tabuisierte Begriffe vor. Das Nachrichtenkorpus enthält zudem mehr kognitive Begriffe
+Die Ergbnisse sind möglicherweise überraschend. So ist der Diskurs auf den Nachrichtenseiten affektiver, als der auf den populistischen Seiten. Er enthält auch mehr soziale Begriffe und mehr Ansprache anderer. Es wird aber auch mehr über das "wir" gesprochen, über "andere" und "Aussenstehende", und es kommen häufiger tabuisierte Begriffe vor. Das Nachrichtenkorpus enthält zudem mehr kognitive Begriffe.
 
 Zusammenfassend könnne wir festhalten, das Lexika sehr nützliche Werkzeuge für die Untersuchung von Inhalten sind. Dies gilt in besonderem Maße, wenn sie viele und geschachtelte Kategorien enthalten, und wenn ihre Abdeckung hinreichend ist (d.h. die Begriffe im Lexikon auch tatsächlich im Korpus vorkommen). Lexika stoßen schnell an ihre Grenzen, wenn sie zu klein oder zu grob strukturiert sind. Zudem muss man ein passendes Lexikon überhaupt erst einmal finden. Ohne Lexikon bleiben aber zum Glück nützliche induktive Methoden, auf die man zurückgreifen kann.
 

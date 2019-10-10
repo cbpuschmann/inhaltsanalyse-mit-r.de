@@ -85,7 +85,12 @@ lda.themen.absaetze <- data.frame(korpus.stats, Thema = topics(lda.modell)) %>%
   ungroup() %>% 
   mutate(Thema = paste0("Thema ", sprintf("%02d", Thema))) %>% 
   mutate(Roman = as_factor(Roman))
-ggplot(lda.themen.absaetze, aes(Roman, Anteil, color = Thema, fill = Thema)) + geom_bar(stat="identity") + ggtitle("LDA-Themen in den Sherlock Holmes-Romanen") + xlab("") + ylab("Themen-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(lda.themen.absaetze, aes(Roman, Anteil, fill = Thema)) + 
+  geom_bar(stat="identity") + 
+  scale_fill_brewer(palette = "Paired") + 
+  ggtitle("LDA-Themen in den Sherlock Holmes-Romanen") + 
+  xlab("") + ylab("Themen-Anteil (%)") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Es fällt sofort ins Auge, das mehrere Roman gewissermaßen ihr eigenes Thema besitzen, was angesichts der Merkmale des Roman-Genres durchaus nachvollziehbar ist. Es existieren aber auch solche Themen, die in mehreren Romanen vorkommen und eher allgemeiner Natur sind, oder die Charaktere beeinhalten, die in einer Vielzahl von Sherlock Holmes-Erzählungen auftreten. 
@@ -179,7 +184,11 @@ lda.themen.artikel <- mutate(lda.themen.artikel, Ressort = str_split(url_parse(l
   ungroup() %>% 
   rename(Dokument = Row.names) %>% 
   filter(!Ressort %in% c("2011", "administratives", "aktuelles", "auto", "campus", "community", "lebensart", "studium", "zeit-magazin"))
-ggplot(lda.themen.artikel, aes(Ressort, Prozent, color = Thema, fill = Thema)) + geom_bar(stat = "identity") + ggtitle("LDA-Themen im Zeit-Nachrichtekorpus nach Ressort") + xlab("") + ylab("Themen-Anteil (%)") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(lda.themen.artikel, aes(Ressort, Prozent, color = Thema, fill = Thema)) + 
+  geom_bar(stat = "identity") + 
+  ggtitle("LDA-Themen im Zeit-Nachrichtekorpus nach Ressort") + 
+  xlab("") + ylab("Themen-Anteil (%)") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Da das Plot in diesem Fall vermutlich etwas schlechter interpretierbar ist, als es die "nakten" Zahlen sind, anbei auch noch die Themen-Ressort-Verteilung als einfache Tabelle. Wie beim ersten Beispiel zum Sherlock Holmes-Korpus re-aggregieren wir die Themenanteile hier, d.h. die Gesamtanteile aller Themen an *einem* Ressort summieren sich auf 100%.
@@ -272,7 +281,6 @@ for (i in 1:9)
 Die Ergebnisse geben Grund zu der Annahme, dass sich mit STM-Themenmodellen tatsächlich interessante Trends identifizieren lassen. Zunächst sind die Ergebnisse zum Teil konfirmatorisch: Wir würden erwarten, dass ein Thema zu sowjetischen Nuklearwaffen (hier Thema #9) mit dem Ende der Sowjetunion stark abfällt. Dass das Thema nicht ganz verschwindet hat zum einen damit zu tun, dass es weiterhin Erwähnung findet, aber auch damit, dass es Berührung mit anderen Themen (etwa neuen russischen Atomwaffen) hat. Kein Themenmodell kann solche Differenzierungen perfekt vornehmen, weil sich manche Themen begrifflich schlicht zu sehr ähneln, auch wenn ein Mensch den Unterschied problemlos erkennnen würde. Wir stellen ausserdem fest, dass bestimmte Themen (im Sinne des Modells) einzelne historische Ereignisse beinhalten, zum Teil auch in Kombination, etwa der [Libanonkrieg](https://de.wikipedia.org/wiki/Libanonkrieg_1982) und die [erste Intifada](https://de.wikipedia.org/wiki/Erste_Intifada) (Thema #2), der [zweite Kongokrieg](https://de.wikipedia.org/wiki/Zweiter_Kongokrieg) (Thema #5), oder die stufenweise Realisierung der [europäischen Währungsunion](https://de.wikipedia.org/wiki/Euro) (Thema #7). Andere Themen sind im Vergleich "zeitloser", wobei manche sich in ihrem Niveau über die Zeit kaum verändern (pazifische Inselstaaten, Thema #4) und andere saisonal wiederkehren (atomare Abrüstung, Thema #6). Interessant ist der Abfall bei nationalen (sozialistischen) Unabhängigkeitsbewegungen, die in den 1970ern noch eine sichtbare Rolle spielten (Thema #3), oder Diskurse über die Reform der UN und des Weltsicherheitsrats (Thema #1). 
 
 Wie sind die Unterschiede bei dem angezeigten Konfidenzintervall zu interpretieren? Themen wie die Reform des Weltsicherheitsrates oder der europäischen Zusammenarbeit sind lexikalisch klarer identifzierbar als die (vermutlich recht variablen) Diskurse um die Interessen von Inselstaaten. Themen mit einem sehr klaren zeitlichen Profil sind i.d.R. zuverlässiger identifizierbar, als solche, die über lange Zeiträume hinweg auftreten. 
-
 
 ### Ideale STM-Themenanzahl bestimmen
 
