@@ -38,10 +38,10 @@ if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("readtext")) {install.packages("readtext"); library("readtext")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("scales")) {install.packages("scales"); library("scales")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
-```{r Lades des Sherlock Holmes-Korpus}
+```{r Laden des Sherlock Holmes-Korpus}
 load("daten/sherlock/sherlock.korpus.RData")
 ```
 

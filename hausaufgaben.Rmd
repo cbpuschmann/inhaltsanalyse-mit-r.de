@@ -1,0 +1,179 @@
+---
+title: "Hausaufaben"
+output: html_notebook
+---
+
+Folgend finden Sie Lösungen für die Hausaufgaben zur 3. Sitzung. Sehr häufig gibt es mehrere Lösungswege.
+
+
+```{r}
+# Installation und Laden der Bibliotheken
+if(!require("quanteda")) install.packages("quanteda")
+if(!require("tidyverse")) install.packages("tidyverse")
+theme_set(theme_bw())
+```
+
+1. Wie häufig kommt der Suchterm crime im Sherlock Holmes-Korpus vor?
+
+```{r}
+load("daten/sherlock/sherlock.korpus.RData")
+# Variante 1: mit kwic()
+nrow(kwic(korpus, "crime"))
+# Variante 2: mit dfm_select()
+sherlock.dfm <- dfm(korpus) # Berechnen DFM 
+crime <- dfm_select(sherlock.dfm, pattern = "crime")
+sum(crime)
+# Variante 3: mit tokens_select()
+woerter <- tokens(korpus)
+crime <- tokens_select(woerter, "crime", selection = "keep")
+length(unlist(crime))
+```
+
+2. Formulieren Sie einen kwic()-Befehl, der im Finanzkrise-Korpus
+(daten/cosmas/finanzkrise/finanzkrise.korpus.RData) Verweise auf verschiedene
+nationale Notenbanken findet.
+
+```{r}
+load("daten/cosmas/finanzkrise/finanzkrise.korpus.RData")
+# einfache Variante
+banken.fed <- kwic(korpus.finanzkrise, "Fed")
+banken.ezb <- kwic(korpus.finanzkrise, "EZB")
+banken.nationalbank <- kwic(korpus.finanzkrise, "Nationalbank")
+banken.bundesbank <- kwic(korpus.finanzkrise, "Bundesbank")
+# anspruchsvollere Variante
+banken.fed <- kwic(korpus.finanzkrise, phrase("Fed|Federal Reserve|Federal Reserve Board"), valuetype = "regex", case_insensitive = FALSE)
+banken.ezb <- kwic(korpus.finanzkrise, phrase("EZB|Europäische Zentralbank"), valuetype = "regex", case_insensitive = FALSE)
+banken.nationalbank <- kwic(korpus.finanzkrise, phrase("Schweizer|Schweizerische Nationalbank"), valuetype = "regex", case_insensitive = FALSE)
+banken.bundesbank <- kwic(korpus.finanzkrise, phrase("Deutsche Bundesbank"), case_insensitive = FALSE)
+```
+
+3. Berechnen Sie mittels textstat_lexdiv() die lexikalische Diversität aller Beiträge der
+einzelnen Parteien im Bundestagskorpus (daten/bundestag/bundestag.korpus.RData).
+
+```{r}
+load("daten/bundestag/bundestag.korpus.RData")
+dfm.bundestag <- dfm(korpus.bundestag, groups = "speaker_party")
+textstat_lexdiv(dfm.bundestag)
+```
+
+4. Erzeugen Sie für das Zeit-Volltext-Korpus (daten/zeit/zeit.sample.korpus.RData) mittels
+dictionary() eines von zwei Diktionären
+a. Flüchtlingskrise
+b. Ukraine-Konflikt
+
+```{r}
+load("daten/zeit/zeit.sample.korpus.RData")
+
+zeit.dfm <- dfm(zeit.korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = c(stopwords("german"), "dass", "sagte", "mehr", "sei", "zeit", "seit", "wurde", "schon"))
+
+fluechtlinge <- textstat_simil(zeit.dfm, zeit.dfm[,"flüchtlinge"], margin = "features")
+head(fluechtlinge[order(fluechtlinge[,1], decreasing = T),], 50)
+
+ukraine <- textstat_simil(zeit.dfm, zeit.dfm[,"ukraine"], margin = "features")
+head(ukraine[order(ukraine[,1], decreasing = T),], 50)
+
+dictionary(list(fluechtlinge = c("flüchtlinge", "flüchtlingen", "arabisch", "unterbringung", "untergebracht", "abgeschoben", "schleuser", "zelten"), ukraine = c("ukraine", "ukrainische", "separatisten", "donezk", "petro", "poroschenko", "kiew", "minsk", "ukrainischen", "ukrainischem")))
+```
+
+5. Vergleichen Sie Kollokationen im Twitter-Korpus mittels textstat_collocations(). Welche Kollokationen verwendet Hillary Clinton besonders häufig, welche Donald Trump?
+
+```{r}
+load("daten/twitter/trumpclinton.korpus.RData")
+textstat_collocations(corpus_subset(korpus, Kandidat == "Trump"), min_count = 25) %>% arrange(desc(lambda))
+textstat_collocations(corpus_subset(korpus, Kandidat == "Clinton"), min_count = 25) %>% arrange(desc(lambda))
+```
+
+6. Wie fällt die Lesbarkeit mittels textstat_readability() von Reden im EU-Speech Korpus nach Land aus? Bonus: Wie entwickelt sich die Lesbarkeit für das Gesamtkorpus über die Zeit?
+
+```{r}
+load("daten/euspeech/euspeech.korpus.RData")
+germany <- textstat_readability(corpus_subset(korpus.euspeech, country == "Germany"), measure = "Flesch.Kincaid")
+france <- textstat_readability(corpus_subset(korpus.euspeech, country == "France"), measure = "Flesch.Kincaid")
+netherlands <- textstat_readability(corpus_subset(korpus.euspeech, country == "Netherlands"), measure = "Flesch.Kincaid")
+mean(germany$Flesch.Kincaid)
+mean(france$Flesch.Kincaid)
+mean(netherlands$Flesch.Kincaid)
+```
+
+
+7. Berechnen Sie mit textstat_dist() die nächsten Terme zu den Suchbegriffen “russia” und “ukrain” im EU-Speech Korpus.
+
+```{r}
+dfm.eu <- dfm(korpus.euspeech, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
+
+russia <- as.matrix(textstat_dist(dfm.eu, dfm.eu[,"russia"], margin = "features", method = "euclidean"))
+# etwas inuitiver, dann mit decreasing = T:
+# russia <- as.matrix(textstat_simil(dfm.eu, "russia", margin = "features", method = "cosine"))
+russia <- data.frame(word = rownames(russia), score = russia[,1])
+russia <- russia[order(russia$score, decreasing = F),]
+rownames(russia) <- NULL
+head(russia, 100)
+
+ukraine <- as.matrix(textstat_dist(dfm.eu, dfm.eu[,"ukrain"], margin = "features", method = "euclidean"))
+# etwas inuitiver, dann mit decreasing = T:
+# ukraine <- as.matrix(textstat_simil(dfm.eu, "ukraine", margin = "features", method = "cosine"))
+ukraine <- data.frame(word = rownames(ukraine), score = ukraine[,1])
+ukraine <- ukraine[order(ukraine$score, decreasing = F),]
+rownames(ukraine) <- NULL
+head(ukraine, 100)
+```
+
+
+8. Generieren Sie für das Facebook-Korpus eine Zeitreihe der Verwendung des Begriffs “islam”. Bonus für relative Frequenzen.
+
+```{r}
+load("daten/facebook/facebook.korpus.RData")
+docvars(korpus.facebook, "Monat") <- paste0(str_sub(korpus.facebook.stats$created_time, start = 1, end = 7), "-01")
+dfm.facebook <- dfm(korpus.facebook, groups = "Monat")
+dfm.facebook <- dfm_weight(dfm.facebook, scheme = "propmax")  # ändert nicht sehr viel
+dfm.islam <- dfm_keep(dfm.facebook, "islam*")
+islam <- convert(dfm.islam, "data.frame")
+islam <- data.frame(Monat = as.Date(islam$document), Frequenz = rowSums(islam[2:ncol(islam)])) # fasst alle Nennungen zusammen
+ggplot(islam, aes(Monat, Frequenz)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "2 months", date_labels = "%b %Y") + ggtitle("Frequenz von 'Islam' im Facebook-Korpus") + xlab("") + ylab("") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+9. Wenden Sie ein beliebiges Sentimentlexikon (lexika/...) auf das UN-Korpus an und stellen Sie das Sentiment über den Zeitverlauf grafisch dar.
+
+```{r}
+load("daten/un/un.korpus.RData")
+positive.woerter.bl <- scan("lexika/bingliu-positive-words.txt", what = "char", sep = "\n", skip = 35, quiet = T)
+negative.woerter.bl <- scan("lexika/bingliu-negative-words.txt", what = "char", sep = "\n", skip = 35, quiet = T)
+sentiment.lexikon <- dictionary(list(positive = positive.woerter.bl, negative = negative.woerter.bl))
+dfm.un <- dfm(korpus.un, dictionary = sentiment.lexikon, groups = "year")
+sentiment.un <- convert(dfm.un, "data.frame") %>% 
+  gather(positive, negative, key = "Polaritaet", value = "Frequenz") %>% 
+  mutate(document = as.Date(paste0(document, "-01-01"))) %>% 
+  rename(Jahr = document)
+ggplot(sentiment.un, aes(Jahr, Frequenz, colour = Polaritaet, group = Polaritaet)) + geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + scale_x_date(date_breaks = "5 years", date_labels = "%Y")  + ggtitle("Sentiment-Scores im UN-Korpus") + xlab("") + ylab("") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+10. Generieren sie ein Themenmodell mittels stm() für das New York Times-Korpus. Modellieren Sie mit k = 5, k = 10 und k = 20. Wie nachvollziehbar sind die Themen?
+
+```{r}
+library("stm")
+load("daten/nytimes/nyt.korpus.RData")
+
+dfm.nyt <- dfm(korpus.nyt, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("english"))
+dfm.nyt.trim <- dfm_trim(dfm.nyt, min_docfreq = 0.0015, max_docfreq = 0.90, docfreq_type = "prop") # min 0.15% / max 90%
+
+#anzahl.themen <- 5
+#dfm2stm.5 <- convert(dfm.nyt.trim, to = "stm")
+#modell.stm.5 <- stm(dfm2stm.5$documents, dfm2stm.5$vocab, K = anzahl.themen, data = dfm2stm.5$meta, init.type = "Spectral")
+load("daten/nytimes/stm5.RData")
+
+#anzahl.themen <- 10
+#dfm2stm.10 <- convert(dfm.nyt.trim, to = "stm")
+#modell.stm.10 <- stm(dfm2stm.10$documents, dfm2stm.10$vocab, K = anzahl.themen, data = dfm2stm.10$meta, init.type = "Spectral")
+load("daten/nytimes/stm10.RData")
+
+#anzahl.themen <- 20
+#dfm2stm.20 <- convert(dfm.nyt.trim, to = "stm")
+#modell.stm.20 <- stm(dfm2stm.20$documents, dfm2stm.20$vocab, K = anzahl.themen, data = dfm2stm.20$meta, init.type = "Spectral")
+load("daten/nytimes/stm20.RData")
+
+as.data.frame(t(labelTopics(modell.stm.5, n = 10)$prob))
+as.data.frame(t(labelTopics(modell.stm.10, n = 10)$prob))
+as.data.frame(t(labelTopics(modell.stm.20, n = 10)$prob))
+```
+

@@ -12,7 +12,7 @@ Todos
 * ...
 -->
 
-Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (engl. *topic modeling*) handelt es sich um ein im Vergleich mit dem in den vorausgehenden Kapiteln präsentierten Lexikon-Ansatz sehr viel jüngeres und deutlich anspruchsvolleres Verfahren, wenn es um die Anforderungen an Rechenleistung und Speicher Ihres Computers geht. Themenmodelle sind mathemathisch komplex und vollständig induktiv, d.h. das Modell setzt keinerlei Kenntnis des Inhalts voraus, was aber nicht bedeutet, dass solche Kenntnisse für die Validierung des Outputs nicht entscheidend sind. Die Beziehung von Themen zu Wörtern und Dokumenten wird in einem Themenmodell vollständig automatisiert hergestellt. Die bekannteste Implementation heißt [Latent Dirichlet Allocation](https://de.wikipedia.org/wiki/Latent_Dirichlet_Allocation) (kurz LDA) und wurde von den Computerlinguisten David Blei, Andrew Ng und Michael Jordan entwickelt. Während ich vorausgehende, einfachere Verfahren lediglich kurz beschrieben habe, ist es bei der Themenanalyse notwendig, sich eingehender mit den algoritihmischen Grundlagen des Ansatzes zu beschäftigen, wenn man diesen wirklich verstehen will. Für die Demonstration von Themenmodellen -- und weitgehend auch für deren kompetente Anwendung -- reicht es allerdings aus, wenn man diese ausprobiert und (und das ist sehr wichtig!) die Qualität der erzielten Ergebnisse systematisch überprüft, das Modell also umfassend validiert. Dies geschieht anhand einer Reihe von Verfahren, welche die Passung des Models etwa in Abhängigkeit zu Variablen wie der gewählten Themenzahl bewerten. Während auch die vorausgehenden Ansätze häufig Ergebnisse produzieren, die sorgfältig überprüft werden müssen, sind Topic Model-Ergebnisse besonders schwer vorhersagbar, weil sich die induktiven Wortverteilungsmuster, auf denen Themenmodelle basieren mitunter stark vom menschlichen Verständnis eines Themas unterscheiden.
+Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (engl. *topic modeling*) handelt es sich um ein im Vergleich mit dem in den vorausgehenden Kapiteln präsentierten Lexikon-Ansatz sehr viel jüngeres und deutlich anspruchsvolleres Verfahren, wenn es um die Anforderungen an Rechenleistung und Speicher Ihres Computers geht. Themenmodelle sind mathemathisch komplex und vollständig induktiv, d.h. das Modell setzt keinerlei Kenntnis des Inhalts voraus, was aber nicht bedeutet, dass solche Kenntnisse für die Validierung des Outputs nicht entscheidend sind. Die Beziehung von Themen zu Wörtern und Dokumenten wird in einem Themenmodell vollständig automatisiert hergestellt. Die bekannteste Implementation heißt [Latent Dirichlet Allocation](https://de.wikipedia.org/wiki/Latent_Dirichlet_Allocation) (kurz LDA) und wurde von den Computerlinguisten David Blei, Andrew Ng und Michael Jordan entwickelt. Während ich vorausgehende, einfachere Verfahren lediglich kurz beschrieben habe, ist es bei der Themenanalyse notwendig, sich eingehender mit den algoritihmischen Grundlagen des Ansatzes zu beschäftigen, wenn man diesen wirklich verstehen will. Für die Demonstration von Themenmodellen -- und weitgehend auch für deren kompetente Anwendung -- reicht es allerdings aus, wenn man diese ausprobiert und (und das ist sehr wichtig!) die Qualität der erzielten Ergebnisse systematisch überprüft, das Modell also umfassend validiert. Dies geschieht anhand einer Reihe von Verfahren, welche die Passung des Models etwa in Abhängigkeit zu Variablen wie der gewählten Themenzahl bewerten. Während auch die vorausgehenden Ansätze häufig Ergebnisse produzieren, die sorgfältig überprüft werden müssen, sind Topic Model-Ergebnisse besonders schwer vorhersagbar, weil sich die induktiven Wortverteilungsmuster, auf denen Themenmodelle basieren mitunter stark vom menschlichen Verständnis eines Themas unterscheiden. Nach der Vorstellung von zwei Themenmodell-Verfahren (LDA und STM) gehen wir zusätzlich noch auf einen konzeptionellen Vorläufer der Themenmodellierung, die sog. [latente semantische Analyse](https://de.wikipedia.org/wiki/Latent_Semantic_Analysis) (auch bezeichnet als Latent Semantic Indexing; LSI) ein.
 
 Da Themenmodelle im Kontrast zu den bisher vorgestellten Methoden nicht Teil der Ausstattung von quanteda sind, nutzen wir folgend zwei neue Pakete für ihre Berechnung: [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://cran.r-project.org/package=stm). Das Paket topicmodels implementiert die beiden Verfahren Latent Dirichlet Allocation (LDA) und [Correlated Topic Models (CTM)](http://people.ee.duke.edu/~lcarin/Blei2005CTM.pdf), während [STM](https://www.structuraltopicmodel.com/) auf einem ganz neuen Ansatz basiert, der zahlreiche Erweiterungen gegenüber LDA enthält. Hinzu kommt schließlich noch das Paket [urltools](https://cran.r-project.org/package=urltools), welches bei der Auswertung von Online-Nachrichtenbeiträgen nützlich sein wird, aber nicht direkt etwas mit Themenmodellen zu tun hat.
 
@@ -24,7 +24,7 @@ if(!require("ldatuning")) {install.packages("ldatuning"); library("ldatuning")}
 if(!require("stm")) {install.packages("stm"); library("stm")}
 if(!require("wordcloud")) {install.packages("wordcloud"); library("wordcloud")}
 if(!require("urltools")) {install.packages("urltools"); library("urltools")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 Neben den genannten Paketen verwenden wir ausserdem noch die Bibliotheken [ldatuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html) und [wordcloud](https://cran.r-project.org/package=wordcloud) um Modellen zu optimieren, bzw. zu plotten.
@@ -55,7 +55,7 @@ Nun folgt die eigentliche Modellierung der Themen. Wir legen zunächst arbiträr
 ```{r Einfaches LDA-Modell mit 10 Themem rechnen}
 anzahl.themen <- 10
 dfm2topicmodels <- convert(meine.dfm.trim, to = "topicmodels")
-lda.modell <- LDA(dfm2topicmodels, anzahl.themen)
+lda.modell <- LDA(dfm2topicmodels, anzahl.themen, method = "Gibbs")
 lda.modell
 ```
 
@@ -109,7 +109,13 @@ Was haben wir durch das Modell erfahren? Zunächst einmal existieren Themen, wel
 Bevor wir uns diesem Beispiel zuwenden, nehmen wir aber noch eine Heuristik für die Ermittlung des idealen *k* (also der Themenanzahl) in den Blick. Statt einfach eine ärbiträtre Zahl festzulegen ist es sinnvoll, die Passung unterschiedlicher Einstellungen zu testen. Dies erleichtert das Paket [LDAtuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html), in das eine Reihe unterschiedlicher Metriken für die Bestimmung einer guten Themenanzahl auf Grundlage statistischer Faktoren integriert sind. Achtung: diese Berechnung ist deshalb sehr aufwändig, weil für alle Schritte ein eigenes Modell gerechnet wird (also in diesem Beispiel 15 einzelne Modelle), was vor allem bei größeren Datensätzen leicht mehrere Tage dauern kann.
 
 ```{r LDAtuning-Metriken berechenen}
-ldatuning.metriken <- FindTopicsNumber(dfm2topicmodels, topics = seq(from = 2, to = 15, by = 1), metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"), method = "Gibbs", control = list(seed = 77), mc.cores = 2L, verbose = TRUE
+ldatuning.metriken <- FindTopicsNumber(dfm2topicmodels, 
+                                       topics = seq(from = 2, to = 15, by = 1), 
+                                       metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"), 
+                                       method = "Gibbs", 
+                                       control = list(seed = 77), 
+                                       mc.cores = 2L, 
+                                       verbose = TRUE
 )
 ```
 
@@ -133,7 +139,11 @@ as.data.frame(zeit.korpus.stats)
 Relevant für die spätere Verwendung sind unter anderem die URLs der Beiträge, aber auch das Veröffentlichungsdatum. Die folgenden Schritte unterscheiden sich zunächst nicht von denen für die Analyse des Sherlock Holmes-Korpus.
 
 ```{r DFM für LDA vorbereiten und trimmen}
-meine.dfm <- dfm(zeit.korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = stopwords("german"))
+meine.dfm <- dfm(zeit.korpus, 
+                 remove_numbers = TRUE, 
+                 remove_punct = TRUE, 
+                 remove_symbols = TRUE, 
+                 remove = stopwords("german"))
 meine.dfm.trim <-  dfm_trim(meine.dfm, min_docfreq = 3, max_docfreq = 65)
 meine.dfm.trim
 ```
@@ -145,7 +155,7 @@ Wir modellieren nun 15 statt 10 Themen, was allerdings immer noch eine relativ g
 ```{r LDA-Modell mit 15 Themen rechnen}
 anzahl.themen <- 15
 dfm2topicmodels <- convert(meine.dfm.trim, to = "topicmodels")
-lda.modell <- LDA(dfm2topicmodels, anzahl.themen)
+lda.modell <- LDA(dfm2topicmodels, anzahl.themen, method = "Gibbs")
 lda.modell
 ```
 
@@ -202,7 +212,6 @@ lda.themen.verteilung
 ```
 
 Auch hier gilt, dass die unterstellte Beziehung zwischen Thema und Ressort klar erkennbar ist. Logisch ist auch, dass spezialisierte Ressorts wie Karriere thematisch homogener sind, als breite Bereiche wie Politik, Wirtschaft oder Gesellschaft, die eine Vielzahl von Themen und Beitragstypen beeinhalten. Unterschiede ergeben sich aber auch aus der extrem ungleichen Größenverteilung der Ressorts (Politik hat mit über 30% einen sehr großen Anteil am Gesamtkorpus). 
-
 
 ### STM-Themenmodelle auf das UN-Korpus anwenden
 
@@ -301,5 +310,72 @@ load("daten/sherlock/sherlock.stm.idealK.RData")
 plot(mein.stm.idealK)
 ```
 
-Abschließend lässt sich festhalten, dass Themenmodelle ein nützliches Werkzeit der automatisierten Inhaltsanalyse sind, und zwar sowohl dann, wenn man einen großen Datenbestand explorativ erschließen will, also auch, wenn es um die gezielte Ermittlung von systematischen Zusammenhängen des Themenvorkommens mit andere Variablen geht. Allerdings sind Themenmodelle auch keine Wunderwaffe. Sind bestimmte Voraussetzungen wie Mindestgröße und -vielfalt des Korpus (und zwar auf der Ebene von Wörtern *und* Dokumenten und ihrer Relation zu einander) nicht erfüllt, oder lassen sich keine schlüssigen Muster aus den Wortverteilungen ableiten, erhält man ein wenig schlüssiges Modell. Auch ist eben alles mit einem klaren Fussabdruck aus Worthäufigkeiten ein Thema im Sinne des Themenmodells, auch wenn es sich nicht um ein Thema in der menschlichen Interpretation handelt. Gerade bei Themenmodellen gilt also das für die automatisierte Inhaltsanalyse weithin erprobte Motto [Validieren, Validieren, Validieren](https://web.stanford.edu/~jgrimmer/tad2.pdf).
+### Die Latente Semantische Analyse (LSA)
+
+Die latente semantische Analyse (LSA) ist ein computergestütztes Analyseverfahren, welches Wissensstrukturen Anhand von Wortvektoren repräsentiert.Es kann somit -- ähnlich wie andere hier bereits vorgestellt Ansätze -- zur automatisierten Bewertung der Ähnlichkeit des Inhalts von Wörtern und Texten verwendet werden  Das Verfahren gründet sich auf die Annahme, dass aus der Verwendung von Wörtern auf deren Bedeutung geschlossen werden kann und die häufige Verwendung in ähnlichen Kontexten einen Hinweis auf inhaltliche Ähnlichkeit darstellt.
+
+Wie wenden LSA folgend auf das Facebook-Korpus an, um den Unterschied zwischen Kommentaren auf rechtspopulistischen Seiten und Nachrichtenseite näher zu untersuchen. Zunächst laden wir die Daten, ziehen ein kleineres Zufallssample, berechnen eine DFM und wenden dann die eigentliche LSA (mittels [textmodel_lsa](https://quanteda.io/reference/textmodel_lsa.html)) an. 
+
+```{r, Latente Semantische Analyse für Sample aus dem Facbook-Korpus berechnen}
+load("daten/facebook/facebook.korpus.RData")
+korpus.facebook.sample <- corpus_sample(korpus.facebook, size = 200)
+facebook.dfm <- dfm(korpus.facebook.sample)
+facebook.lsa <- textmodel_lsa(facebook.dfm, nd = 10)
+```
+
+Nun können wir die 10 Dimensionen der LSA, für welche wir den Vergleich gerechnet haben, untereinander vergleichen, und zwar unter Rückgriff auf die Unterscheidung zwischen  Rechtspopulismus/Nachrichten. 
+
+```{r, Verschiedenen Dimensionen vergleichen und plotten}
+lsa.facebook.1 <- as.data.frame(facebook.lsa$docs[,1:2]) %>% 
+  rownames_to_column(var = "Quelle") %>% 
+  rename(Dimension1 = V1, Dimension2 = V2) %>% 
+  mutate(Typ = ifelse(str_detect(Quelle, "alternativefuerde|pegidaevdresden"), "Populismus", "Nachrichten"))
+ggplot(lsa.facebook.1, aes(Dimension1, Dimension2, colour = Typ)) + 
+  geom_jitter(width = 0.05, height = 0.05) +  
+  stat_ellipse(type = "norm", linetype = 2) + 
+  scale_colour_brewer(palette = "Set1") + 
+  ggtitle("LSA-Dimensionen im Vergleich (1)")
+
+lsa.facebook.2 <- as.data.frame(facebook.lsa$docs[,2:3]) %>% 
+  rownames_to_column(var = "Quelle") %>% 
+  rename(Dimension2 = V1, Dimension3 = V2) %>% 
+  mutate(Typ = ifelse(str_detect(Quelle, "alternativefuerde|pegidaevdresden"), "Populismus", "Nachrichten"))
+ggplot(lsa.facebook.2, aes(Dimension2, Dimension3, colour = Typ)) + 
+  geom_jitter(width = 0.05, height = 0.05) + 
+  stat_ellipse(type = "norm", linetype = 2) + 
+  scale_colour_brewer(palette = "Set1") + 
+  ggtitle("LSA-Dimensionen im Vergleich (2)")
+
+lsa.facebook.3 <- as.data.frame(facebook.lsa$docs[,3:4]) %>% 
+  rownames_to_column(var = "Quelle") %>% 
+  rename(Dimension3 = V1, Dimension4 = V2) %>% 
+  mutate(Typ = ifelse(str_detect(Quelle, "alternativefuerde|pegidaevdresden"), "Populismus", "Nachrichten"))
+ggplot(lsa.facebook.3, aes(Dimension3, Dimension4, colour = Typ)) + 
+  geom_jitter(width = 0.05, height = 0.05) + 
+  stat_ellipse(type = "norm", linetype = 2) +
+  scale_colour_brewer(palette = "Set1") + 
+  ggtitle("LSA-Dimensionen im Vergleich (3)")
+
+lsa.facebook.4 <- as.data.frame(facebook.lsa$docs[,4:5]) %>% 
+  rownames_to_column(var = "Quelle") %>% 
+  rename(Dimension4 = V1, Dimension5 = V2) %>% 
+  mutate(Typ = ifelse(str_detect(Quelle, "alternativefuerde|pegidaevdresden"), "Populismus", "Nachrichten"))
+ggplot(lsa.facebook.4, aes(Dimension4, Dimension5, colour = Typ)) + 
+  geom_jitter(width = 0.05, height = 0.05) + 
+  stat_ellipse(type = "norm", linetype = 2) + 
+  scale_colour_brewer(palette = "Set1") + 
+  ggtitle("LSA-Dimensionen im Vergleich (4)")
+
+lsa.facebook.5 <- as.data.frame(facebook.lsa$docs[,5:6]) %>% 
+  rownames_to_column(var = "Quelle") %>% 
+  rename(Dimension5 = V1, Dimension6 = V2) %>% 
+  mutate(Typ = ifelse(str_detect(Quelle, "alternativefuerde|pegidaevdresden"), "Populismus", "Nachrichten"))
+ggplot(lsa.facebook.5, aes(Dimension5, Dimension6, colour = Typ)) + 
+  geom_jitter(width = 0.05, height = 0.05) + 
+  stat_ellipse(type = "norm", linetype = 2) + 
+  scale_colour_brewer(palette = "Set1") + 
+  ggtitle("LSA-Dimensionen im Vergleich (5)")
+```
+
+Abschließend lässt sich festhalten, dass Themenmodelle und die latente semantische Analyse nützliche Werkzeuge der automatisierten Inhaltsanalyse darstellen, und zwar sowohl dann, wenn man einen großen Datenbestand explorativ erschließen will, also auch, wenn es um die gezielte Ermittlung von systematischen Zusammenhängen des Themenvorkommens mit andere Variablen geht. Allerdings sind Themenmodelle auch keine Wunderwaffe. Sind bestimmte Voraussetzungen wie Mindestgröße und -vielfalt des Korpus (und zwar auf der Ebene von Wörtern *und* Dokumenten und ihrer Relation zu einander) nicht erfüllt, oder lassen sich keine schlüssigen Muster aus den Wortverteilungen ableiten, erhält man ein wenig schlüssiges Modell. Auch ist eben alles mit einem klaren Fussabdruck aus Worthäufigkeiten ein Thema im Sinne des Themenmodells, auch wenn es sich nicht um ein Thema in der menschlichen Interpretation handelt. Gerade bei Themenmodellen gilt also das für die automatisierte Inhaltsanalyse weithin erprobte Motto [Validieren, Validieren, Validieren](https://web.stanford.edu/~jgrimmer/tad2.pdf).
 

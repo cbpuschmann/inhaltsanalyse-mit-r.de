@@ -29,7 +29,7 @@ if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("readtext")) {install.packages("readtext"); library("readtext")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("RColorBrewer")) {install.packages("RColorBrewer"); library("RColorBrewer")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 
@@ -362,7 +362,7 @@ textplot_wordcloud(meine.dfm, min_size = 1, max_size = 5, max_words = 100)
 Interessanter als die Darstellung des Gesamtkorpus ist auch hier der Vergleich. Das folgende Plot zeigt die distinktivsten Begriffe für vier Romane, wobei die Farbe den jeweiligen Roman kennzeichnet. Dass im Plot die Wortgröße nicht die absolute Frequenz anzeigt, sondern die jeweils distinktivsten Begriffe, macht ein solches Plot für den unmittelbaren Vergleich nützlich.
 
 ```{r Vergleichende Wortwolke für vier Romane}
-textplot_wordcloud(meine.dfm[1:4,], color = brewer.pal(4, "Set1"), min_size = 0.2, max_size = 4, max_words = 50, comparison = TRUE)
+textplot_wordcloud(meine.dfm[5:8,], color = brewer.pal(4, "Set1"), min_size = 0.2, max_size = 4, max_words = 50, comparison = TRUE)
 ```
 
 
@@ -370,7 +370,7 @@ textplot_wordcloud(meine.dfm[1:4,], color = brewer.pal(4, "Set1"), min_size = 0.
 
 Grundsätzlich muss in diesen Kapitel zwischen den geschildertern grundlegenden Verfahren aus der Computerlinguistik und Informatik einerseits und den konkreten Funktionsumfang von quanteda unterschieden werden.
 
-Techniken wie die Tokenisierung von Korpora, die Normalisierung von Wortfrequenzen, und die Erstellung und Gewichtung von DFMs (oder klassisch "document feature matrices") ist buchstäblicher Kern der Computerlinguistik, daher sollte es nicht verwundern, dass hier auflagenstarke Standardwerke existieren, etwa Manning und Schütze ().  
+Techniken wie die Tokenisierung von Korpora, die Normalisierung von Wortfrequenzen, und die Erstellung und Gewichtung von DFMs (oder klassisch "document feature matrices") ist buchstäblicher Kern der Computerlinguistik, daher sollte es nicht verwundern, dass hier auflagenstarke Standardwerke existieren. 
 
 Hauptquelle zu quanteda ist die Projekwebsite, die einerseits eine Reihe von Tutorials zu einzelnen Einsatzbereichen enthält (etwa Sentimentanalyse...), denen die hier aufgeführten Beispiele z.T. sehr ähnlich sind, zum anderen aber auch eine Funktionsregerenz, welche die einzeln Befehle systematisch gruppiert und erklärt. Neben der quanteda hithub_Seite, über die man die aktuelle Emtwivklerversion des Pakets neziehen kann, ist vor allem das quanteda-Forum zu empfehlen, wo konkrete Fragen vom Programmiererteam beantwortet werden.
 

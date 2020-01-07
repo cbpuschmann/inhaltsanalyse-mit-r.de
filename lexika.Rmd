@@ -41,13 +41,13 @@ theme_set(theme_bw())
 
 Anschließend wird das umfangreiche EU Speech-Korpus eingelesen, auf das sich die vorwiegend politischen Lexika auf unserer Liste gut anwenden lassen. 
 
-```{r}
+```{r EU Speech-Korpus laden}
 load("daten/euspeech/euspeech.korpus.RData")
 ```
 
 Ein Blick in die Metadaten gibt uns einen Eindruck der Korpus-Zusammensetzung. Im EU Speech-Korpus sind Reden von hochrangigen Vetretern der EU-Mitgliedstaaten gespeichert, dazu Reden von Mitgliedern des Europaparlaments und von Vetretern der EU-Kommission und der EZB. Alle Reden sind in englischer Sprache gespeichert, zum Teil als Übersetzung. Zudem gibt es noch Metadaten zu Sprechern, Länge und Anlass der Reden. Die Variable *Sentences* ist hier nicht aussagekräftig, weil das Korpus bereits vor dem Einlesen in R in tokenisierter Form vorlag. 
 
-```{r}
+```{r Metadaten des EU Speech-Korpus inspizieren}
 head(korpus.euspeech.stats)
 ```
 
@@ -56,14 +56,17 @@ head(korpus.euspeech.stats)
 
 Im vorausgehenden Kapitel haben wir eingangs ein sehr simples Lexikon definiert, um die Struktur dieses Objekts in quanteda zu erläutern. Wir haben dieses Lexikon allerdings nicht angewandt, sondern sind gleich dazu übergangen, ein bereits fertiges Sentimentlexikon zu laden. Jetzt ist es an der Zeit, ein wenig mehr Arbeit in ein Ad hoc-Lexikon zu investieren, und dabei die Tatsache auszunutzen, dass ein quanteda-dictionary aus einer Reihe von Begriffen zu ganz unterschiedlichen Kategorien bestehen kann. Die im folgenden Beispiel für die Kategorie Populismus verwendete Wortliste stammt aus [Rooduijn und Pauwels (2011)](https://doi.org/10.1080/01402382.2011.616665) und wird in [dieser Übung](http://kenbenoit.net/assets/courses/essex2014qta/exercise5.pdf) von Ken Benoit (dem Erfinder von quanteda) herangezogen, während wir die zweite Wortliste zur Kategorie Liberalismus ad hoc selbst zusammengestellt haben. 
 
-```{r}
-populismus.liberalismus.lexikon <- dictionary(list(populism = c("elit*", "consensus*", "undemocratic*", "referend*", "corrupt*", "propagand", "politici*", "*deceit*", "*deceiv*", "*betray*", "shame*", "scandal*", "truth*", "dishonest*", "establishm*", "ruling*"), liberalism = c("liber*", "free*", "indiv*", "open*", "law*", "rules", "order", "rights", "trade", "global", "inter*", "trans*", "minori*", "exchange", "market*")))
+```{r Einfaches Lexikon für die Themenbereiche Populismus/Liberalismus von Hand erstellen}
+populismus.liberalismus.lexikon <- dictionary(
+  list(
+    populism = c("elit*", "consensus*", "undemocratic*", "referend*", "corrupt*", "propagand", "politici*", "*deceit*", "*deceiv*", "*betray*", "shame*", "scandal*", "truth*", "dishonest*", "establishm*", "ruling*"),
+    liberalism = c("liber*", "free*", "indiv*", "open*", "law*", "rules", "order", "rights", "trade", "global", "inter*", "trans*", "minori*", "exchange", "market*")))
 populismus.liberalismus.lexikon
 ```
 
 Wie zuvor wenden wir das Lexikon auf unsere Daten an, dabei gruppieren wir hier zunächst nach der Variable *country* (die EU-Kommission, das EU-Parlament, sowie die EZB werden hier der Einfachheit halber auch als "countries" behandelt).
 
-```{r}
+```{r Nach Land gruppierte DFM erstellen und Lexikon anwenden}
 meine.dfm.eu <- dfm(korpus.euspeech, groups = "country", dictionary = populismus.liberalismus.lexikon)
 meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
 convert(meine.dfm.eu.prop, "data.frame")
@@ -73,7 +76,7 @@ Ein Plot sparen wir uns an dieser Stelle. Es ist auch so sofort offensichtlich, 
 
 Als nächstes berechnen wir den relativen Populismus-Anteil nach Jahren im Zeitrum von 2007-2015, und unterscheiden dabei zwischen zwei Typen von Akteuren: nationalen Regierungen (hier inkl. EU-Parlament) einerseits und EU-Behörden (EU–Kommission und EZB) andererseits.
 
-```{r}
+```{r Nach Land und Jahr gruppierte DFM unter Anwendung des Lexikons erstellen}
 meine.dfm.eu <- dfm(korpus.euspeech, groups = c("Typ", "Jahr"), dictionary = populismus.liberalismus.lexikon)
 meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
 eu.themen <- convert(meine.dfm.eu.prop, "data.frame") %>% 
@@ -87,7 +90,7 @@ Auch hier überspringen wir das Plot. Während der Populismus-Anteil bei den EU�
 
 Bevor wir uns im nächsten Schritt "richtigen" Lexika zuwenden, die deutlich umfangreicher sind als unser Populismus–Lexikon, betrachten wir noch kurz die Variation *innerhalb* der Reden, da diese relativ lang sind, und sich so auch eine Themenverteilung berechnen lässt, *ohne* dass man mithilfe von *group* die DFM nach einer bestimmten Variable zusammenfasst. Das folgende Plot (welches Boxplot und Scatterplot kombiniert) zeigt die Variation beim Populismus-Anteil nach Land innerhalb einzelner Reden. 
 
-```{r}
+```{r DFM berechnen, gewichten und Boxplot des Populismus-Anteils nach Land erstellen}
 meine.dfm.eu <- dfm(korpus.euspeech, dictionary = populismus.liberalismus.lexikon)
 meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
 eu.poplib <- convert(meine.dfm.eu.prop, "data.frame") %>% 
@@ -111,7 +114,7 @@ Es muss betont werden, dass unser Ad-hoc-Lexikon sicherlich nicht ausreicht, um 
 
 Wir schauen in beide Lexika mit dem Befehl head hinein -- man erkennt gleich den großen Umfang.
 
-```{r}
+```{r Lexicoder Policy Agendas und Laver Garry Lexika laden}
 load("lexika/policy_agendas_english.RData")
 policyagendas.lexikon <- dictionary(dictLexic2Topics)
 lavergarry.lexikon <- dictionary(file = "lexika/LaverGarry.cat", format = "wordstat")
@@ -123,14 +126,14 @@ Die beiden Lexika zeichnen sich dafurch aus, dass sie geschachtelte Kategorien a
 
 Nun berechnen wir je eine DFM für jedes Lexikon und gruppieren diese einmal nach Land und einmal nach Jahr.
 
-```{r}
+```{r DFM gruppiert nach Land bzw. Jahr berechnen}
 meine.dfm.eu.pa <- dfm(korpus.euspeech, groups = "country", dictionary = policyagendas.lexikon)
 meine.dfm.eu.lg <- dfm(korpus.euspeech, groups = "Jahr", dictionary = lavergarry.lexikon)
 ```
 
 Das folgende Plot zeigt die Themenverteilung innerhalb des Korpus nach Land, auf Basis des Policy Agenda-Lexikons. Wir haben zuvor einige Themen ausgewählt und auf der Grundlage dieser Auswahl die Anteile berechnet. Andere Bereiche haben wir unter *other* zusammengefasst.
 
-```{r}
+```{r Themenverteilung im EU-Speech-Korpus je Land nach dem Policy Agendas Lexikon}
 eu.themen.pa <- convert(meine.dfm.eu.pa, "data.frame") %>%
   rename(Land = document) %>%
   select(Land, macroeconomics, finance, foreign_trade, labour, healthcare, immigration, education, intl_affairs, defence) %>%
@@ -151,7 +154,7 @@ Die Anteilsverteilung dürfte in Teilen kaum überraschen. Die EZB und in einem 
 
 Wir wenden uns nun dem Laver-Garry-Lexikon zu, welches wir gezielt auf den Zeitverlauf 2007-2015 anwenden, um Veränderungen in den Blick zunehmen. Die vielen Umformungsschritte werden notwendig, weil das Lexikon stark geschachtelte Kategorien besitzt, die wir zur besseren Übersichtlichkeit zum Teil zusammenfassen und umbennnen. 
 
-```{r}
+```{r Themenverteilung im EU-Speech-Korpus zwischen 2007 und 2015 nach dem Laver Garry-Lexikon}
 eu.themen.lg <- dfm_weight(meine.dfm.eu.lg, scheme = "prop") %>% 
   convert("data.frame") %>% 
   rename(Jahr = document) %>% 
@@ -165,7 +168,7 @@ eu.themen.lg <- dfm_weight(meine.dfm.eu.lg, scheme = "prop") %>%
   mutate(other = `GROUPS.ETHNIC` + `GROUPS.WOMEN` + `LAW_AND_ORDER.LAW-LIBERAL` + `URBAN`) %>% 
   select(Jahr, culture:other) %>% 
   gather(Thema, Prozent, culture:other) %>% 
-  filter(!Thema %in% c("economy", "institutions", "values", "culture", "other"))
+  filter(!Thema %in% c("economy", "institutions", "values", "culture", "rural", "other"))
 ggplot(eu.themen.lg, aes(Jahr, Prozent, group = Thema, col = Thema)) + 
   geom_line(size = 1) + 
   scale_colour_brewer(palette = "Set1") + 
@@ -185,7 +188,7 @@ Laden wir nun also zwei weitere Lexika, die sich im Gegensatz zu Policy Agendas 
 
 Wieso überhaupt so viele unterschiedliche Lexika? Wieso nicht einfach das beste Lexikon nutzen, und ausschließlich damit arbeiten? Leider ist die Frage, welches Lexikon man nutzen sollte, eng mit dem Forschungsinteresse verquickt. Will man also etwas über die Sprache autoritärer Regime oder moralische Appelle in politischen Reden erfahren, brauch man andere Lexika, als wenn man den Anteil von Politikfeldern beschreiben möchte. Daher stellen wir eine ganze Reihe von Lexika vor –– und tatsächlich wäre noch zahlreiche weitere durchaus interessant, die wir hier nicht vorstellen. Hinzu kommt noch der Aspekt der Verfügbarkeit: viele Lexika sind leider kostenpflichtig, nicht in offenen Formaten gespeichert, nur unzureichend dokumentiert, oder einfach schwer auffindbar.
 
-```{r}
+```{r Laden von drei weiteren Lexika}
 mft.lexikon <- dictionary(file = "lexika/moral_foundations_dictionary.dic", format = "LIWC")
 maerz.lexikon <- dictionary(file = "lexika/Authoritarianism_Maerz.ykd", format = "yoshikoder")
 newsmap.lexikon <- dictionary(file = "lexika/newsmap.yml", format = "YAML")
