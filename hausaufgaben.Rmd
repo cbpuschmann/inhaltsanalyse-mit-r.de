@@ -10,7 +10,7 @@ Folgend finden Sie Lösungen für die Hausaufgaben zur 3. Sitzung. Sehr häufig 
 # Installation und Laden der Bibliotheken
 if(!require("quanteda")) install.packages("quanteda")
 if(!require("tidyverse")) install.packages("tidyverse")
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 1. Wie häufig kommt der Suchterm crime im Sherlock Holmes-Korpus vor?

@@ -32,7 +32,7 @@ if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("scales")) {install.packages("scales"); library("scales")}
 if(!require("ggdendro")) {install.packages("ggdendro"); library("ggdendro")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 Nun wird in einem zweiten Schritt das Sherlock-Korpus geladen, welches wir bereits im ersten Kapitel mittels [readtext](https://readtext.quanteda.io/reference/readtext.html) aus dem Rohtext erstellt und als RData-Datei gespeichert haben. In der RData-Datei ist nebem dem Korpus selbst auch eine mit [summary](https://www.rdocumentation.org/packages/quanteda/versions/1.5.0/topics/summary.corpus) erstellter Data Frame enthalten, welcher die Korpus-Metadaten enthält. Zum einen sparen wir uns so das Anlegen eines Korpus, zum anderen ist das RData-Format komprimiert, was sich bei Textdaten durchaus bei der Dateigröße bemerkbar macht.

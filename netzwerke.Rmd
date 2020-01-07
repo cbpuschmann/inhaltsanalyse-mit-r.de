@@ -21,7 +21,7 @@ if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("devtools")) {install.packages("devtools"); devtools::install_github("cbail/textnets")}
 if(!require("textnets")) {devtools::install_github("cbail/textnets"); library("textnets")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 

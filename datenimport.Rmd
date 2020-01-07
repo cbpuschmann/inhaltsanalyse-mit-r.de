@@ -48,17 +48,20 @@ if(!require("tm.plugin.factiva")) {install.packages("tm.plugin.factiva"); librar
 
 if(!require("aRxiv")) {install.packages("aRxiv"); library("aRxiv")}
 
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
-### Twitter
+
+# Soziale Medien
+
+## Twitter
 
 Der Kurznachrichtendienst Twitter ist zweifelsfrei eine der populärsten Social Media-Datenquellen in der sozialwissenschaftlichen Forschung. Sprichwörtliche Berge von Studien türmen sich auf, wenn man in einer einschlägigen wissenschaftlichen Suchmaschine wie etwa Google Scholar oder Microsoft Academic [nach Beiträgen zu Twitter sucht](https://academic.microsoft.com/search?q=twitter). Kaum ein Thema, von der Vorhersage von Wahlergebnissen hin zum Katastrophenschutz wird nich anhand von Twitter-Daten untersucht. Dies ist umso erstaunlicher, als dass Twitter im Vergleich zu anderen Plattformen eher klein und in Bezug auf die Repräsentativität seiner Nutzer eingeschränkte nützliche Plattform im Vergleich zu Facebook oder YouTube ist. Was Twitter jedoch in besonderem Maße kennzeichnet ist die Offenheit seiner Daten. Während andere Social Media-Plattformen zunehmend restriktiv agieren, sind Daten aus Twitter weitgehend frei verfügbar. Daten aus der Twitter API können vergleichsweise bequem mittels zahlreicher nutzerfreundlicher Bibliotheken für Python und R extrahiert und ausgewertet werden.
 
 Für R ist in besonderem Maße das Paket [rtweet](https://rtweet.info) relevant, mit dem sich besonders leicht Twitter–Daten extrahieren lassen.
 
 
-### Facebook
+## Facebook und Instragram
 
 Mit rund XXX Mio Nutzern ist Facebook die größte Social Networking Site weltweit. Wie auch Twitter besitzt Facebook eine API, über die sich Daten aus der Plattform abrufen lassen, allerdings hat sich hier als Reaktion auf den Cambridge Analytica–Skandal die Lage mit Blick auf diesen Datenzugang dramatisch verändert. Konnte mal noch 2015 problemlos Postings und Kommentare aus öffentlichen Facebookseiten mit  Libraries wie etwa [Rfacebook](https://cran.r-project.org/package=Rfacebook) abrufen, ist dies heute nur noch in absoluten Ausnahmefällen möglich.
 
@@ -67,14 +70,15 @@ Ein Zugangsweg, den wir auch im Zusammenhang mit Instagram vorstellen bleibt all
 Die CrowdTangle API bietet immerhin Zugriff auf umfangreichere Metriken 
 hur Messung ....
 
-### YouTube 
+
+## YouTube 
 
 Im Vergleich zu Twitter und Facebook kann man bei YouTube in Bezug auf die kommunikationswissenschaftliche Forschung davon sprechen, dass die Plattform in Relation zu ihrer Größe und Bedeutung insgesamt stark unterschätzt wird, bzw. unterforscht ist. Natürlich nutzen Sozialwissenschaftler auch Daten aus YouTube, aber das geschieht in geringerem Umfang als bei Twitter oder Facebook, und als man das gemeinhin erwarten würde.
 
 
+# Journalistische Medien
 
-
-### LexisNexis
+## LexisNexis
 
 LexisNexis ist ein kommerzieller Anbieter von Recherchelösungen für die Volltextsuche in internationalen Periodika, Presse- und Wirtschaftsinformationen. Einen Schwerpunkt stellen Rechtsinformationen dar, es existieren aber auch noch zahlreiche weitere Angebote, die zum Teil von Universitätsbibliotheken lizensiert werden und dementsprechen über das Uninetz abrufbar sind (oder über VPN auch außerhalb). Durch [Nexis](http://www.nexis.com/) -- strengenommen ist LexisNexis der Name des Anbieters -- lassen sich internationale Pressevolltexte rechervieren und anschließend in unterschiedlichen Formaten exportieren. Diese Daten (in der Regel in den Formaten PDF, RTF, HTML oder TXT) lassen sich leicht in R einlesen, allerdings gibt es keine einfache Methode, den eigentlichen Textinhalt von Metadaten wie dem Medium, dem Publikationsdatum, dem Autor usw. zu trennen. 
 
@@ -97,7 +101,7 @@ head(korpus.lexisnexis.stats)
 Wie man sieht, funktioniert der Import insgesamgt gut, von einigen Metadatenfeldern einmal abgesehen. Konkret wird das Datum nicht richtig erkannt, was mit den Einstellungen der Funktion LexisNexisSource zu tun hat, die nun englische und französiche Daten (d.h. Wochentage und Monatsnamen) versteht. Das lässt sich allerdings leicht korregieren, wenn man etwas kreativ wird. 
 
 
-### Factiva
+## Factiva
 
 Factiva ist ein äquivalentes Angebot zu Nexis, Anbieter ist hier Dow Jones. Ähnlich wie bei Nexis liegt hier ein relativ starker Fokus auf Wirtschrafts- und Finanzpresse, wobei die internationale Abdeckung beider Anbieter sich nicht sehr markant unterscheidet. Es spricht auch nichts dagegen, Daten aus beiden Quellen zusammenzufassen, um eine möglichst gute Abdeckung zu erreichen. 
 
@@ -120,7 +124,7 @@ head(korpus.factiva.stats)
 ```
 
 
-### COSMAS
+## COSMAS
 
 Nexis und in geringerem Umfang auch Factiva werden in der Kommunikations- und Medienwissenschaft, aber auch in anderen Fachbereichen, umfassend genutzt, um große Datensätze für quantitative Inhaltsanalysen aufzubauen. Bei [COSMAS](https://www.ids-mannheim.de/cosmas2/), einer Korpus-Datenbank des [Leibniz-Instituts für Deutsche Sprache (IDS)](http://www1.ids-mannheim.de/) handelt es sich um einen wissenschaftlichen Dienst eines öffentlichen Forschungsinstituts, der in vielerlei Hinsicht Nexis und Factiva überlegen ist, und der zugleich in den Sozialwissenschaften derzeit noch kaum Anwendung findet.
 
@@ -143,7 +147,19 @@ head(korpus.cosmas.stats)
 ```
 
 
-### arXiv
+## MediaCloud
+
+xxx
+
+
+## GDELT
+
+xxx
+
+
+# Wissenschaftliche Texte 
+
+## arXiv
 
 Nich nur Pressetexte lassen sich mit R abrufen, einlesen und in Korpora überführen. Auch wissenschaftliche Quellen bieten sich für die Auswertung an, um etwa Fragen zur Entwicklung von Forschungsfeldern, zur Interdisziplinarität oder zu Entwicklung von Wissenschaftsbiographien anhand von Inhaltsdaten zu bearbeiten. 
 
@@ -160,5 +176,9 @@ head(korpus.arxiv.stats)
 
 Details dazu, wie Anfragen konstruiert werden, findet man im [Handbuch zum R-Paket aRxiv](https://cran.r-project.org/package=aRxiv) sowie im der [Dokumentation der arXiv API](https://arxiv.org/help/api/user-manual#query_details).
 
+
+## Web of Science
+
+xxx
 
 

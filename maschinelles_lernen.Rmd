@@ -35,7 +35,7 @@ if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("e1071")) {install.packages("e1071"); library("e1071")}
 if(!require("gridExtra")) {install.packages("gridExtra"); library("gridExtra")}
 if(!require("urltools")) {install.packages("urltools"); library("urltools")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 ### Ein erster Gehversuch mit dem Bayes-Klassifikator

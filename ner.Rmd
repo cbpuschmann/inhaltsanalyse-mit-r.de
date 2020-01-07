@@ -22,7 +22,7 @@ if(!require("tidyverse")) install.packages("tidyverse")
 if(!require("scales")) install.packages("scales")
 if(!require("udpipe")) {install.packages("udpipe"); library("udpipe")}
 if(!require("googlenlp")) {install.packages("googlenlp"); library("googlenlp")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 
