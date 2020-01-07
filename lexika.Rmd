@@ -36,7 +36,7 @@ if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
 if(!require("readtext")) {install.packages("readtext"); library("readtext")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("lubridate")) {install.packages("lubridate"); library("lubridate")}
-theme_set(theme_bw())
+theme_set(theme_minimal())
 ```
 
 Anschließend wird das umfangreiche EU Speech-Korpus eingelesen, auf das sich die vorwiegend politischen Lexika auf unserer Liste gut anwenden lassen. 
@@ -342,4 +342,5 @@ ggplot(liwc.anteile, aes(Kategorie, Wörter, fill = Korpus)) +
 Die Ergbnisse sind möglicherweise überraschend. So ist der Diskurs auf den Nachrichtenseiten affektiver, als der auf den populistischen Seiten. Er enthält auch mehr soziale Begriffe und mehr Ansprache anderer. Es wird aber auch mehr über das "wir" gesprochen, über "andere" und "Aussenstehende", und es kommen häufiger tabuisierte Begriffe vor. Das Nachrichtenkorpus enthält zudem mehr kognitive Begriffe.
 
 Zusammenfassend könnne wir festhalten, das Lexika sehr nützliche Werkzeuge für die Untersuchung von Inhalten sind. Dies gilt in besonderem Maße, wenn sie viele und geschachtelte Kategorien enthalten, und wenn ihre Abdeckung hinreichend ist (d.h. die Begriffe im Lexikon auch tatsächlich im Korpus vorkommen). Lexika stoßen schnell an ihre Grenzen, wenn sie zu klein oder zu grob strukturiert sind. Zudem muss man ein passendes Lexikon überhaupt erst einmal finden. Ohne Lexikon bleiben aber zum Glück nützliche induktive Methoden, auf die man zurückgreifen kann.
+
 
