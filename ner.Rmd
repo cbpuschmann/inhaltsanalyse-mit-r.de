@@ -97,9 +97,10 @@ Wie das Ergebnis zeigt, lassen sich im Gegensatz zu einer einfachen Frequenzlist
 Wir wenden uns nun einem anderen Beispiel zu, nämlich den Trump-Clinton-Tweets. Hier interessieren uns besonders Adjektive, und ganz spezifisch, welche für wen der beiden Kandidaten besonders charakteristisch sind. Zunächst müssel wir spacy erneut initialisieren, und zwar um die Sprache von Deutsch auf Englisch umzustellen. Anschließend wenden wir wieder die Funktion [spacy_parse](https://www.rdocumentation.org/packages/spacyr/versions/1.0/topics/spacy_parse) an. Wir beschränken uns hier darauf, die Wortart zu bestimmen. 
 
 ```{r Laden und Parsen des Twitter-Korpus}
-load("daten/twitter/trumpclinton.korpus.RData")
+load("daten/twitter/trumpclinton.RData")
 spacy_initialize(mode = "en")
-twitter.pos <- spacy_parse(korpus, lemma = F, entity = F)
+twitter.pos <- corpus(daten.twitter.trumpclinton, docid_field = "id", text_field = "text", unique_docnames = F) %>% 
+  spacy_parse(lemma = F, entity = F)
 spacy_finalize()
 head(twitter.pos, 100)
 ```
@@ -122,7 +123,13 @@ adjektive.diff <- data.frame(Wort = unique(adjektive$Wort), Differenz = adjektiv
   mutate(Differenz.S = as.vector(scale(Differenz, center = 0))) %>% 
   arrange(Differenz.S)
 
-ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5)) + xlab("") + ggtitle("Adjektive Trump vs. Clinton (mit 'great', 'big' enfernt)") + ylab("Trump                                                               Clinton") + coord_flip()
+ggplot(adjektive.diff, aes(reorder(Wort, Differenz.S), Differenz.S)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5)) + 
+  xlab("") + 
+  ggtitle("Adjektive Trump vs. Clinton (mit 'great', 'big' enfernt)") + 
+  ylab("Trump                                                               Clinton") + 
+  coord_flip()
 ```
 
 Gerade die Adjektive machen die Unterschiede zwischen den Kandidaten bezüglich des politischen Stils sehr deutlich, und nicht nur deshalb, weil Trump deutlich häufiger negative Adjektive verwendet als Clinton.

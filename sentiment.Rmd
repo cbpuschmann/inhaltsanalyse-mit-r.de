@@ -84,8 +84,8 @@ Das folgende Plot zeigt die Sentiment-Verteilung in den zwölf Sherlock Holmes-E
 ```{r Sentiment-Scores im Sherlock Holmes-Korpus plotten}
 sentiment <- convert(meine.dfm.sentiment, "data.frame") %>%
   gather(positive, negative, key = "Polarität", value = "Wörter") %>% 
-  mutate(document = as_factor(document)) %>% 
-  rename(Roman = document)
+  mutate(doc_id = as_factor(doc_id)) %>% 
+  rename(Roman = doc_id)
 ggplot(sentiment, aes(Roman, Wörter, colour = Polarität, group = Polarität)) + 
   geom_line(size = 1) + 
   scale_colour_brewer(palette = "Set1") + 
@@ -109,8 +109,8 @@ Auch diese DFM lässt sich natürlich leicht plotten.
 ```{r Relative Sentiment-Scores plotten}
 sentiment <- convert(meine.dfm.sentiment.prop, "data.frame") %>%
   gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
-  mutate(document = as_factor(document)) %>% 
-  rename(Roman = document)
+  mutate(doc_id = as_factor(doc_id)) %>% 
+  rename(Roman = doc_id)
 ggplot(sentiment, aes(Roman, Sentiment, colour = Polarität, group = Polarität)) + 
   geom_line(size = 1) + 
   scale_colour_brewer(palette = "Set1") + 
@@ -125,7 +125,7 @@ Die Darstellung von Sentimentanteilen innerhalb der zwölf Erzählungen lässt s
 
 ```{r Verrechnete Sentiment-Scores plotten}
 sentiment <- convert(meine.dfm.sentiment.prop, "data.frame") %>%
-  rename(Roman = document, Sentiment = positive) %>%
+  rename(Roman = doc_id, Sentiment = positive) %>%
   select(Roman, Sentiment) %>%
   mutate(Sentiment = rescale(Sentiment, to = c(-1,1))) %>%
   mutate(Roman = as_factor(Roman))
@@ -146,6 +146,7 @@ Zunächst laden wie die Trump- und Clinton-Twitter-Datensätze (bereits in einem
 
 ```{r Twitter-Korpus laden}
 load("daten/twitter/trumpclinton.korpus.RData")
+korpus.stats.monat <- ungroup(korpus.stats.monat)
 korpus.stats.monat
 ```
 
@@ -178,7 +179,7 @@ korpus.trump <- corpus_subset(korpus, Kandidat == "Trump")
 meine.dfm.trump <- dfm(korpus.trump, groups = c("monat", "jahr"), dictionary = sentiment.lexikon)
 sentiment.trump <- convert(meine.dfm.trump, "data.frame") %>%
   gather(positive, negative, key = "Polarität", value = "Wörter") %>% 
-  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  mutate(Datum = as.Date(paste("01", doc_id, sep = "."), "%d.%m.%Y")) %>% 
   filter(Datum >= "2015-04-01" & Datum <= "2017-04-01")
 ggplot(sentiment.trump, aes(Datum, Wörter, colour = Polarität, group = Polarität)) + 
   geom_line(size = 1) + 
@@ -195,7 +196,7 @@ korpus.clinton <- corpus_subset(korpus, Kandidat == "Clinton")
 meine.dfm.clinton <- dfm(korpus.clinton, groups = c("monat", "jahr"), dictionary = sentiment.lexikon)
 sentiment.clinton <- convert(meine.dfm.clinton, "data.frame") %>%
   gather(positive, negative, key = "Polarität", value = "Wörter") %>% 
-  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  mutate(Datum = as.Date(paste("01", doc_id, sep = "."), "%d.%m.%Y")) %>% 
   filter(Datum >= "2015-04-01" & Datum <= "2017-04-01")
 ggplot(sentiment.clinton, aes(Datum, Wörter, colour = Polarität, group = Polarität)) + 
   geom_line(size = 1) + scale_colour_brewer(palette = "Set1") + 
@@ -212,13 +213,13 @@ Wie sieht die Twitter–Aktivität beider Kandidaten im direkten Vergleich aus? 
 sentiment.trump.prop <- dfm_weight(meine.dfm.trump, scheme = "prop") %>% 
   convert("data.frame") %>%
   gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
-  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  mutate(Datum = as.Date(paste("01", doc_id, sep = "."), "%d.%m.%Y")) %>% 
   filter(Datum >= "2015-04-01" & Datum <= "2016-11-01") %>% 
   mutate(Kandidat = "Trump")
 sentiment.clinton.prop <- dfm_weight(meine.dfm.clinton, scheme = "prop") %>% 
   convert("data.frame") %>%
   gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
-  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  mutate(Datum = as.Date(paste("01", doc_id, sep = "."), "%d.%m.%Y")) %>% 
   filter(Datum >= "2015-04-01" & Datum <= "2016-11-01") %>% 
   mutate(Kandidat = "Clinton")
 sentiment.trumpclinton <- bind_rows(sentiment.trump.prop, sentiment.clinton.prop) %>% 
@@ -275,7 +276,7 @@ Zuletzt wird ein gemeinsamer Data Frame zusammengesetzt und etwas umgeformt. Das
 sentiment.trump.kombi <- bind_rows(sentiment.trump.bingliu, sentiment.trump.nrc, sentiment.trump.afinn) %>% 
   gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
   filter(Polarität == "positive") %>% 
-  mutate(Datum = as.Date(paste("01", document, sep = "."), "%d.%m.%Y")) %>% 
+  mutate(Datum = as.Date(paste("01", doc_id, sep = "."), "%d.%m.%Y")) %>% 
   filter(Datum >= "2015-04-01" & Datum <= "2017-03-01") %>% 
   select(Datum, Lexikon, Sentiment) %>% 
   mutate(Sentiment = rescale(Sentiment, to = c(-1,1)))
@@ -308,13 +309,13 @@ reddit.sentiment <- dfm_weight(reddit.dfm, scheme = "logave") %>%
   convert("data.frame") %>%
   mutate(positive = trunc(positive), negative = trunc(negative)) %>% 
   mutate(neutral = positive == negative) %>% 
-  left_join(reddit.stats, by = c("document" = "Text"))
+  left_join(reddit.stats, by = c("doc_id" = "Text"))
 sentiment <- ""
 sentiment[reddit.sentiment$positive==1] <- "positive"
 sentiment[reddit.sentiment$negative==1] <- "negative"
 sentiment[reddit.sentiment$neutral==T] <- "neutral"
 reddit.sentiment.share <- reddit.sentiment %>% 
-  select(document, structure, comm_date, subreddit, user, comment_score) %>% 
+  select(doc_id, structure, comm_date, subreddit, user, comment_score) %>% 
   data.frame(Sentiment = sentiment)
 reddit.sentiment.share
 ```
@@ -379,7 +380,7 @@ Auch diese sehr einfache Tabelle können wir plotten, auch wenn das in diesem ko
 ```{r Treemap zu Sentiment-Anteilen nach Medium im Finanzkrise-Korpus}
 sentiment.finanzkrise <- convert(meine.dfm.finanzkrise.prop, "data.frame") %>% 
   gather(positive, negative, key = "Polarität", value = "Sentiment")
-ggplot(sentiment.finanzkrise, aes(document, Sentiment, colour = Polarität, fill = Polarität)) + 
+ggplot(sentiment.finanzkrise, aes(doc_id, Sentiment, colour = Polarität, fill = Polarität)) + 
   geom_bar(stat="identity") + 
   scale_colour_brewer(palette = "Set1") + 
   scale_fill_brewer(palette = "Pastel1") + 
@@ -404,7 +405,7 @@ Die resultierende DFM formen wir etwas um und plotten dann wieder eine Grafik, w
 
 ```{r Sentiment-Entwicklung nach Medium und Zeit plotten}
 sentiment.finanzkrise.zeit <- convert(meine.dfm.finanzkrise.prop, "data.frame") 
-finanzkrise.quellen <- data.frame(str_split(sentiment.finanzkrise.zeit$document, "\\.", simplify = T))
+finanzkrise.quellen <- data.frame(str_split(sentiment.finanzkrise.zeit$doc_id, "\\.", simplify = T))
 colnames(finanzkrise.quellen) <- c("Zeitung", "Jahr")
 sentiment.finanzkrise.zeit <- bind_cols(sentiment.finanzkrise.zeit, finanzkrise.quellen) %>%
   rename(Sentiment = positive) %>%
@@ -439,7 +440,7 @@ Auch hier plotten wir wieder das Resultat. Die Normalisierung, welche wir im vor
 ```{r DFM in einen Data Frame umwandeln und absolute Sentiment-Verteilung plotten}
 sentiment.bundestag.partei <- convert(meine.dfm.bundestag.partei, "data.frame") %>% 
   gather(positive, negative, key = "Polarität", value = "Sentiment")
-ggplot(sentiment.bundestag.partei, aes(document, Sentiment, colour = Polarität, fill = Polarität)) + 
+ggplot(sentiment.bundestag.partei, aes(doc_id, Sentiment, colour = Polarität, fill = Polarität)) + 
   geom_bar(stat="identity") + scale_colour_brewer(palette = "Set1") + 
   scale_fill_brewer(palette = "Pastel1") + 
   scale_y_continuous(labels = comma) + 
@@ -462,7 +463,7 @@ Nachdem wir das anteilige Sentiment für alle 243 Sitzungen der Legislaturperiod
 
 ```{r Verrechnete Sentiment-Scores nach Sitzungsverlauf plotten}
 sentiment.bundestag.sitzung <- convert(meine.dfm.bundestag.sitzung.prop, "data.frame") %>% 
-  rename(Sitzung = document, Sentiment = positive) %>%
+  rename(Sitzung = doc_id, Sentiment = positive) %>%
   select(Sitzung, Sentiment) %>%
   mutate(Sentiment = rescale(Sentiment, to = c(-1,1))) %>% 
   mutate(Sitzung = as_factor(Sitzung)) %>% 
@@ -506,8 +507,8 @@ Nun ziehen wir noch die Parteizugehörigkeit aus den Metadaten hinzu, skalieren 
 
 ```{r Polarität je Sprechner bestimmen und sortieren}
 sentiment.bundestag.sprecher <- convert(meine.dfm.bundestag.sprecher, "data.frame") %>% 
-  left_join(unique(select(korpus.bundestag.stats, speaker_cleaned, party)), by = c("document" = "speaker_cleaned")) %>% 
-  rename(Sprecher = document, Partei = party) %>% 
+  left_join(unique(select(korpus.bundestag.stats, speaker_cleaned, party)), by = c("doc_id" = "speaker_cleaned")) %>% 
+  rename(Sprecher = doc_id, Partei = party) %>% 
   filter(positive != 0, negative != 0) %>% 
   gather(positive, negative, key = "Polarität", value = "Sentiment") %>% 
   filter(Polarität == "positive") %>% 

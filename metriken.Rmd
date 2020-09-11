@@ -151,8 +151,8 @@ head(poliblogs.freqs, 100)
 Nun können wir die frequente Begriffe in den rund 13.000 konservativen und linken U.S.-Blogeinträgen plotten. Dabei zeigt das erste Plot die populärsten Begriffe in konservativen Blogs und das zweite Plot die populärsten Begriffe in linken Blogs, wobei die Frequenz bei jedem Begriff für die jeweils andere 'Seite' auch gleich mitangezeigt wird. 
 
 ```{r Frequente Begriffe in konservativen und linken U.S.-Blogs plotten}
-freqs.con <- filter(poliblogs.freqs, group == "Conservative") %>% select(feature, frequency)
-freqs.lib <- filter(poliblogs.freqs, group == "Liberal") %>% select(feature, frequency)
+freqs.con <- filter(poliblogs.freqs, group == "Conservative") %>% as.data.frame() %>% select(feature, frequency)
+freqs.lib <- filter(poliblogs.freqs, group == "Liberal") %>% as.data.frame() %>% select(feature, frequency)
 freqs <- left_join(freqs.con, freqs.lib, by = "feature") %>% head(25) %>% arrange(frequency.x) %>% mutate(feature = factor(feature, feature))
 ggplot(freqs) +
   geom_segment( aes(x=feature, xend=feature, y=frequency.x, yend=frequency.y), color="grey") +
@@ -263,7 +263,7 @@ ggplot(aehnlichkeit.lib.df, aes(reorder(Begriff, Rang), Kosinus)) +
 Wer die Dokumentation von [textstat_simil](https://quanteda.io/reference/textstat_simil.html) und [textstat_dist](https://quanteda.io/reference/textstat_dist.html) anschaut, wird feststellen, dass es dort den etwas kryptischen Hinweis auf das Argument 'margin' gibt. Dieses hat zwei mögliche erinstellungen: 'documents' oder 'features'. Stellt man hier 'documents' ein, werden die besprochenen Metriken nicht auf Wörter, sondern auf Texte angewandt. Folgend plotten wir die Textnähe via Kosinusähnlichkeit (hier ausgehend vom ersten Roman, 'A Case of Identity').
 
 ```{r Ähnlichkeit eines bestimmten Textes zu anderen Texten plotten}
-aehnlichkeit.texte <- data.frame(Text = factor(korpus.stats$Text, levels = rev(korpus.stats$Text)), as.matrix(textstat_simil(meine.dfm, meine.dfm["A Case of Identity"], margin = "documents", method = "cosine")))
+aehnlichkeit.texte <- data.frame(Text = factor(korpus.stats$Text, levels = rev(korpus.stats$Text)), as.matrix(textstat_simil(meine.dfm, meine.dfm["A Case of Identity",], margin = "documents", method = "cosine")))
 ggplot(aehnlichkeit.texte, aes(A.Case.of.Identity, Text)) + 
   geom_point(size = 2.5) + 
   ggtitle("Text-Kosinusähnlichkeit (hier für 'A Case of Identity')") + 
@@ -349,10 +349,9 @@ Was tun, wenn man etwas über den Informationsgehalt eines Textes relativ zum Ge
 
 ```{r Entropie von Dokumenten im Sherlock Holmes-Satzkorpus}
 entropie <- textstat_entropy(meine.dfm.saetze, margin = "documents") %>% 
-  sort(decreasing = TRUE) %>% 
-  names() %>% 
+  arrange(desc(entropy)) %>% 
   head(3)
-korpus.saetze[entropie]
+texts(korpus.saetze[entropie$document])
 ```
 
 Die drei Beispiele verdeutlichen gut, was Entropie letztendlich misst. Alle drei Sätze sind lexikalisch sehr aussergewöhnlich, was sich zum Teil durch ihre Länge erklärt, aber auch etwas mit dem hohen Anteil ungewöhnlicher Begriffe zu tun hat, die sonst im Korpus kaum vorkommen.

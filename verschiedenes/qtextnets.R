@@ -24,9 +24,9 @@ textplot_mixednet <- function(mydfm, maxdocs = 10, main = "Document Feature Mixe
   if (maxdocs > ndoc(mydfm)) maxdocs <- ndoc(mydfm)
   mixednet <- convert(mydfm, to = "data.frame") %>% 
     sample_n(maxdocs) %>% 
-    gather(key = "term", value = "weight", -document) %>% 
+    gather(key = "term", value = "weight", -doc_id) %>% 
     filter(weight >= 1) %>% 
-    arrange(document)
+    arrange(doc_id)
   mixedgraph <- graph_from_data_frame(mixednet, directed = F, )
   V(mixedgraph)$type <- bipartite_mapping(mixedgraph)$type # make bipartite
   ggraph(mixedgraph, layout = "graphopt") +
@@ -47,7 +47,7 @@ textplot_termnet <- function(mydfm, main = "Termnet")
 {
   termnet <- fcm(mydfm, count = "boolean") %>% 
     convert(to = "matrix")
-  termgraph <- graph_from_adjacency_matrix(termnet, mode = "undirected", weighted = T)
+  termgraph <- graph_from_adjacency_matrix(termnet, mode = "undirected", weighted = TRUE)
   ggraph(termgraph, layout = "graphopt") +
     geom_edge_fan(aes(alpha = ..index..)) +
     geom_node_point() +
@@ -60,12 +60,12 @@ textplot_termnet <- function(mydfm, main = "Termnet")
 # Network of documents only
 textplot_docnet <- function(mydfm, main = "Docnet")
 {
-  docnet <- dfm_weight(mydfm, scheme = "prop") %>% 
-    textstat_dist(margin = "documents", method = "euclidean", upper = T, diag = T) %>% 
+  docnet <- dfm_weight(mydfm, scheme = "prop", force = TRUE) %>% 
+    textstat_dist(margin = "documents", method = "euclidean", upper = TRUE, diag = TRUE) %>% 
     as.matrix(.) %>% 
     rescale(to = c(1,0)) %>% 
     round(.)
-  docgraph <- graph_from_adjacency_matrix(docnet, mode = "undirected", weighted = T, diag = F)
+  docgraph <- graph_from_adjacency_matrix(docnet, mode = "undirected", weighted = TRUE, diag = FALSE)
   ggraph(docgraph, layout = "circle") + 
     geom_edge_fan(aes(alpha = ..index..)) +
     geom_node_point() + 

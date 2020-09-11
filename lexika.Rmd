@@ -80,8 +80,8 @@ Als nächstes berechnen wir den relativen Populismus-Anteil nach Jahren im Zeitr
 meine.dfm.eu <- dfm(korpus.euspeech, groups = c("Typ", "Jahr"), dictionary = populismus.liberalismus.lexikon)
 meine.dfm.eu.prop <- dfm_weight(meine.dfm.eu, scheme = "prop")
 eu.themen <- convert(meine.dfm.eu.prop, "data.frame") %>% 
-  mutate(Typ = str_split(document, "\\.", simplify = T)[,1]) %>% 
-  mutate(Jahr = str_split(document, "\\.", simplify = T)[,2]) %>% 
+  mutate(Typ = str_split(doc_id, "\\.", simplify = T)[,1]) %>% 
+  mutate(Jahr = str_split(doc_id, "\\.", simplify = T)[,2]) %>% 
   select(Typ, Jahr, populism, liberalism)
 eu.themen
 ```
@@ -135,7 +135,7 @@ Das folgende Plot zeigt die Themenverteilung innerhalb des Korpus nach Land, auf
 
 ```{r Themenverteilung im EU-Speech-Korpus je Land nach dem Policy Agendas Lexikon}
 eu.themen.pa <- convert(meine.dfm.eu.pa, "data.frame") %>%
-  rename(Land = document) %>%
+  rename(Land = doc_id) %>%
   select(Land, macroeconomics, finance, foreign_trade, labour, healthcare, immigration, education, intl_affairs, defence) %>%
   gather(macroeconomics:defence, key = "Thema", value = "Anteil") %>% 
   group_by(Land) %>% 
@@ -157,7 +157,7 @@ Wir wenden uns nun dem Laver-Garry-Lexikon zu, welches wir gezielt auf den Zeitv
 ```{r Themenverteilung im EU-Speech-Korpus zwischen 2007 und 2015 nach dem Laver Garry-Lexikon}
 eu.themen.lg <- dfm_weight(meine.dfm.eu.lg, scheme = "prop") %>% 
   convert("data.frame") %>% 
-  rename(Jahr = document) %>% 
+  rename(Jahr = doc_id) %>% 
   mutate(culture = `CULTURE` + `CULTURE.CULTURE-HIGH` + `CULTURE.CULTURE-POPULAR` + `CULTURE.SPORT`) %>% 
   mutate(economy = `ECONOMY.+STATE+` + `ECONOMY.=STATE=` + `ECONOMY.-STATE-`) %>% 
   mutate(environment = `ENVIRONMENT.CON ENVIRONMENT` + `ENVIRONMENT.PRO ENVIRONMENT`) %>% 
@@ -200,7 +200,7 @@ str(newsmap.lexikon)
 
 Im Vergleich fällt auf, dass die drei Lexika sehr elaboriert sind, mit umfassenden Begriffslisten für verschiedene Konzepte. Jetzt laden wie den nächsten Datensatz, nämlich das [UN General Debate Korpus](http://www.smikhaylov.net/ungdc/) zusammengestellt von Slava Mikhaylov. Es umfasst die Transkripte der UN-Generaldebatte zwischen 1970 und 2017. Mit 24 Mio. Wörtern ist dies das umfangreichste Korpus, mit dem wir hier arbeiten, allerdings verteilt sich diese Wortzahl nur auf rund 7,900 Texte, d.h. die Texte sind im Mittel relativ lang. 
 
-```{r}
+```{r UN-Korpus laden}
 load("daten/un/un.korpus.RData")
 head(korpus.un.stats)
 ```
@@ -209,7 +209,7 @@ Wie man sieht, enthält auch dieses Korpus umfassende Metadaten. Zu Teil sind di
 
 Wieder bereiten wir mehrere DFMs vor, zweimal nach Ländern gruppiert und einmal nach Jahren. Wir filtern folgend etwas, so dass nicht die gesamten 47 Jahre ausgewertet werden, sondern nur die letzten 10 bis 35 Jahre.
 
-```{r}
+```{r DFMs mit drei Lexika rechnen}
 meine.dfm.un.mft <- dfm_weight(dfm(corpus_subset(korpus.un, year >= 1992), groups = "country", dictionary = mft.lexikon), scheme = "prop")
 meine.dfm.un.maerz <- dfm(corpus_subset(korpus.un, year >= 1982), groups = "year", dictionary = maerz.lexikon)
 meine.dfm.un.newsmap <- dfm(corpus_subset(korpus.un, year >= 2007) , groups = "country", dictionary = newsmap.lexikon)
@@ -217,10 +217,10 @@ meine.dfm.un.newsmap <- dfm(corpus_subset(korpus.un, year >= 2007) , groups = "c
 
 Zunächst sehen wir uns die Verteilung unterschiedlicher Kategorien im Moral Foundations Theory-Lexikon im Verlauf der letzten 25 Jahr an. Die Moral Foundations Theory postuliert wie der Name bereits nahelegt die Existenz moralischer Grundlagen, welche das politische Handeln unterfüttern. Opterationalisiert werden diese Grundlagen durch Begriffe, die typisch für eine Kategorie wie *allgemeine Moralität* sind. Da bietet es sich an, die Distribution dieser Kategorien im internationalen Vergleich zu analysieren. Nachstehend ziehen wir ein Zufallssample aus den 188 im Korpus vertretenen Länder und plotten für diese die Verteilung der elf Kategorien.
 
-```{r}
+```{r Verteilung der MFT-Themen für zwölf Länder plotten}
 mft.laender <- sort(sample(unique(korpus.un.stats$country), size = 12))
 un.mft <- convert(meine.dfm.un.mft, "data.frame") %>% 
-  rename(Land = document) %>% 
+  rename(Land = doc_id) %>% 
   filter(Land %in% mft.laender) %>% 
   gather(HarmVirtue:MoralityGeneral, key = "MF_Typ", value = "Anteil") %>% 
   mutate(Land = factor(Land, levels = rev(mft.laender)))
@@ -237,9 +237,9 @@ Durch das Ziehen eines Zufallssamples erhalten wir einen Überblick über unters
 
 Wir belassen es bei diesem kurzen Eindruck und wenden uns dem Simulating Pluralism-Lexikon zu, welches Autokratien und Demokratien bezüglich bestimmter Argumentationsmuster vergleicht.
 
-```{r}
+```{r Distribution der Maerz-Kategorien über die Zeit plotten}
 un.maerz <- convert(meine.dfm.un.maerz, "data.frame") %>% 
-  mutate(Jahr = parse_date(document, format = "%Y")) %>%
+  mutate(Jahr = parse_date(doc_id, format = "%Y")) %>%
   rename(illiberalism = `autocratic vs. democratic.democratic.3 liberalism.autocratic.2 illiberalism`) %>%
   rename(democracy = `autocratic vs. democratic.democratic.4 democratic procedures.democracy`) %>%  
   rename(maintenance_of_power = `autocratic vs. democratic.autocratic.1 autocratic procedures.maintenance of power`) %>%  
@@ -261,10 +261,10 @@ Wir gehen zwar auch auf diese Ergebnisse nicht genauer ein, aber sie belegen gut
 
 Wir wenden uns mit dem nächsten Lexikon einer weiteren Betrachtungsebene zu. Mit dem NewsMap-Lexikon lässt sich die Frage beantworten, über welche Weltregionen die untersuchten Länder im UN–Korpus vorwiegend sprechen. Das klingt zunächt trivial, wird aber interessanter, wenn man bedenkt, dass sich bestimmte Länder deutlich mehr ausserhalb ihrer direkten Nachbarschaft engagieren als andere. So lassen sich Länder etwa danach gruppieren, wie viel und über welche (anderen) Regionen sie sprechen.
 
-```{r}
+```{r Verteilung der NewsMap-Kategorien für fünf Länder plotten}
 newsmap.laender <- sort(sample(unique(korpus.un.stats$country), size = 6))
 un.newsmap <- convert(meine.dfm.un.newsmap, "data.frame") %>% 
-  rename(Land = document) %>% 
+  rename(Land = doc_id) %>% 
   filter(Land %in% newsmap.laender) %>% 
   gather(africa:oceania, key = "NewsMap_Region", value = "Anteil") %>% 
   mutate(Land = factor(Land, levels = newsmap.laender))
@@ -282,20 +282,20 @@ ggplot(un.newsmap, aes(Land, Anteil, colour = NewsMap_Region, fill = NewsMap_Reg
 
 Zuletzt wechseln wir noch einmal die Perspektive bzw. das Korpus, und laden einen ganz aktuellen Datensatz, bestehend aus Facebook-Kommentaren von zwei politischen Facebook-Seiten (AfD und Pegida), sowie vier deutschen Nachrichenseiten, um einen Vergleich der Diskussionen, die auf diesen Seiten stattfinden durchzuführen. Dazu rufen wir zunächst das deutschsprachige LIWC-Lexikon auf. 
 
-```{r}
+```{r Facebook-Korpus laden}
 load("daten/facebook/facebook.korpus.RData")
 ```
 
 Wieder werfen wir einen qualitativen Blick auf die Daten, indem wir ein Zufallssample ziehen. 
 
-```{r}
+```{r Ziehen eines Zufallssamples}
 texts(corpus_sample(corpus_subset(korpus.facebook, corpus == "populism"), size = 2))
 texts(corpus_sample(corpus_subset(korpus.facebook, corpus == "news"), size = 2))
 ```
 
 Wieder verschaffen wir uns auch einen quantitativen Überblick der Textmenge über die Zeit.
 
-```{r}
+```{r Aktivität im Facebook-Korpus über die Zeit plotten}
 facebook.aktivitaet <- korpus.facebook.stats %>%
   mutate(Quelle = factor(source, levels = c("pegidaevdresden", "alternativefuerde", "FAZ", "SZ", "Welt", "Zeit"))) %>% 
   group_by(Datum = floor_date(created_time, "1 month"), Quelle) %>%
@@ -313,21 +313,21 @@ Wie man sieht, beinhaltet das Facebook-Korpus Kommentare, die zwischen 2015 und 
 
 Wir laden zunächst LIWC. Einige der Begriffe sind Kategorien zugeordnet, die gar nicht im Anfangsteil des Lexikons definiert sind, was für quanteda allerdings keinerlei Probleme verursacht. 
 
-```{r}
+```{r Deutschsprachiges LIWC laden}
 liwc.deutsch <- dictionary(file = "lexika/LIWC_German.dic", format = "LIWC")
 ```
 
 Dann generieren wir einen DFM unter Anwendung des Lexikons, nachdem wir nach der Variable *Korpus* (also nach *populism* oder *news*) gruppiert haben.
 
-```{r}
+```{r DFM für das Facebook-Korpus rechnen}
 meine.dfm.fb.liwc <- dfm(korpus.facebook, groups = "corpus", dictionary = liwc.deutsch)
 ```
 
 Wieder plotten wir abschließend die Verteilung der Treffer auf das Lexikon, hier nach der Variable *Korpus*, die ja die Unterscheidung zwischen den populistischen Seiten und der Nachrichtenseiten ernhält. Wir verwenden deshalb absolute Token-Zahlen, weil unser Korpus exakt 50/50 aufgeteilt ist. Wir lassen eine Reihe von LIWC-Kategorien weg, da nicht alle für unsere Zwecke relevant sind. 
 
-```{r}
+```{r LIWC-Anteile für das Facebook-Korpus plotten}
 liwc.anteile <- convert(meine.dfm.fb.liwc, "data.frame") %>%
-  rename(Korpus = document) %>% 
+  rename(Korpus = doc_id) %>% 
   gather(key = Kategorie, value = Wörter, -Korpus) %>% 
   filter(!Kategorie %in% c("Article", "Down", "Eat", "Fillers", "Grooming", "Humans", "Money", "Motion", "Music", "Nonfluency", "Numbers", "Physical", "Preps", "Relig", "Sex", "Sleep", "Sports", "Time", "Up")) %>% 
   mutate(Korpus = factor(Korpus, levels = c("populism", "news")))

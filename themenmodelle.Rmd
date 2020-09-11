@@ -12,12 +12,13 @@ Todos
 * ...
 -->
 
-Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (engl. *topic modeling*) handelt es sich um ein im Vergleich mit dem in den vorausgehenden Kapiteln präsentierten Lexikon-Ansatz sehr viel jüngeres und deutlich anspruchsvolleres Verfahren, wenn es um die Anforderungen an Rechenleistung und Speicher Ihres Computers geht. Themenmodelle sind mathemathisch komplex und vollständig induktiv, d.h. das Modell setzt keinerlei Kenntnis des Inhalts voraus, was aber nicht bedeutet, dass solche Kenntnisse für die Validierung des Outputs nicht entscheidend sind. Die Beziehung von Themen zu Wörtern und Dokumenten wird in einem Themenmodell vollständig automatisiert hergestellt. Die bekannteste Implementation heißt [Latent Dirichlet Allocation](https://de.wikipedia.org/wiki/Latent_Dirichlet_Allocation) (kurz LDA) und wurde von den Computerlinguisten David Blei, Andrew Ng und Michael Jordan entwickelt. Während ich vorausgehende, einfachere Verfahren lediglich kurz beschrieben habe, ist es bei der Themenanalyse notwendig, sich eingehender mit den algoritihmischen Grundlagen des Ansatzes zu beschäftigen, wenn man diesen wirklich verstehen will. Für die Demonstration von Themenmodellen -- und weitgehend auch für deren kompetente Anwendung -- reicht es allerdings aus, wenn man diese ausprobiert und (und das ist sehr wichtig!) die Qualität der erzielten Ergebnisse systematisch überprüft, das Modell also umfassend validiert. Dies geschieht anhand einer Reihe von Verfahren, welche die Passung des Models etwa in Abhängigkeit zu Variablen wie der gewählten Themenzahl bewerten. Während auch die vorausgehenden Ansätze häufig Ergebnisse produzieren, die sorgfältig überprüft werden müssen, sind Topic Model-Ergebnisse besonders schwer vorhersagbar, weil sich die induktiven Wortverteilungsmuster, auf denen Themenmodelle basieren mitunter stark vom menschlichen Verständnis eines Themas unterscheiden. Nach der Vorstellung von zwei Themenmodell-Verfahren (LDA und STM) gehen wir zusätzlich noch auf einen konzeptionellen Vorläufer der Themenmodellierung, die sog. [latente semantische Analyse](https://de.wikipedia.org/wiki/Latent_Semantic_Analysis) (auch bezeichnet als Latent Semantic Indexing; LSI) ein.
+Bei der [Themenanalyse](http://fortext.net/routinen/methoden/topic-modeling) (engl. *topic modeling*) handelt es sich um ein im Vergleich mit dem in den vorausgehenden Kapiteln präsentierten Lexikon-Ansatz sehr viel jüngeres und deutlich anspruchsvolleres Verfahren, wenn es um die Anforderungen an Rechenleistung und Speicher Ihres Computers geht. Themenmodelle sind mathematisch komplex und vollständig induktiv, d.h. das Modell setzt keinerlei Kenntnis des Inhalts voraus, was aber nicht bedeutet, dass solche Kenntnisse für die Validierung des Outputs nicht entscheidend sind. Die Beziehung von Themen zu Wörtern und Dokumenten wird in einem Themenmodell vollständig automatisiert hergestellt. Die bekannteste Implementation heißt [Latent Dirichlet Allocation](https://de.wikipedia.org/wiki/Latent_Dirichlet_Allocation) (kurz LDA) und wurde von den Computerlinguisten David Blei, Andrew Ng und Michael Jordan entwickelt. Während ich vorausgehende, einfachere Verfahren lediglich kurz beschrieben habe, ist es bei der Themenanalyse notwendig, sich eingehender mit den algorithmischen Grundlagen des Ansatzes zu beschäftigen, wenn man diesen wirklich verstehen will. Für die Demonstration von Themenmodellen -- und weitgehend auch für deren kompetente Anwendung -- reicht es allerdings aus, wenn man diese ausprobiert und (und das ist sehr wichtig!) die Qualität der erzielten Ergebnisse systematisch überprüft, das Modell also umfassend validiert. Dies geschieht anhand einer Reihe von Verfahren, welche die Passung des Modells etwa in Abhängigkeit zu Variablen wie der gewählten Themenzahl bewerten. Während auch die vorausgehenden Ansätze häufig Ergebnisse produzieren, die sorgfältig überprüft werden müssen, sind Topic Model-Ergebnisse besonders schwer vorhersagbar, weil sich die induktiven Wortverteilungsmuster, auf denen Themenmodelle basieren mitunter stark vom menschlichen Verständnis eines Themas unterscheiden. Nach der Vorstellung von zwei Themenmodell-Verfahren (LDA und STM) gehen wir zusätzlich noch auf einen konzeptionellen Vorläufer der Themenmodellierung, die sog. [latente semantische Analyse](https://de.wikipedia.org/wiki/Latent_Semantic_Analysis) (auch bezeichnet als Latent Semantic Indexing; LSI) ein.
 
 Da Themenmodelle im Kontrast zu den bisher vorgestellten Methoden nicht Teil der Ausstattung von quanteda sind, nutzen wir folgend zwei neue Pakete für ihre Berechnung: [topicmodels](https://cran.r-project.org/package=topicmodels) und [stm](https://cran.r-project.org/package=stm). Das Paket topicmodels implementiert die beiden Verfahren Latent Dirichlet Allocation (LDA) und [Correlated Topic Models (CTM)](http://people.ee.duke.edu/~lcarin/Blei2005CTM.pdf), während [STM](https://www.structuraltopicmodel.com/) auf einem ganz neuen Ansatz basiert, der zahlreiche Erweiterungen gegenüber LDA enthält. Hinzu kommt schließlich noch das Paket [urltools](https://cran.r-project.org/package=urltools), welches bei der Auswertung von Online-Nachrichtenbeiträgen nützlich sein wird, aber nicht direkt etwas mit Themenmodellen zu tun hat.
 
 ```{r Installation und Laden der benötigten R-Bibliotheken, message = FALSE}
 if(!require("quanteda")) {install.packages("quanteda"); library("quanteda")}
+if(!require("quanteda.textmodels")) {install.packages("quanteda.textmodels"); library("quanteda.textmodels")}
 if(!require("tidyverse")) {install.packages("tidyverse"); library("tidyverse")}
 if(!require("topicmodels")) {install.packages("topicmodels"); library("topicmodels")}
 if(!require("ldatuning")) {install.packages("ldatuning"); library("ldatuning")}
@@ -27,22 +28,22 @@ if(!require("urltools")) {install.packages("urltools"); library("urltools")}
 theme_set(theme_minimal())
 ```
 
-Neben den genannten Paketen verwenden wir ausserdem noch die Bibliotheken [ldatuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html) und [wordcloud](https://cran.r-project.org/package=wordcloud) um Modellen zu optimieren, bzw. zu plotten.
+Neben den genannten Paketen verwenden wir außerdem noch die Bibliotheken [ldatuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html) und [wordcloud](https://cran.r-project.org/package=wordcloud) um Modellen zu optimieren, bzw. zu plotten.
 
 ### Erste Erstellung eines groben LDA-Themenmodells
 
-Wir beginnen mit einem sehr einfachen LDA-Themenmodell, welches wir anhand des Pakets *topicmodels* berechnen. Dieses Paket bietet zwar kaum Funktionen, anhand derer man das Modell näher inspizieren kann, aber ein Blick auf die Objektstruktur hilft diesbezüglich bereits, sofern man zumindest grob mit Themenmodellen vertraut ist. Am Ende diesen Abschnitts gehen wir nochmals darauf ein, wie man aus einem LDA-Modell die wichtigsten Metriken extrahiert.
+Wir beginnen mit einem sehr einfachen LDA-Themenmodell, welches wir anhand des Pakets *topicmodels* berechnen. Dieses Paket bietet zwar kaum Funktionen, anhand derer man das Modell näher inspizieren kann, aber ein Blick auf die  hilft diesbezüglich bereits, sofern man zumindest grob mit Themenmodellen vertraut ist. Am Ende diesen Abschnitts gehen wir nochmals darauf ein, wie man aus einem LDA-Modell die wichtigsten Metriken extrahiert.
 
-Zunächst laden wir wieder das Sherlock-Holmes Korpus, allerdings dieses Mal in einer besonderen Variante. Die nachstehend verwendete Version unterteil das Korpus in 174 Dokumente, die jeweils aus 40 Sätzen bestehen. Diesen Schritt haben wir bereits zuvor mithilfe der Funktion *corpus_reshape* durchgeführt. Das Ergebnis sind 10-17 "Texte" pro Roman, also in etwa so, als seien die Romane in Kapitel unterteilt, was sie in der von uns verwendeten Fassung nicht sind. 
+Zunächst laden wir wieder das Sherlock-Holmes Korpus, allerdings dieses Mal in einer besonderen Variante. Die nachstehend verwendete Version unterteilt das Korpus in 174 Dokumente, die jeweils aus 40 Sätzen bestehen. Diesen Schritt haben wir bereits zuvor mithilfe der Funktion *corpus_reshape* durchgeführt. Das Ergebnis sind 10-17 "Texte" pro Roman, also in etwa so, als seien die Romane in Kapitel unterteilt, was sie in der von uns verwendeten Fassung nicht sind. 
 
-Wieso dieser Aufwand? Für die LDA-Analyse ist die Anzahl von nur 12 (relativ langen) Texten insgesamt ungünstiger als diese Aufteilung, auch wenn die arbiträre Unterteilung nach der Anzahl der Sätze weniger gut funktioniert, als dies sinngebenden Kapite tun würden. Hier ein Überblick über das refakturierte Korpus.
+Wieso dieser Aufwand? Für die LDA-Analyse ist die Anzahl von nur 12 (relativ langen) Texten insgesamt ungünstiger als diese Aufteilung, auch wenn die arbiträre Unterteilung nach der Anzahl der Sätze weniger gut funktioniert, als dies sinngebenden Kapitel tun würden. Hier ein Überblick über das refakturierte Korpus.
 
 ```{r Sherlocke Holmes-Korpus laden}
 load("daten/sherlock/sherlock.absaetze.RData")
 as.data.frame(korpus.stats)
 ```
 
-Auch der nächste Schritt ist inzwischen schon hinreichend bekannt: Wieder einmal berechnen wir eine DFM und entfernen Zahlem, Symbole und englische Standard-Stoppwörter. In einem zweiten Schritt entfernen wir solche Begriffe die nur ein einziges Mal vorkommen, sowie solche, die häufiger als 75x vorkommen. Der Befehl *dfm_trim* erlaubt durchaus komplexere Parameter wie die Begriffshäufigkeit relativ zur Termfrequenz oder Dokumentfrequenz insgesamt, aber an dieser Stelle reicht uns diese einfache Filterung. 
+Auch der nächste Schritt ist inzwischen schon hinreichend bekannt: Wieder einmal berechnen wir eine DFM und entfernen Zahlen, Symbole und englische Standard-Stoppwörter. In einem zweiten Schritt entfernen wir solche Begriffe die nur ein einziges Mal vorkommen, sowie solche, die häufiger als 75x vorkommen. Der Befehl *dfm_trim* erlaubt durchaus komplexere Parameter wie die Begriffshäufigkeit relativ zur Termfrequenz oder Dokumentfrequenz insgesamt, aber an dieser Stelle reicht uns diese einfache Filterung. 
 
 ```{r DFM vorbereiten und trimmen}
 meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, remove = c(stopwords("english"), "sherlock", "holmes"))
@@ -59,7 +60,7 @@ lda.modell <- LDA(dfm2topicmodels, anzahl.themen, method = "Gibbs")
 lda.modell
 ```
 
-Nachdem das eigentliche Modell berecht wurde, können wir uns nun zwei zentrale Bestandteile des Modells ausgeben lassen: Die Begriffe, die besonders stark mit jedem der Themen verknüpft sind (mit dem Befehl [terms](https://www.rdocumentation.org/packages/topicmodels/versions/0.2-6/topics/terms_and_topics)) ... 
+Nachdem das eigentliche Modell berechnet wurde, können wir uns nun zwei zentrale Bestandteile des Modells ausgeben lassen: Die Begriffe, die besonders stark mit jedem der Themen verknüpft sind (mit dem Befehl [terms](https://www.rdocumentation.org/packages/topicmodels/versions/0.2-6/topics/terms_and_topics)) ... 
 
 ```{r LDA-Begriffe ausgeben}
 as.data.frame(terms(lda.modell, 10))
@@ -73,9 +74,9 @@ data.frame(Thema = topics(lda.modell))
 
 Was sehen wir hier genau? Die erste Tabelle zeigt für jedes der zehn Themen die zehn am stärksten mit dem jeweiligen Thema verknüpften Begriffe. Die zweite Tabelle zeigt wiederum für jeden Text das Thema mit dem höchsten Anteil. Wie schon erläutert, sind "Texte" in diesem Fall eigentlich Absätze aus einzelnen Romanen, also bezeichnet "01_02" den zweiten Absatz von *A Scandal in Bohemia*.
 
-Für Begiffe und Texte gilt gleichermaßen, dass *alle* Themen in einer gewissen Stärke mit *allen* Begriffen/Texten verknüpft sind, nur interessieren uns üblicherweise lediglich Assoziationen einer bestimmten Stärke.  
+Für Begriffe und Texte gilt gleichermaßen, dass *alle* Themen in einer gewissen Stärke mit *allen* Begriffen/Texten verknüpft sind, nur interessieren uns üblicherweise lediglich Assoziationen einer bestimmten Stärke.  
 
-Welche quantitative Verteilung ergibt sich hieraus? Dies lässt sich leicht ermitteln, wenn man die Themen-Vorkommnisse für einen Roman durch die Gesamtanzahl der Abschnitte teilt. 
+Welche quantitative Verteilung ergibt sich hieraus? Dies lässt sich leicht ermitteln, wenn man die Themen-Vorkommnisse für einen Roman durch die Gesamtzahl der Abschnitte teilt. 
 
 ```{r LDA-Themenverteilung im Sherlock Holmes-Korpus plotten}
 lda.themen.absaetze <- data.frame(korpus.stats, Thema = topics(lda.modell)) %>%
@@ -93,9 +94,9 @@ ggplot(lda.themen.absaetze, aes(Roman, Anteil, fill = Thema)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Es fällt sofort ins Auge, das mehrere Roman gewissermaßen ihr eigenes Thema besitzen, was angesichts der Merkmale des Roman-Genres durchaus nachvollziehbar ist. Es existieren aber auch solche Themen, die in mehreren Romanen vorkommen und eher allgemeiner Natur sind, oder die Charaktere beeinhalten, die in einer Vielzahl von Sherlock Holmes-Erzählungen auftreten. 
+Es fällt sofort ins Auge, das mehrere Roman gewissermaßen ihr eigenes Thema besitzen, was angesichts der Merkmale des Roman-Genres durchaus nachvollziehbar ist. Es existieren aber auch solche Themen, die in mehreren Romanen vorkommen und eher allgemeiner Natur sind, oder die Charaktere beinhalten, die in einer Vielzahl von Sherlock Holmes-Erzählungen auftreten. 
 
-Die Verteilung von Themen in Dokumenten wird in diesem Beispiel etwas anders als sonst berechnet, weil wir diesen Schritt mithilfe von Funktionen aus [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) gewissermaßen händisch durchführen. Die "normale" Berechnung der Beziehung zwischen Begriffen und Themen bzw. Dokumenten und Themen erfolgt über die Extraktion der Variablen *beta* und *gamma*, die im LDA-Modell bereits enthalten sind (die Struktur des Modells kann mit dem Standard-R-Befehl [str](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/str) genauer untersucht werden). Das Ergebnis ist jeweils ein Data Frame, den man natürlich auch plotten kann. Die Variablen V1-VX bezeichnen hier die Themen, während die Zeilen die Begriffe bzw. die Dokumente beinhalten. Die Zahlewerte beschreiben die *Wahrscheinlichkeit der Assoziation* eines Begriffs mit einem Thema, bzw. der Anteil eines Themas an einem Dokument. 
+Die Verteilung von Themen in Dokumenten wird in diesem Beispiel etwas anders als sonst berechnet, weil wir diesen Schritt mithilfe von Funktionen aus [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) gewissermaßen händisch durchführen. Die "normale" Berechnung der Beziehung zwischen Begriffen und Themen bzw. Dokumenten und Themen erfolgt über die Extraktion der Variablen *beta* und *gamma*, die im LDA-Modell bereits enthalten sind (die Struktur des Modells kann mit dem Standard-R-Befehl [str](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/str) genauer untersucht werden). Das Ergebnis ist jeweils ein Data Frame, den man natürlich auch plotten kann. Die Variablen V1-VX bezeichnen hier die Themen, während die Zeilen die Begriffe bzw. die Dokumente beinhalten. Die Zahlenwerte beschreiben die *Wahrscheinlichkeit der Assoziation* eines Begriffs mit einem Thema, bzw. der Anteil eines Themas an einem Dokument. 
 ```{r LDA-Kennwerte Beta und Gamma ausgeben}
 head(as.data.frame(t(lda.modell@beta), row.names = lda.modell@terms)) # Begriffe > Themen
 head(as.data.frame(lda.modell@gamma, row.names = lda.modell@documents)) # Dokumente > Themen
@@ -106,7 +107,7 @@ Was haben wir durch das Modell erfahren? Zunächst einmal existieren Themen, wel
 
 ### LDA-Themenpassung bestimmen mit LDAtuning
 
-Bevor wir uns diesem Beispiel zuwenden, nehmen wir aber noch eine Heuristik für die Ermittlung des idealen *k* (also der Themenanzahl) in den Blick. Statt einfach eine ärbiträtre Zahl festzulegen ist es sinnvoll, die Passung unterschiedlicher Einstellungen zu testen. Dies erleichtert das Paket [LDAtuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html), in das eine Reihe unterschiedlicher Metriken für die Bestimmung einer guten Themenanzahl auf Grundlage statistischer Faktoren integriert sind. Achtung: diese Berechnung ist deshalb sehr aufwändig, weil für alle Schritte ein eigenes Modell gerechnet wird (also in diesem Beispiel 15 einzelne Modelle), was vor allem bei größeren Datensätzen leicht mehrere Tage dauern kann.
+Bevor wir uns diesem Beispiel zuwenden, nehmen wir aber noch eine Heuristik für die Ermittlung des idealen *k* (also der Themenanzahl) in den Blick. Statt einfach eine arbiträre Zahl festzulegen ist es sinnvoll, die Passung unterschiedlicher Einstellungen zu testen. Dies erleichtert das Paket [LDAtuning](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html), in das eine Reihe unterschiedlicher Metriken für die Bestimmung einer guten Themenanzahl auf Grundlage statistischer Faktoren integriert sind. Achtung: diese Berechnung ist deshalb sehr aufwändig, weil für alle Schritte ein eigenes Modell gerechnet wird (also in diesem Beispiel 15 einzelne Modelle), was vor allem bei größeren Datensätzen leicht mehrere Tage dauern kann.
 
 ```{r LDAtuning-Metriken berechenen}
 ldatuning.metriken <- FindTopicsNumber(dfm2topicmodels, 
@@ -129,7 +130,7 @@ Die Ergebnisse sind etwas uneinheitlich, was primär damit zusammenhängt, dass 
 
 ### Ein LDA-Themenmodell für das Zeit-Nachrichtenkorpus
 
-Wie sieht eine ähnliche Analyse für ein etwas repräsentativeres und heterogeneres Korpus aus? Um diese Frage zu beantworten, laden wir ein bisher noch unverwendetes Korpus, bestehend aus 377 Beiträgen aus der Wochenzeitung [Die Zeit](https://www.zeit.de/), die zwischen 2011 und 2016 veröffentlicht wurden. Diese wurden anhand des Pakets [rzeit2](https://cran.r-project.org/web/packages/rzeit2/vignettes/introduction.html) erhoben, welches in Kapitel 8 noch etwas genauer besprochen wird. Zunächste werfen wir wie immer einen Blick auf die Metadaten. 
+Wie sieht eine ähnliche Analyse für ein etwas repräsentativeres und heterogeneres Korpus aus? Um diese Frage zu beantworten, laden wir ein bisher noch unverwendetes Korpus, bestehend aus 377 Beiträgen aus der Wochenzeitung [Die Zeit](https://www.zeit.de/), die zwischen 2011 und 2016 veröffentlicht wurden. Diese wurden anhand des Pakets [rzeit2](https://cran.r-project.org/web/packages/rzeit2/vignettes/introduction.html) erhoben, welches in Kapitel 8 noch etwas genauer besprochen wird. Zunächst werfen wir wie immer einen Blick auf die Metadaten. 
 
 ```{r Zeit-Korpus laden}
 load("daten/zeit/zeit.sample.korpus.RData")
@@ -166,7 +167,7 @@ as.data.frame(terms(lda.modell, 10))
 data.frame(Thema = topics(lda.modell))
 ```
 
-Das Bild ist trotz des recht kleinen Samples und einiger Interferenzen deutlich klarer, als beim Holmes-Beispiel, was daran liegt, dass das Korpus thematisch deutlich heterogener ist. Unterschiede zwischen Ressorts wie Aussenpolitik und Sport, aber auch zwischen konkreten Themenfeldern wie der Euro- und Flüchtlingskrise, der Energiewende, oder der Vorratsdatenspeicherung, sind klar erkennbar. 
+Das Bild ist trotz des recht kleinen Samples und einiger Interferenzen deutlich klarer, als beim Holmes-Beispiel, was daran liegt, dass das Korpus thematisch deutlich heterogener ist. Unterschiede zwischen Ressorts wie Außenpolitik und Sport, aber auch zwischen konkreten Themenfeldern wie der Euro- und Flüchtlingskrise, der Energiewende, oder der Vorratsdatenspeicherung, sind klar erkennbar. 
 
 Wie ähnlich sind sich die Themen untereinander? Diese Frage ist einerseits deshalb interessant, weil sich so das Modell besser validieren lässt, und andererseits, weil sich aus der Entdeckung von homogenen Clustern möglicherweise Themenbündel ableiten lassen, die für die weitere Analyse relevant sind. Das folgende Plot zeigt die Ähnlichkeit der Themen auf der Grundlage von Wortverteilungen. Realisiert wird diese Ähnlichkeitsberechnung mit den Befehlen [dist](https://www.rdocumentation.org/packages/stats/versions/3.5.1/topics/dist) und [hclust](https://www.rdocumentation.org/packages/stats/versions/3.5.1/topics/hclust) welche zum Standardumfang von R gehören. Anschließend wird das Ergebnis mit dem R-nativen [plot](https://www.rdocumentation.org/packages/graphics/versions/3.5.1/topics/plot)-Befehl dargestellt -- ggplot liefert hier kein wesentlich schöneres Ergebnis.
 
@@ -184,7 +185,7 @@ plot(lda.themen.aehnlichkeit, main = "LDA-Themenähnlichkeit nach Features", xla
 Wie verhalten sich die ermittelten Themen zu einer externen Variable, wie etwa dem Ressort? Die Beiträge aus der *Zeit* können anhand ihrer URL in Ressorts differenziert werden, etwa http://www.zeit.de/politik/deutschland/2011-01/gorch-fock-ushuaia in *politik* (nach dem sehr einfachen Muster zeit.de/Ressort). Wir erwarten, dass eine klare Beziehung zwischen den Themen und den Ressorts existiert, denn auch wenn es natürlich Überlappungen gibt, sollte sich bspw. der Bereich *Sport* vom Bereich *Politik* unterscheiden lassen.
 
 ```{r Themen-Ressort-Verteilung berechnen und plotten}
-lda.themen.artikel <- merge(docvars(meine.dfm.trim), as.data.frame(lda.modell@gamma, row.names = lda.modell@documents), by = "row.names", sort = F)
+lda.themen.artikel <- merge(as.data.frame(docvars(meine.dfm.trim), row.names = docnames(meine.dfm.trim)), as.data.frame(lda.modell@gamma, row.names = lda.modell@documents), by = "row.names", sort = F)
 lda.themen.artikel <- mutate(lda.themen.artikel, Ressort = str_split(url_parse(lda.themen.artikel$href)$path, pattern = "/", simplify = T)[,1]) %>%
   gather(Thema, Prozent, V1:V15) %>%
   mutate(Thema = paste0("Thema ", sprintf("%02d", as.numeric(str_sub(Thema, start = 2))))) %>% 
@@ -201,7 +202,7 @@ ggplot(lda.themen.artikel, aes(Ressort, Prozent, color = Thema, fill = Thema)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Da das Plot in diesem Fall vermutlich etwas schlechter interpretierbar ist, als es die "nakten" Zahlen sind, anbei auch noch die Themen-Ressort-Verteilung als einfache Tabelle. Wie beim ersten Beispiel zum Sherlock Holmes-Korpus re-aggregieren wir die Themenanteile hier, d.h. die Gesamtanteile aller Themen an *einem* Ressort summieren sich auf 100%.
+Da das Plot in diesem Fall vermutlich etwas schlechter interpretierbar ist, als es die "nackten" Zahlen sind, anbei auch noch die Themen-Ressort-Verteilung als einfache Tabelle. Wie beim ersten Beispiel zum Sherlock Holmes-Korpus re-aggregieren wir die Themenanteile hier, d.h. die Gesamtanteile aller Themen an *einem* Ressort summieren sich auf 100%.
 
 ```{r Tabelle der Themen-Ressort-Verteilung}
 lda.themen.verteilung <- lda.themen.artikel %>% 
@@ -211,7 +212,7 @@ lda.themen.verteilung <- lda.themen.artikel %>%
 lda.themen.verteilung
 ```
 
-Auch hier gilt, dass die unterstellte Beziehung zwischen Thema und Ressort klar erkennbar ist. Logisch ist auch, dass spezialisierte Ressorts wie Karriere thematisch homogener sind, als breite Bereiche wie Politik, Wirtschaft oder Gesellschaft, die eine Vielzahl von Themen und Beitragstypen beeinhalten. Unterschiede ergeben sich aber auch aus der extrem ungleichen Größenverteilung der Ressorts (Politik hat mit über 30% einen sehr großen Anteil am Gesamtkorpus). 
+Auch hier gilt, dass die unterstellte Beziehung zwischen Thema und Ressort klar erkennbar ist. Logisch ist auch, dass spezialisierte Ressorts wie Karriere thematisch homogener sind, als breite Bereiche wie Politik, Wirtschaft oder Gesellschaft, die eine Vielzahl von Themen und Beitragstypen beinhalten. Unterschiede ergeben sich aber auch aus der extrem ungleichen Größenverteilung der Ressorts (Politik hat mit über 30% einen sehr großen Anteil am Gesamtkorpus). 
 
 ### STM-Themenmodelle auf das UN-Korpus anwenden
 
@@ -236,7 +237,7 @@ meine.dfm.un.trim
 
 Nun können wir das STM-Modell rechnen, was zunächst ähnlich abläuft wie bei dem LDA-Themenmodell. Wir legen eine Themenanzahl von *k* = 40 Themen fest und konvertieren dann mittels [convert](https://www.rdocumentation.org/packages/quanteda/versions/1.3.4/topics/convert) die DFM aus quanteda in eine Form, die das Paket stm versteht.  
 
-Da die Berechnung eines STM-Modells mit einer größeren Anzahl von Themen für ein umfangreiches Korpus wie das UN General Debate Corpus deutlich länger dauert, als dies in den vorangehenden Beispiele der Fall ist, laden wir im folgenden Codeblock ein bereits gerechnetes Model mit *load("daten/un/un.stm.RData")*. Wer sich die STM-Berechnung in Aktion anschauen möchte, muss nur die Zeile mit dem Funktionsaufruf von [stm](https://www.rdocumentation.org/packages/stm/versions/1.3.3/topics/stm) auskommentieren, also das "#" entfernen. 
+Da die Berechnung eines STM-Modells mit einer größeren Anzahl von Themen für ein umfangreiches Korpus wie das UN General Debate Corpus deutlich länger dauert, als dies in den vorangehenden Beispiele der Fall ist, laden wir im folgenden Codeblock ein bereits gerechnetes Modell mit *load("daten/un/un.stm.RData")*. Wer sich die STM-Berechnung in Aktion anschauen möchte, muss nur die Zeile mit dem Funktionsaufruf von [stm](https://www.rdocumentation.org/packages/stm/versions/1.3.3/topics/stm) auskommentieren, also das "#" entfernen. 
 
 Schließlich erstellen wir eine Tabelle, welche uns die wichtigsten Schlüsselwörter für jedes Thema (X1-X40) anzeigt.
 
@@ -287,9 +288,9 @@ for (i in 1:9)
 }
 ```
 
-Die Ergebnisse geben Grund zu der Annahme, dass sich mit STM-Themenmodellen tatsächlich interessante Trends identifizieren lassen. Zunächst sind die Ergebnisse zum Teil konfirmatorisch: Wir würden erwarten, dass ein Thema zu sowjetischen Nuklearwaffen (hier Thema #9) mit dem Ende der Sowjetunion stark abfällt. Dass das Thema nicht ganz verschwindet hat zum einen damit zu tun, dass es weiterhin Erwähnung findet, aber auch damit, dass es Berührung mit anderen Themen (etwa neuen russischen Atomwaffen) hat. Kein Themenmodell kann solche Differenzierungen perfekt vornehmen, weil sich manche Themen begrifflich schlicht zu sehr ähneln, auch wenn ein Mensch den Unterschied problemlos erkennnen würde. Wir stellen ausserdem fest, dass bestimmte Themen (im Sinne des Modells) einzelne historische Ereignisse beinhalten, zum Teil auch in Kombination, etwa der [Libanonkrieg](https://de.wikipedia.org/wiki/Libanonkrieg_1982) und die [erste Intifada](https://de.wikipedia.org/wiki/Erste_Intifada) (Thema #2), der [zweite Kongokrieg](https://de.wikipedia.org/wiki/Zweiter_Kongokrieg) (Thema #5), oder die stufenweise Realisierung der [europäischen Währungsunion](https://de.wikipedia.org/wiki/Euro) (Thema #7). Andere Themen sind im Vergleich "zeitloser", wobei manche sich in ihrem Niveau über die Zeit kaum verändern (pazifische Inselstaaten, Thema #4) und andere saisonal wiederkehren (atomare Abrüstung, Thema #6). Interessant ist der Abfall bei nationalen (sozialistischen) Unabhängigkeitsbewegungen, die in den 1970ern noch eine sichtbare Rolle spielten (Thema #3), oder Diskurse über die Reform der UN und des Weltsicherheitsrats (Thema #1). 
+Die Ergebnisse geben Grund zu der Annahme, dass sich mit STM-Themenmodellen tatsächlich interessante Trends identifizieren lassen. Zunächst sind die Ergebnisse zum Teil konfirmatorisch: Wir würden erwarten, dass ein Thema zu sowjetischen Nuklearwaffen (hier Thema #9) mit dem Ende der Sowjetunion stark abfällt. Dass das Thema nicht ganz verschwindet hat zum einen damit zu tun, dass es weiterhin Erwähnung findet, aber auch damit, dass es Berührung mit anderen Themen (etwa neuen russischen Atomwaffen) hat. Kein Themenmodell kann solche Differenzierungen perfekt vornehmen, weil sich manche Themen begrifflich schlicht zu sehr ähneln, auch wenn ein Mensch den Unterschied problemlos erkennen würde. Wir stellen außerdem fest, dass bestimmte Themen (im Sinne des Modells) einzelne historische Ereignisse beinhalten, zum Teil auch in Kombination, etwa der [Libanonkrieg](https://de.wikipedia.org/wiki/Libanonkrieg_1982) und die [erste Intifada](https://de.wikipedia.org/wiki/Erste_Intifada) (Thema #2), der [zweite Kongokrieg](https://de.wikipedia.org/wiki/Zweiter_Kongokrieg) (Thema #5), oder die stufenweise Realisierung der [europäischen Währungsunion](https://de.wikipedia.org/wiki/Euro) (Thema #7). Andere Themen sind im Vergleich "zeitloser", wobei manche sich in ihrem Niveau über die Zeit kaum verändern (pazifische Inselstaaten, Thema #4) und andere saisonal wiederkehren (atomare Abrüstung, Thema #6). Interessant ist der Abfall bei nationalen (sozialistischen) Unabhängigkeitsbewegungen, die in den 1970ern noch eine sichtbare Rolle spielten (Thema #3), oder Diskurse über die Reform der UN und des Weltsicherheitsrats (Thema #1). 
 
-Wie sind die Unterschiede bei dem angezeigten Konfidenzintervall zu interpretieren? Themen wie die Reform des Weltsicherheitsrates oder der europäischen Zusammenarbeit sind lexikalisch klarer identifzierbar als die (vermutlich recht variablen) Diskurse um die Interessen von Inselstaaten. Themen mit einem sehr klaren zeitlichen Profil sind i.d.R. zuverlässiger identifizierbar, als solche, die über lange Zeiträume hinweg auftreten. 
+Wie sind die Unterschiede bei dem angezeigten Konfidenzintervall zu interpretieren? Themen wie die Reform des Weltsicherheitsrats oder der europäischen Zusammenarbeit sind lexikalisch klarer identifizierbar als die (vermutlich recht variablen) Diskurse um die Interessen von Inselstaaten. Themen mit einem sehr klaren zeitlichen Profil sind i.d.R. zuverlässiger identifizierbar, als solche, die über lange Zeiträume hinweg auftreten. 
 
 ### Ideale STM-Themenanzahl bestimmen
 
@@ -314,18 +315,18 @@ plot(mein.stm.idealK)
 
 Die latente semantische Analyse (LSA) ist ein computergestütztes Analyseverfahren, welches Wissensstrukturen Anhand von Wortvektoren repräsentiert.Es kann somit -- ähnlich wie andere hier bereits vorgestellt Ansätze -- zur automatisierten Bewertung der Ähnlichkeit des Inhalts von Wörtern und Texten verwendet werden  Das Verfahren gründet sich auf die Annahme, dass aus der Verwendung von Wörtern auf deren Bedeutung geschlossen werden kann und die häufige Verwendung in ähnlichen Kontexten einen Hinweis auf inhaltliche Ähnlichkeit darstellt.
 
-Wie wenden LSA folgend auf das Facebook-Korpus an, um den Unterschied zwischen Kommentaren auf rechtspopulistischen Seiten und Nachrichtenseite näher zu untersuchen. Zunächst laden wir die Daten, ziehen ein kleineres Zufallssample, berechnen eine DFM und wenden dann die eigentliche LSA (mittels [textmodel_lsa](https://quanteda.io/reference/textmodel_lsa.html)) an. 
+Wie wenden LSA folgend auf das Facebook-Korpus an, um den Unterschied zwischen Kommentaren auf rechtspopulistischen Seiten und Nachrichtenseiten näher zu untersuchen. Zunächst laden wir die Daten, ziehen ein kleineres Zufallssample, berechnen eine DFM und wenden dann die eigentliche LSA (mittels [textmodel_lsa](https://quanteda.io/reference/textmodel_lsa.html)) an. 
 
-```{r, Latente Semantische Analyse für Sample aus dem Facbook-Korpus berechnen}
+```{r Latente Semantische Analyse für Sample aus dem Facbook-Korpus berechnen}
 load("daten/facebook/facebook.korpus.RData")
 korpus.facebook.sample <- corpus_sample(korpus.facebook, size = 200)
 facebook.dfm <- dfm(korpus.facebook.sample)
 facebook.lsa <- textmodel_lsa(facebook.dfm, nd = 10)
 ```
 
-Nun können wir die 10 Dimensionen der LSA, für welche wir den Vergleich gerechnet haben, untereinander vergleichen, und zwar unter Rückgriff auf die Unterscheidung zwischen  Rechtspopulismus/Nachrichten. 
+Nun können wir die Dimensionen der LSA für welche wir den Vergleich gerechnet haben untereinander vergleichen, und zwar unter Rückgriff auf die Unterscheidung zwischen den beiden Hauptkategorien Rechtspopulismus und Nachrichten.
 
-```{r, Verschiedenen Dimensionen vergleichen und plotten}
+```{r Verschiedenen Dimensionen vergleichen und plotten}
 lsa.facebook.1 <- as.data.frame(facebook.lsa$docs[,1:2]) %>% 
   rownames_to_column(var = "Quelle") %>% 
   rename(Dimension1 = V1, Dimension2 = V2) %>% 
@@ -377,5 +378,6 @@ ggplot(lsa.facebook.5, aes(Dimension5, Dimension6, colour = Typ)) +
   ggtitle("LSA-Dimensionen im Vergleich (5)")
 ```
 
-Abschließend lässt sich festhalten, dass Themenmodelle und die latente semantische Analyse nützliche Werkzeuge der automatisierten Inhaltsanalyse darstellen, und zwar sowohl dann, wenn man einen großen Datenbestand explorativ erschließen will, also auch, wenn es um die gezielte Ermittlung von systematischen Zusammenhängen des Themenvorkommens mit andere Variablen geht. Allerdings sind Themenmodelle auch keine Wunderwaffe. Sind bestimmte Voraussetzungen wie Mindestgröße und -vielfalt des Korpus (und zwar auf der Ebene von Wörtern *und* Dokumenten und ihrer Relation zu einander) nicht erfüllt, oder lassen sich keine schlüssigen Muster aus den Wortverteilungen ableiten, erhält man ein wenig schlüssiges Modell. Auch ist eben alles mit einem klaren Fussabdruck aus Worthäufigkeiten ein Thema im Sinne des Themenmodells, auch wenn es sich nicht um ein Thema in der menschlichen Interpretation handelt. Gerade bei Themenmodellen gilt also das für die automatisierte Inhaltsanalyse weithin erprobte Motto [Validieren, Validieren, Validieren](https://web.stanford.edu/~jgrimmer/tad2.pdf).
+Abschließend lässt sich festhalten, dass Themenmodelle und die latente semantische Analyse nützliche Werkzeuge der automatisierten Inhaltsanalyse darstellen, und zwar sowohl dann, wenn man einen großen Datenbestand explorativ erschließen will, also auch, wenn es um die gezielte Ermittlung von systematischen Zusammenhängen des Themenvorkommens mit andere Variablen geht. Allerdings sind Themenmodelle auch keine Wunderwaffe. Sind bestimmte Voraussetzungen wie Mindestgröße und -vielfalt des Korpus (und zwar auf der Ebene von Wörtern *und* Dokumenten und ihrer Relation zu einander) nicht erfüllt, oder lassen sich keine schlüssigen Muster aus den Wortverteilungen ableiten, erhält man ein wenig schlüssiges Modell. Auch ist eben alles mit einem klaren Fußabdruck aus Worthäufigkeiten ein Thema im Sinne des Themenmodells, auch wenn es sich nicht um ein Thema in der menschlichen Interpretation handelt. Gerade bei Themenmodellen gilt also das für die automatisierte Inhaltsanalyse weithin erprobte Motto [Validieren, Validieren, Validieren](https://web.stanford.edu/~jgrimmer/tad2.pdf).
+
 

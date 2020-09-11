@@ -140,7 +140,7 @@ Diese Grafiken sind zunächst einmal nicht umwerfend informativ. Sie belegen led
 Korpora lassen sich in quanteda sehr leicht samplen, umformen und mit zusätzlichen Metadaten versehen. Metadaten können wiederum genutzt werden, um das Korpus nach bestimmten Kriterien zu filtern. Der folgenden Aufruf zeit die ersten 1.000 Wörter des ersten Romans.
 
 ```{r Substrings extrahieren}
-str_sub(korpus[1], start = 1, end = 1000)
+str_sub(korpus[2], start = 1, end = 1000)
 ```
 
 Jeder Text lässt sich also auch direkt anhand seiner Indizierung aufrufen (etwa korpus[1] für den ersten Text), neben dem Aufruf über die Funktion [texts](http://docs.quanteda.io/reference/texts.html). Texte könne auf diesem Weg auch ersetzt werden, ganz so, wie man die Elemente eines Vektors oder Data Frames überschreiben kann.
@@ -151,7 +151,7 @@ Die Beschriftung des Beispiels besteht hier aus der Variable *docname* und einer
 
 ```{r Ein Korpus umformen}
 korpus.saetze <- corpus_reshape(korpus, to = "sentences")
-korpus.saetze[1]
+korpus.saetze[100]
 ```
 
 Mit [corpus_sample](http://docs.quanteda.io/reference/corpus_sample.html) kann weiterhin ein zufälliges Sample aus einem Korpus gezogen werden. Wir wenden die Funktion hier auf das Satz-Korpus an. 
@@ -182,24 +182,22 @@ zufallsabsatz <- corpus_segment(korpus, "  ") %>%
 zufallsabsatz[1]
 ```
 
-
 #### Tokenisierung 
 
 Unter Tokensierung versteht man die Aufspaltung eines Textes in laufende Wörter oder sog. N-Gramme, also Sequenzen mehrerer Wörter in Folge. Die Funktion [tokens](https://docs.quanteda.io/reference/tokens.html) realisiert die Tokenisierung eines Korpus in quanteda. Zusätzlich versteht *tokens* auch unzählige Argumente für die Entfernung bestimmter Features.
 
 ```{r Einfache Tokenisierung}
 meine.tokens <- tokens(korpus, verbose = TRUE)
-head(as.list(meine.tokens)$`A Scandal in Bohemia`)
+head(as.list(meine.tokens)$`A Scandal in Bohemia`, 20)
 ```
 
 Mittels der Funktion [tokens](https://docs.quanteda.io/reference/tokens.html) lässt sich der Text über das Argument *ngrams* auch gleich in N-Gramme (Mehrwortsequenzen) aufspalten. Im folgenden Beispiel werden erst Bigramme vom Anfang des ersten Textes angezeigt, und dann alle Sequenzen von einem, zwei oder drei Begriffen extrahiert (durch die Anwendung von [head](https://www.rdocumentation.org/packages/utils/versions/3.5.1/topics/head) sehen wir nur Trigramme, es sind aber auch kürzere Sequenzen vorhanden). 
 
 ```{r N-Gramme extrahieren}
-meine.tokens <- tokens(korpus, ngrams = 2)
-head(as.list(meine.tokens)$`A Scandal in Bohemia`)
-
-meine.tokens <- tokens(korpus, ngrams = 1:3)
-head(as.list(meine.tokens)$`A Scandal in Bohemia`)
+meine.ngrams <- tokens_ngrams(meine.tokens, n = 2)
+sample(as.list(meine.ngrams)$`A Scandal in Bohemia`, 5)
+meine.ngrams <- tokens_ngrams(meine.tokens, n = 1:3)
+sample(as.list(meine.ngrams)$`A Scandal in Bohemia`, 5)
 ```
 
 Hilfreich ist auch die Möglichkeit, bei der Tokenisierung bestimmte Begriffe zu entfernen oder zurückzubehalten. 
@@ -365,13 +363,12 @@ Interessanter als die Darstellung des Gesamtkorpus ist auch hier der Vergleich. 
 textplot_wordcloud(meine.dfm[5:8,], color = brewer.pal(4, "Set1"), min_size = 0.2, max_size = 4, max_words = 50, comparison = TRUE)
 ```
 
-
 ### Weiterführende Lektüre
 
 Grundsätzlich muss in diesen Kapitel zwischen den geschildertern grundlegenden Verfahren aus der Computerlinguistik und Informatik einerseits und den konkreten Funktionsumfang von quanteda unterschieden werden.
 
 Techniken wie die Tokenisierung von Korpora, die Normalisierung von Wortfrequenzen, und die Erstellung und Gewichtung von DFMs (oder klassisch "document feature matrices") ist buchstäblicher Kern der Computerlinguistik, daher sollte es nicht verwundern, dass hier auflagenstarke Standardwerke existieren. 
 
-Hauptquelle zu quanteda ist die Projekwebsite, die einerseits eine Reihe von Tutorials zu einzelnen Einsatzbereichen enthält (etwa Sentimentanalyse...), denen die hier aufgeführten Beispiele z.T. sehr ähnlich sind, zum anderen aber auch eine Funktionsregerenz, welche die einzeln Befehle systematisch gruppiert und erklärt. Neben der quanteda hithub_Seite, über die man die aktuelle Emtwivklerversion des Pakets neziehen kann, ist vor allem das quanteda-Forum zu empfehlen, wo konkrete Fragen vom Programmiererteam beantwortet werden.
+Hauptquelle zu quanteda ist die Projekwebsite, die einerseits eine Reihe von Tutorials zu einzelnen Einsatzbereichen enthält (etwa Sentimentanalyse...), denen die hier aufgeführten Beispiele z.T. sehr ähnlich sind, zum anderen aber auch eine Funktionsregerenz, welche die einzeln Befehle systematisch gruppiert und erklärt. Neben der quanteda github-Seite, über die man die aktuelle Emtwicklerversion des Pakets beziehen kann, ist vor allem das quanteda-Forum zu empfehlen, wo konkrete Fragen vom Programmiererteam beantwortet werden.
 
 

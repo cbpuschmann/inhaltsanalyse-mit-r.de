@@ -34,7 +34,9 @@ Nachdem wir die notwendigen Bibliotheken gelanden haben, greifen wir eneut auf d
 load("daten/sherlock/sherlock.absaetze.RData")
 
 # Berechnen einer DFM
-meine.dfm <- dfm(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE, tolower = F, ngrams = 2)
+meine.dfm <- tokens(korpus, remove_numbers = TRUE, remove_punct = TRUE, remove_symbols = TRUE) %>% 
+  tokens_ngrams(n = 2) %>% 
+  dfm(tolower = FALSE)
 ```
 
 Dann Laden wir eine einfache Liste von Personen, welche in den Romanen vorkommen. Durch unterschiedliche Varianten des gleichen Namens (Sherlock Holmes vs. Mr. Holmes vs. Sherlock) ist dies Methode nicht ganz akkurat, es genügt aber für eine einfache Demonstration.  
